@@ -7,6 +7,7 @@
 
 #include <game/game.hpp>
 
+
 void enable_dpi_awareness()
 {
 	const utils::nt::library user32{ "user32.dll" };
@@ -38,6 +39,7 @@ int preinit()
 	{
 		const launcher launcher;
 		launcher.run();
+		
 
 		create_console();
 

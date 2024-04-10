@@ -29,7 +29,7 @@ public:
 	static std::string asio_device_name;
 	static HMODULE dll_module;
 private:
-	html_window main_window_;
+	//html_window main_window_;
 
 	void create_main_menu();
 

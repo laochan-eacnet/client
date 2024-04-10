@@ -1,0 +1,5 @@
+先给webview项目在Nuget装上Microsoft.Web.WebView2
+然后Build client
+报错之后把Microsoft.Web.WebView2卸载掉
+给client装上Microsoft.Web.WebView2
+再Build client就成功了
