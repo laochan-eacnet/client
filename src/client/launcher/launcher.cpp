@@ -4,9 +4,11 @@
 #include <utils/nt.hpp>
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
+#include <utils/io.hpp>
 
 std::string launcher::token;
 std::string launcher::get_service_address;
+std::string launcher::asio_device_name;
 launcher::display_mode launcher::disp_mode;
 launcher::sound_mode launcher::snd_mode;
 HMODULE launcher::dll_module;
@@ -43,6 +45,16 @@ void launcher::create_main_menu()
 		launcher::get_service_address = param.get_string();
 	});
 
+	this->main_window_.register_callback("setAsioDeviceName", [this](html_frame::callback_params* params)
+	{
+		if (params->arguments.empty()) return;
+
+		const auto param = params->arguments[0];
+		if (!param.is_string()) return;
+
+		launcher::asio_device_name = param.get_string();
+	});
+
 	this->main_window_.register_callback("setDisplayMode", [this](html_frame::callback_params* params)
 	{
 		if (params->arguments.empty()) return;
@@ -63,11 +75,23 @@ void launcher::create_main_menu()
 		launcher::snd_mode = static_cast<sound_mode>(param.get_number());
 	});
 
+	this->main_window_.register_callback("saveConfig", [this](html_frame::callback_params* params)
+	{
+		if (params->arguments.empty()) return;
+
+		const auto param = params->arguments[0];
+		if (!param.is_string()) return;
+
+		utils::io::write_file("laochan-config.json", param.get_string());
+	});
+
+
 	this->main_window_.set_callback([](window* window, const UINT message, const WPARAM w_param, const LPARAM l_param) -> LRESULT
 	{
 		if (message == WM_CLOSE)
 		{
 			window::close_all();
+			ExitProcess(0);
 		}
 
 		return DefWindowProcA(*window, message, w_param, l_param);
@@ -75,8 +99,13 @@ void launcher::create_main_menu()
 
 	this->main_window_.create("Laochan-Eacnet Infinitas", 750, 480);
 
-	auto uuidInject = "<script>window.uuid='" + utils::string::dump_hex(utils::smbios::get_uuid(), "") + "';</script>";
-	this->main_window_.load_html(uuidInject + load_content(MENU_MAIN));
+	auto inject = "<script>window.uuid='" + utils::string::dump_hex(utils::smbios::get_uuid(), "") + "';</script>";
+
+	if (utils::io::file_exists("laochan-config.json")) {
+		inject += "<script>window.settings=" + utils::io::read_file("laochan-config.json") + ";</script>";
+	}
+
+	this->main_window_.load_html(inject + load_content(MENU_MAIN));
 	this->main_window_.show();
 }
 

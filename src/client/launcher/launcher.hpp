@@ -26,6 +26,7 @@ public:
 	static std::string get_service_address;
 	static display_mode disp_mode;
 	static sound_mode snd_mode;
+	static std::string asio_device_name;
 	static HMODULE dll_module;
 private:
 	html_window main_window_;

@@ -26,6 +26,11 @@ namespace env
 			args += " ";
 
 			if (launcher::snd_mode == launcher::sound_mode::asio) {
+				// override asio device name
+				uintptr_t device_name_addr = reinterpret_cast<uintptr_t>(launcher::asio_device_name.data());
+				utils::hook::set<uint32_t>(0x140246F74, static_cast<uint32_t>(device_name_addr - 0x140246F78));
+
+				printf("I:launcher: using asio device: %s\n", launcher::asio_device_name.data());
 				args += "--asio ";
 			}
 
@@ -37,10 +42,11 @@ namespace env
 					args += "--miniW ";
 					break;
 				case launcher::display_mode::windowed_720p:
-					args += "-W ";
+					args += "-w ";
 					break;
 			}
 
+			printf("I:launcher: preinit game with arg: %s\n", args.data());
 			game::game_preinit(args.data());
 		}
 	};

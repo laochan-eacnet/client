@@ -9,10 +9,10 @@
 
 void enable_dpi_awareness()
 {
-	const utils::nt::library user32{"user32.dll"};
+	const utils::nt::library user32{ "user32.dll" };
 	const auto set_dpi = user32
-		                     ? user32.get_proc<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>("SetProcessDpiAwarenessContext")
-		                     : nullptr;
+		? user32.get_proc<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>("SetProcessDpiAwarenessContext")
+		: nullptr;
 	if (set_dpi)
 	{
 		set_dpi(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -31,16 +31,24 @@ void create_console()
 
 int preinit()
 {
-	create_console();
-
 	enable_dpi_awareness();
 	std::srand(uint32_t(time(nullptr)));
 
-	const launcher launcher;
-	launcher.run();
+	try
+	{
+		const launcher launcher;
+		launcher.run();
 
-	if (!component_loader::post_start())
+		create_console();
+
+		if (!component_loader::post_start())
+			return 0;
+	}
+	catch (std::exception& e)
+	{
+		MessageBoxA(nullptr, e.what(), "ERROR", MB_ICONERROR);
 		return 0;
+	}
 
 	return 1;
 }
@@ -50,8 +58,16 @@ int init()
 	auto hr = game::avs_init();
 	if (hr) return hr;
 
-	if (!component_loader::post_load())
+	try
+	{
+		if (!component_loader::post_load())
+			return -1;
+	}
+	catch (std::exception& e)
+	{
+		MessageBoxA(nullptr, e.what(), "ERROR", MB_ICONERROR);
 		return -1;
+	}
 
 	return 0;
 }
