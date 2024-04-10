@@ -5,8 +5,7 @@
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
 #include <utils/io.hpp>
-#include <webview.h>
-#include <json.hpp>
+
 using json = nlohmann::json;
 
 std::string launcher::token;
@@ -23,166 +22,72 @@ launcher::launcher()
 
 void launcher::create_main_menu()
 {
+	_main_window = std::make_unique<webview::webview>(true, nullptr);
 
-	webview::webview _main_window(true, nullptr);
-	_main_window.set_title("Laochan-Eacnet Infinitas");
-	_main_window.set_size(750, 480, WEBVIEW_HINT_NONE);
+	_main_window->set_title("Laochan-Eacnet Infinitas");
+	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
 
-	//传过来的req是json
-	_main_window.bind("exit", [&](const std::string& req) -> std::string {
-		_main_window.terminate();
-		return "";
-		});
+	_main_window->bind("exit", [this](auto) -> std::string {
+		_main_window->terminate();
+		return {};
+	});
 
+	_main_window->bind("uuid", [this](auto) -> std::string {
+		const auto uuid = utils::string::dump_hex(utils::smbios::get_uuid(), "");
+		return json{ uuid }.dump();
+	});
 
-	_main_window.bind("setToken", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_string())
-			{
-				json result = { {"result","error"},{"info","first param must be string"} };
-				return result.dump();
-			}
-			launcher::token = data.begin().value();
+	_main_window->bind("getOptions", [this](auto) -> std::string {
+		if (!utils::io::file_exists("laochan-config.json")) {
+			return "null";
 		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()}};
-			return result.dump();
+
+		return utils::io::read_file("laochan-config.json");
+	});
+
+	_main_window->bind("setOptions", [this](auto param_json) -> std::string {
+		const json params = json::parse(param_json);
+
+		if (!params.is_array() || !params.size()) {
+			return {};
 		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
 
-	_main_window.bind("setServerAddress", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_string())
-			{
-				json result = { {"result","error"},{"info","first param must be string"} };
-				return result.dump();
-			}
-			launcher::get_service_address = data.begin().value();
+		const auto options = params[0];
+
+		if (!options.is_object()) {
+			return {};
 		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()} };
-			return result.dump();
+
+		if (options["token"].is_string()) {
+			launcher::token = options.value("token", "");
 		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
 
-
-	_main_window.bind("setAsioDeviceName", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_string())
-			{
-				json result = { {"result","error"},{"info","first param must be string"} };
-				return result.dump();
-			}
-			launcher::asio_device_name = data.begin().value();
+		if (options["serverUrl"].is_string()) {
+			launcher::get_service_address = options.value("serverUrl", "");
 		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()} };
-			return result.dump();
+
+		if (options["asioDevice"].is_string()) {
+			launcher::asio_device_name = options.value("asioDevice", "");
 		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
 
-	_main_window.bind("setDisplayMode", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_number_integer())
-			{
-				json result = { {"result","error"},{"info","first param must be integer"} };
-				return result.dump();
-			}
-			launcher::disp_mode = static_cast<display_mode>(data.begin().value());
+		if (options["displayMode"].is_number_integer()) {
+			launcher::disp_mode = options.value<launcher::display_mode>("displayMode", launcher::display_mode::windowed_720p);
 		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()} };
-			return result.dump();
+
+		if (options["soundMode"].is_number_integer()) {
+			launcher::snd_mode = options.value<launcher::sound_mode>("soundMode", launcher::sound_mode::wasapi);
 		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
 
-	_main_window.bind("setSoundMode", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_number_integer())
-			{
-				json result = { {"result","error"},{"info","first param must be integer"} };
-				return result.dump();
-			}
-			launcher::snd_mode = static_cast<sound_mode>(data.begin().value());
-		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()} };
-			return result.dump();
-		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
+		utils::io::write_file("laochan-config.json", options.dump());
+		return {};
+	});
 
-	_main_window.bind("saveConfig", [&](const std::string& req) -> std::string {
-		try
-		{
-			json data = json::parse(req);
-			if (!data.is_array() || !data.begin().value().is_string())
-			{
-				json result = { {"result","error"},{"info","first param must be string"} };
-				return result.dump();
-			}
-			utils::io::write_file("laochan-config.json", data.begin().value());
-		}
-		catch (const std::exception& e)
-		{
-			json result = { {"result","error"},{"info",e.what()} };
-			return result.dump();
-		}
-		json result = { {"result","OK"} };
-		return result.dump();
-		});
-
-
-
-
-	//this->main_window_.set_callback([](window* window, const UINT message, const WPARAM w_param, const LPARAM l_param) -> LRESULT
-	//{
-	//	if (message == WM_CLOSE)
-	//	{
-	//		window::close_all();
-	//		ExitProcess(0);
-	//	}
-
-	//	return DefWindowProcA(*window, message, w_param, l_param);
-	//});
-
-
-	auto inject = "<script>window.uuid='" + utils::string::dump_hex(utils::smbios::get_uuid(), "") + "';</script>";
-
-	if (utils::io::file_exists("laochan-config.json")) {
-		inject += "<script>window.settings=" + utils::io::read_file("laochan-config.json") + ";</script>";
-	}
-	_main_window.set_html(inject + load_content(MENU_MAIN));
-	_main_window.run();
+	_main_window->set_html(load_content(MENU_MAIN));
 }
 
 void launcher::run() const
 {
-	//window::run();
+	_main_window->run();
 }
 
 std::string launcher::load_content(const int res)

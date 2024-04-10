@@ -3,37 +3,20 @@ webview = {
 }
 
 function webview.import()
-	links { "webview" }
+	libdirs { path.join(webview.source, "lib") }
+	links { "WebView2LoaderStatic" }
+
 	webview.includes()
 end
 
 function webview.includes()
 	includedirs {
-		path.join(webview.source, "src"),
-		-- path.join(dependencies.basePath, "WebView2Loader/build/native/include"),
-		-- path.join(dependencies.basePath, "WebView2Loader/build/native/x64"),
-
+		path.join(webview.source, "include"),
 	}
 end
 
 function webview.project()
-	project "webview"
-		language "C++"
-
-		webview.includes()
-
-		files {
-			path.join(webview.source, "src/**.cc"),
-			path.join(webview.source, "src/**.h"),
-			-- path.join(dependencies.basePath, "WebView2Loader/build/native/include/**.h"),
-		-- path.join(dependencies.basePath, "WebView2Loader/build/native/x64/**.dll"),
-		-- path.join(dependencies.basePath, "WebView2Loader/build/native/x64/**.lib"),
-
-
-		}
-
-		warnings "Off"
-		kind "StaticLib"
+	
 end
 
 table.insert(dependencies, webview)

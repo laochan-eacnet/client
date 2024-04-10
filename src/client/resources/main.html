@@ -159,75 +159,58 @@
         </div>
 
         <script>
-            var serverUrlInput = document.querySelector('#serverUrl');
-            var tokenInput = document.querySelector('#token');
-            var displayModeInput = document.querySelector('#displayMode');
-            var soundModeInput = document.querySelector('#soundMode');
-            var asioDeviceInput = document.querySelector('#asioDevice');
-            var devbtn = document.querySelector('#devbtn');
+            const serverUrlInput = document.querySelector('#serverUrl');
+            const tokenInput = document.querySelector('#token');
+            const displayModeInput = document.querySelector('#displayMode');
+            const soundModeInput = document.querySelector('#soundMode');
+            const asioDeviceInput = document.querySelector('#asioDevice');
+            const devbtn = document.querySelector('#devbtn');
 
-            var run = document.querySelector('#run');
+            const run = document.querySelector('#run');
 
-            function saveOptions() {
-                if (!tokenInput.value.length) {
-                    tokenInput.value = uuid;
-                }
-
-                if (!serverUrlInput.value.length) {
-                    serverUrlInput.value = 'https://laochan.impact.wang/';
-                }
-
-                if (!asioDevice.value.length) {
-                    asioDevice.value = 'XONAR SOUND CARD(64)';
-                }
-
-                window.settings = {
-                    serverUrl: serverUrlInput.value,
-                    token: tokenInput.value,
-                    displayModeInput: displayModeInput.selectedIndex,
-                    soundModeInput: soundModeInput.selectedIndex,
-                    asioDevice: asioDeviceInput.value,
+            (async () => {
+                const options = await getOptions() ?? {
+                    serverUrl: 'https://laochan.impact.wang/',
+                    token: await uuid(),
+                    displayMode: 3,
+                    soundMode: 0,
+                    asioDevice: 'XONAR SOUND CARD(64)',
                 };
 
-                window.saveConfig(JSON.stringify(settings).toString());
-            }
+                serverUrlInput.value = options.serverUrl;
+                tokenInput.value = options.token;
+                displayModeInput.selectedIndex = options.displayMode;
+                soundModeInput.selectedIndex = options.soundMode;
+                asioDeviceInput.value = options.asioDevice;
+            })();
 
-            function setOptions() {
-                window.setToken(tokenInput.value);
-                window.setServerAddress(serverUrlInput.value);
-                window.setDisplayMode(displayModeInput.selectedIndex);
-                window.setSoundMode(soundModeInput.selectedIndex);
-                window.setAsioDeviceName(asioDeviceInput.value);
-            }
-
-            function loadSaved() {
-                if (!window.settings) {
-                    window.settings = {
-                        serverUrl: 'https://laochan.girlsband.party/preProcess/GetServices',
-                        token: uuid,
-                        displayModeInput: 3,
-                        soundModeInput: 0,
-                        asioDevice: 'XONAR SOUND CARD(64)',
-                    };
-                }
-
-                serverUrlInput.value = settings.serverUrl;
-                tokenInput.value = settings.token;
-                displayModeInput.selectedIndex = settings.displayModeInput;
-                soundModeInput.selectedIndex = settings.soundModeInput;
-                asioDeviceInput.value = settings.asioDevice;
-            }
-
-            loadSaved();
-
-            devbtn.addEventListener('click', function (e) {
+            devbtn.addEventListener('click', () => {
                 serverUrlInput.value = 'http://localhost:25730/preProcess/GetServices';
             });
 
-            run.addEventListener('click', function (e) {
-                saveOptions();
-                setOptions();
-                window.exit("");
+            run.addEventListener('click', async () => {
+                const settings = {
+                    serverUrl: serverUrlInput.value,
+                    token: tokenInput.value,
+                    displayMode: displayModeInput.selectedIndex,
+                    soundMode: soundModeInput.selectedIndex,
+                    asioDevice: asioDeviceInput.value,
+                };
+
+                if (!settings.token.length) {
+                    tokenInput.value = uuid;
+                }
+
+                if (!settings.serverUrl.length) {
+                    serverUrlInput.value = 'https://laochan.impact.wang/';
+                }
+
+                if (!settings.asioDevice.length) {
+                    asioDevice.value = 'XONAR SOUND CARD(64)';
+                }
+
+                await setOptions(settings);
+                exit();
             });
         </script>
 </body>

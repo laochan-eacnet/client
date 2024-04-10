@@ -1,10 +1,9 @@
 #pragma once
-#include "html/html_window.hpp"
 
 class launcher final
 {
 public:
-	enum class display_mode
+	enum class display_mode: uint32_t
 	{
 		fullscreen,
 		windowed_720p,
@@ -12,7 +11,7 @@ public:
 		windowed_1080p,
 	};
 
-	enum class sound_mode
+	enum class sound_mode : uint32_t
 	{
 		wasapi,
 		asio,
@@ -29,9 +28,7 @@ public:
 	static std::string asio_device_name;
 	static HMODULE dll_module;
 private:
-	//html_window main_window_;
-
+	std::unique_ptr<webview::webview> _main_window;
 	void create_main_menu();
-
 	static std::string load_content(int res);
 };
