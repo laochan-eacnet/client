@@ -93,6 +93,32 @@
             width: 100%;
         }
 
+        #openSettingsbtn {
+            box-sizing: border-box;
+            outline: none !important;
+            appearance: none;
+            background-color: rgba(136, 164, 235, 0.197);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(3, 36, 131, 0);
+            border-radius: 5px;
+            color: #fff;
+            display: block;
+            margin-right: 0;
+            margin-bottom: 0.75em;
+            padding: 0.5em;
+            width: 100%;
+            transition: ease 0.15s;
+
+        }
+
+        #openSettingsbtn:hover {
+            text-shadow: 0 0 2px rgb(213, 242, 242), 0 0 10px rgba(0, 38, 255, 0.548);
+            transform: scale(1.05);
+            background-color: rgba(123, 160, 255, 0.359);
+            border: 2px solid rgba(3, 35, 131, 0.104);
+            box-shadow: 0 0 5px rgba(136, 164, 235, 0.197), 0 0 10px rgb(0, 85, 255);
+        }
+
         #run {
             width: 100%;
             outline: none !important;
@@ -168,6 +194,7 @@
                 </div>
                 <label for="asioDevice">ASIO 设备名称 (If ASIO is selected above)</label>
                 <input type="text" id="asioDevice">
+                <button type="button" id="openSettingsbtn">打开游戏设置</button>
             </div>
             <button type="button" id="run">START</button>
         </div>
@@ -179,7 +206,7 @@
             const soundModeInput = document.querySelector('#soundMode');
             const asioDeviceInput = document.querySelector('#asioDevice');
             const devbtn = document.querySelector('#devbtn');
-
+            const konamisettingsbtn = document.querySelector('#openSettingsbtn');
             const run = document.querySelector('#run');
 
             (async () => {
@@ -200,6 +227,10 @@
 
             devbtn.addEventListener('click', () => {
                 serverUrlInput.value = 'http://localhost:25730/preProcess/GetServices';
+            });
+
+            konamisettingsbtn.addEventListener('click', () => {
+                createSettingsProcess();
             });
 
             run.addEventListener('click', async () => {

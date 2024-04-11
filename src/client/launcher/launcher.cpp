@@ -52,6 +52,16 @@ void launcher::create_main_menu()
 		return {};
 		});
 
+	_main_window->bind("createSettingsProcess", [this](auto) -> std::string {
+		STARTUPINFO si = { 0 };
+		PROCESS_INFORMATION pi = { 0 };
+		si.cb = sizeof(si);
+		si.wShowWindow = SW_SHOW;
+		char arg[] = "../../launcher/modules/bm2dx_settings.exe";
+		CreateProcessA(NULL, arg, NULL, NULL, false, 0, NULL, NULL, &si, &pi);
+		return {};
+		});
+
 	_main_window->bind("uuid", [this](auto) -> std::string {
 		const auto uuid = utils::string::dump_hex(utils::smbios::get_uuid(), "");
 		return json{ uuid }.dump();
