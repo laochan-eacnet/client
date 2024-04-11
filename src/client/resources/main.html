@@ -35,15 +35,13 @@
         }
 
         .blurdiv {
-
             color: hsl(0, 0%, 100%);
             width: 100%;
             height: 100%;
             position: absolute;
             z-index: -100;
-            backdrop-filter: blur(2.5px);
-        }
 
+        }
 
         .wrapper {
             display: flex;
@@ -56,13 +54,7 @@
         }
 
         .right {
-            margin-top: 7vh;
-            margin-bottom: 5vh;
-        }
-
-        .settings {
-
-            margin-bottom: 1em;
+            margin-top: 13vh;
         }
 
         .settings label {
@@ -70,10 +62,6 @@
             margin-right: 0.5em;
             margin-bottom: 0.5em;
             font-size: smaller;
-        }
-
-        select::-ms-expand {
-            display: none;
         }
 
         .settings input,
@@ -93,7 +81,7 @@
             width: 100%;
         }
 
-        #openSettingsbtn {
+        button {
             box-sizing: border-box;
             outline: none !important;
             appearance: none;
@@ -104,50 +92,27 @@
             color: #fff;
             display: block;
             margin-right: 0;
-            margin-bottom: 0.75em;
+            margin-bottom: 0.75rem;
             padding: 0.5em;
             width: 100%;
             transition: ease 0.15s;
-
         }
 
-        #openSettingsbtn:hover {
+        button:hover {
             text-shadow: 0 0 2px rgb(213, 242, 242), 0 0 10px rgba(0, 38, 255, 0.548);
             transform: scale(1.05);
             background-color: rgba(123, 160, 255, 0.359);
             border: 2px solid rgba(3, 35, 131, 0.104);
-            box-shadow: 0 0 5px rgba(136, 164, 235, 0.197), 0 0 10px rgb(0, 85, 255);
+            box-shadow: 0 2px 0px rgb(54, 164, 224);
+        }
+
+        button:active {
+            transform: scale(1.02) translateY(2px);
         }
 
         #run {
-            width: 100%;
-            outline: none !important;
-            appearance: none !important;
-            /* border: 2px solid rgba(3, 36, 131, 0.5); */
-            border: 2px solid rgba(3, 36, 131, 0);
-
-            border-radius: 5px;
             font-size: 24px;
-            padding: 0.5em 2em;
-            /* background-color: rgba(136, 164, 235, 0.197); */
-            background-color: #6d6d6d47;
-            color: #fff;
-            transition: ease 0.15s;
-            margin-top: 1em;
-            box-shadow: 0px 9px 20px #00000057;
-            backdrop-filter: blur(30px) brightness(80%) saturate(160%);
-        }
-
-        #run:hover {
-            text-shadow: 0 0 2px rgb(213, 242, 242), 0 0 10px rgba(0, 38, 255, 0.548);
-            transform: scale(1.05) translateY(-5px);
-            background-color: rgba(123, 160, 255, 0.359);
-            border: 2px solid rgba(3, 35, 131, 0.104);
-            box-shadow: 0 0 5px rgba(136, 164, 235, 0.197), 0 0 10px rgb(0, 85, 255);
-        }
-
-        #run:active {
-            transform: scale(1.02) translateY(-2px);
+            font-weight: lighter;
         }
 
         .option-sidebyside {
@@ -155,8 +120,41 @@
             justify-content: space-between;
         }
 
-        .option-sidebyside>div:not(:first-child) {
-            margin-left: 0.5em;
+        .option-sidebyside>div:first-child {
+            width: 50%;
+            margin-right: 0.25em;
+        }
+
+        .option-sidebyside>div:last-child {
+            width: 50%;
+            margin-left: 0.25em;
+        }
+
+        select * {
+            color: black;
+            background-color: #fff;
+        }
+
+        .option-sidebyside>button:first-child {
+            width: 17%;
+            margin-right: 0.25em;
+        }
+
+        .option-sidebyside>button:last-child {
+            width: 83%;
+            margin-left: 0.25em;
+        }
+
+        #asio-selector {
+            transition: ease 0.05s;
+        }
+
+        .hide {
+            opacity: 0;
+        }
+
+        .mb-3 {
+            margin-bottom: 2em;
         }
     </style>
 </head>
@@ -170,9 +168,9 @@
         </div>
         <div class="right">
             <div class="settings">
-                <label for="serverUrl" id="devbtn">Bootstrap Url</label>
+                <label for="serverUrl" id="devbtn">启动地址</label>
                 <input type="text" id="serverUrl">
-                <label for="token">Login Token</label>
+                <label for="token">登陆令牌</label>
                 <input type="text" id="token">
                 <div class="option-sidebyside">
                     <div>
@@ -192,72 +190,87 @@
                         </select>
                     </div>
                 </div>
-                <label for="asioDevice">ASIO 设备名称 (If ASIO is selected above)</label>
-                <input type="text" id="asioDevice">
-                <button type="button" id="openSettingsbtn">打开游戏设置</button>
+                <div id="asio-selector" class="hide mb-3">
+                    <label for="asioDevice">ASIO 设备名称</label>
+                    <input type="text" id="asioDevice">
+                    <div></div>
+                </div>
+
+                <div class="option-sidebyside">
+                    <button type="button" id="openSettingsbtn">⚙️</button>
+                    <button type="button" id="run">启动!</button>
+                </div>
             </div>
-            <button type="button" id="run">START</button>
-        </div>
 
-        <script>
-            const serverUrlInput = document.querySelector('#serverUrl');
-            const tokenInput = document.querySelector('#token');
-            const displayModeInput = document.querySelector('#displayMode');
-            const soundModeInput = document.querySelector('#soundMode');
-            const asioDeviceInput = document.querySelector('#asioDevice');
-            const devbtn = document.querySelector('#devbtn');
-            const konamisettingsbtn = document.querySelector('#openSettingsbtn');
-            const run = document.querySelector('#run');
+            <script>
+                const serverUrlInput = document.querySelector('#serverUrl');
+                const tokenInput = document.querySelector('#token');
+                const displayModeInput = document.querySelector('#displayMode');
+                const soundModeInput = document.querySelector('#soundMode');
+                const asioDeviceInput = document.querySelector('#asioDevice');
+                const devbtn = document.querySelector('#devbtn');
+                const konamisettingsbtn = document.querySelector('#openSettingsbtn');
+                const run = document.querySelector('#run');
+                const asioSelector = document.querySelector('#asio-selector');
 
-            (async () => {
-                const options = await getOptions() ?? {
-                    serverUrl: 'https://laochan.impact.wang/',
-                    token: await uuid(),
-                    displayMode: 3,
-                    soundMode: 0,
-                    asioDevice: 'XONAR SOUND CARD(64)',
-                };
+                (async () => {
+                    const options = await getOptions() ?? {
+                        serverUrl: 'https://laochan.impact.wang/',
+                        token: await uuid(),
+                        displayMode: 3,
+                        soundMode: 0,
+                        asioDevice: 'XONAR SOUND CARD(64)',
+                    };
 
-                serverUrlInput.value = options.serverUrl;
-                tokenInput.value = options.token;
-                displayModeInput.selectedIndex = options.displayMode;
-                soundModeInput.selectedIndex = options.soundMode;
-                asioDeviceInput.value = options.asioDevice;
-            })();
+                    serverUrlInput.value = options.serverUrl;
+                    tokenInput.value = options.token;
+                    displayModeInput.selectedIndex = options.displayMode;
+                    soundModeInput.selectedIndex = options.soundMode;
+                    asioDeviceInput.value = options.asioDevice;
+                })();
 
-            devbtn.addEventListener('click', () => {
-                serverUrlInput.value = 'http://localhost:25730/preProcess/GetServices';
-            });
+                soundModeInput.addEventListener('change', () => {
+                    if (soundModeInput.selectedIndex) {
+                        asioSelector.classList.remove("hide");
+                        return;
+                    }
 
-            konamisettingsbtn.addEventListener('click', () => {
-                createSettingsProcess();
-            });
+                    asioSelector.classList.add("hide");
+                });
 
-            run.addEventListener('click', async () => {
-                const settings = {
-                    serverUrl: serverUrlInput.value,
-                    token: tokenInput.value,
-                    displayMode: displayModeInput.selectedIndex,
-                    soundMode: soundModeInput.selectedIndex,
-                    asioDevice: asioDeviceInput.value,
-                };
+                devbtn.addEventListener('click', () => {
+                    serverUrlInput.value = 'http://localhost:25730/preProcess/GetServices';
+                });
 
-                if (!settings.token.length) {
-                    tokenInput.value = uuid;
-                }
+                konamisettingsbtn.addEventListener('click', () => {
+                    createSettingsProcess();
+                });
 
-                if (!settings.serverUrl.length) {
-                    serverUrlInput.value = 'https://laochan.impact.wang/';
-                }
+                run.addEventListener('click', async () => {
+                    const settings = {
+                        serverUrl: serverUrlInput.value,
+                        token: tokenInput.value,
+                        displayMode: displayModeInput.selectedIndex,
+                        soundMode: soundModeInput.selectedIndex,
+                        asioDevice: asioDeviceInput.value,
+                    };
 
-                if (!settings.asioDevice.length) {
-                    asioDevice.value = 'XONAR SOUND CARD(64)';
-                }
+                    if (!settings.token.length) {
+                        tokenInput.value = uuid;
+                    }
 
-                await setOptions(settings);
-                startGame();
-            });
-        </script>
+                    if (!settings.serverUrl.length) {
+                        serverUrlInput.value = 'https://laochan.impact.wang/';
+                    }
+
+                    if (!settings.asioDevice.length) {
+                        asioDevice.value = 'XONAR SOUND CARD(64)';
+                    }
+
+                    await setOptions(settings);
+                    startGame();
+                });
+            </script>
 </body>
 
 </html>

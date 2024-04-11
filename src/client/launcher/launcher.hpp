@@ -19,7 +19,7 @@ public:
 
 	launcher();
 
-	void run() const;
+	bool run() const;
 
 	static std::string token;
 	static std::string get_service_address;
@@ -27,10 +27,12 @@ public:
 	static sound_mode snd_mode;
 	static std::string asio_device_name;
 	static HMODULE dll_module;
-	static bool resume;
 private:
 	std::unique_ptr<webview::webview> _main_window;
-	static void waitandshow(HWND hwnd, int milli);
+	bool run_game;
+
 	void create_main_menu();
+
+	static void wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec);
 	static std::string load_content(int res);
 };

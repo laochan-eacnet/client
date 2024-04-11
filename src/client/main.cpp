@@ -38,13 +38,8 @@ int preinit()
 	try
 	{
 		const launcher launcher;
-		
 		launcher.run();
-		
-		if (!launcher::resume)
-		{
-			ExitProcess(0);
-		}
+
 		create_console();
 
 		if (!component_loader::post_start())

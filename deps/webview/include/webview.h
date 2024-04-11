@@ -3645,21 +3645,19 @@ private:
 
 class win32_edge_engine : public engine_base {
 public:
-  win32_edge_engine(bool debug, void *window) : m_owns_window{!window} {
+  win32_edge_engine(bool debug, void *module_ptr) : m_owns_window{true} {
     if (!is_webview2_available()) {
       throw exception{WEBVIEW_ERROR_MISSING_DEPENDENCY,
                       "WebView2 is unavailable"};
     }
 
-    HINSTANCE hInstance = GetModuleHandle(nullptr);
+    auto hInstance = HINSTANCE(module_ptr);
 
     if (m_owns_window) {
       m_com_init = {COINIT_APARTMENTTHREADED};
       enable_dpi_awareness();
 
-      HICON icon = (HICON)LoadImage(
-          hInstance, IDI_APPLICATION, IMAGE_ICON, GetSystemMetrics(SM_CXICON),
-          GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR);
+      HICON icon = LoadIcon(hInstance, MAKEINTRESOURCE(102));
 
       // Create a top-level window.
       WNDCLASSEXW wc;
@@ -3756,10 +3754,7 @@ public:
       constexpr const int initial_height = 480;
       set_size(initial_width, initial_height, WEBVIEW_HINT_NONE);
     } else {
-      m_window = IsWindow(static_cast<HWND>(window))
-                     ? static_cast<HWND>(window)
-                     : *(static_cast<HWND *>(window));
-      m_dpi = get_window_dpi(m_window);
+      throw std::exception("no way");
     }
 
     // Create a window that WebView2 will be embedded into.
