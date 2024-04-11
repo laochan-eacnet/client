@@ -30,7 +30,7 @@ void launcher::create_main_menu()
 
 	_main_window->bind("getVersion", [this](auto)->std::string
 	{
-		return VERSION;
+		return json{ VERSION }.dump();
 	});
 
 	_main_window->bind("startGame", [this](auto) -> std::string
