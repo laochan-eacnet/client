@@ -5,6 +5,9 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
+#pragma bss_seg(".asio")
+char asio_name[0x2048];
+
 namespace patches
 {
 	const char* __fastcall get_service_url(void* _this, bool is_dev, char is_kr)
@@ -26,8 +29,15 @@ namespace patches
 			printf("I:launcher: using bootstrap url: %s\n", launcher::get_service_address.data());
 
 			// override asio device name
-			uintptr_t device_name_addr = reinterpret_cast<uintptr_t>(launcher::asio_device_name.data());
-			utils::hook::set<uint32_t>(0x140246F74, static_cast<uint32_t>(device_name_addr - 0x140246F78));
+			if (launcher::asio_device_name.size() > 0x2047) 
+				throw std::exception("ASIO Device Name is too long!");
+			
+			std::memcpy(asio_name, launcher::asio_device_name.data(), launcher::asio_device_name.size());
+
+			uintptr_t device_name_addr = reinterpret_cast<uintptr_t>(asio_name);
+			uintptr_t addr_diff = device_name_addr - 0x140246F78;
+
+			utils::hook::set<uint32_t>(0x140246F74, static_cast<uint32_t>(addr_diff));
 
 			printf("I:launcher: using asio device: %s\n", launcher::asio_device_name.data());
 		}

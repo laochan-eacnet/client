@@ -5,6 +5,9 @@
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
 #include <utils/io.hpp>
+#include <Windows.h>
+
+using json = nlohmann::json;
 
 std::string launcher::token;
 std::string launcher::get_service_address;
@@ -15,103 +18,124 @@ HMODULE launcher::dll_module;
 
 launcher::launcher()
 {
+	this->run_game = false;
 	this->create_main_menu();
 }
 
 void launcher::create_main_menu()
 {
-	this->main_window_.register_callback("run", [this](html_frame::callback_params* params)
+	_main_window = std::make_unique<webview::webview>(true, launcher::dll_module);
+	_main_window->set_title("Laochan-Eacnet Infinitas Launcher");
+	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
+
+	_main_window->bind("startGame", [this](auto) -> std::string
 	{
-		this->main_window_.close();
+		run_game = true;
+
+		_main_window->terminate();
+		return {};
 	});
 
-	this->main_window_.register_callback("setToken", [this](html_frame::callback_params* params)
+	_main_window->bind("showWindow", [this](auto) -> std::string 
 	{
-		if (params->arguments.empty()) return;
+		std::thread{
+			&launcher::wait_and_show_window,
+			HWND(_main_window->window().value()), 16ms
+		}.detach();
 
-		const auto param = params->arguments[0];
-		if (!param.is_string()) return;
-
-		launcher::token = param.get_string();
+		return {};
 	});
 
-	this->main_window_.register_callback("setServerAddress", [this](html_frame::callback_params* params)
+	_main_window->bind("hideWindow", [this](auto) -> std::string 
 	{
-		if (params->arguments.empty()) return;
-
-		const auto param = params->arguments[0];
-		if (!param.is_string()) return;
-
-		launcher::get_service_address = param.get_string();
+		ShowWindow(reinterpret_cast<HWND>(_main_window->window().value()), SW_HIDE);
+		return {};
 	});
 
-	this->main_window_.register_callback("setAsioDeviceName", [this](html_frame::callback_params* params)
+	_main_window->bind("createSettingsProcess", [this](auto) -> std::string 
 	{
-		if (params->arguments.empty()) return;
+		STARTUPINFO si = { 0 };
+		PROCESS_INFORMATION pi = { 0 };
+		si.cb = sizeof(si);
+		si.wShowWindow = SW_SHOW;
 
-		const auto param = params->arguments[0];
-		if (!param.is_string()) return;
+		utils::nt::library bm2dx{};
+		auto settings_path = std::filesystem::path{
+			bm2dx.get_folder() + "/../../launcher/modules/bm2dx_settings.exe"
+		}.make_preferred().string();
 
-		launcher::asio_device_name = param.get_string();
+		CreateProcessA(
+			settings_path.data(), nullptr, 0, 0, false, 0,
+			nullptr, nullptr, &si, &pi
+		);
+
+		return {};
 	});
 
-	this->main_window_.register_callback("setDisplayMode", [this](html_frame::callback_params* params)
+	_main_window->bind("uuid", [this](auto) -> std::string 
 	{
-		if (params->arguments.empty()) return;
-
-		const auto param = params->arguments[0];
-		if (!param.is_number()) return;
-
-		launcher::disp_mode = static_cast<display_mode>(param.get_number());
+		const auto uuid = utils::string::dump_hex(utils::smbios::get_uuid(), "");
+		return json{ uuid }.dump();
 	});
 
-	this->main_window_.register_callback("setSoundMode", [this](html_frame::callback_params* params)
+	_main_window->bind("getOptions", [this](auto) -> std::string 
 	{
-		if (params->arguments.empty()) return;
+		if (!utils::io::file_exists("laochan-config.json")) 
+			return "null";
 
-		const auto param = params->arguments[0];
-		if (!param.is_number()) return;
-
-		launcher::snd_mode = static_cast<sound_mode>(param.get_number());
+		return utils::io::read_file("laochan-config.json");
 	});
 
-	this->main_window_.register_callback("saveConfig", [this](html_frame::callback_params* params)
+	_main_window->bind("setOptions", [this](auto param_json) -> std::string 
 	{
-		if (params->arguments.empty()) return;
+		const json params = json::parse(param_json);
 
-		const auto param = params->arguments[0];
-		if (!param.is_string()) return;
+		if (!params.is_array() || !params.size()) 
+			return {};
 
-		utils::io::write_file("laochan-config.json", param.get_string());
+		const auto options = params[0];
+
+		if (!options.is_object()) 
+			return {};
+
+		if (options["token"].is_string())
+			launcher::token = options.value("token", "");
+
+		if (options["serverUrl"].is_string())
+			launcher::get_service_address = options.value("serverUrl", "");
+
+		if (options["asioDevice"].is_string())
+			launcher::asio_device_name = options.value("asioDevice", "");
+
+		if (options["displayMode"].is_number_integer())
+			launcher::disp_mode = options.value<launcher::display_mode>("displayMode", launcher::display_mode::windowed_720p);
+
+		if (options["soundMode"].is_number_integer())
+			launcher::snd_mode = options.value<launcher::sound_mode>("soundMode", launcher::sound_mode::wasapi);
+
+		utils::io::write_file("laochan-config.json", options.dump());
+		return {};
 	});
 
+	_main_window->set_html(load_content(MENU_MAIN));
 
-	this->main_window_.set_callback([](window* window, const UINT message, const WPARAM w_param, const LPARAM l_param) -> LRESULT
-	{
-		if (message == WM_CLOSE)
-		{
-			window::close_all();
-			ExitProcess(0);
-		}
-
-		return DefWindowProcA(*window, message, w_param, l_param);
-	});
-
-	this->main_window_.create("Laochan-Eacnet Infinitas", 750, 480);
-
-	auto inject = "<script>window.uuid='" + utils::string::dump_hex(utils::smbios::get_uuid(), "") + "';</script>";
-
-	if (utils::io::file_exists("laochan-config.json")) {
-		inject += "<script>window.settings=" + utils::io::read_file("laochan-config.json") + ";</script>";
-	}
-
-	this->main_window_.load_html(inject + load_content(MENU_MAIN));
-	this->main_window_.show();
+	std::thread{
+		&launcher::wait_and_show_window, 
+		HWND(_main_window->window().value()), 5000ms
+	}.detach();
 }
 
-void launcher::run() const
+void launcher::wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec)
 {
-	window::run();
+	std::this_thread::sleep_for(msec);
+
+	ShowWindow(hwnd, SW_SHOW);
+}
+
+bool launcher::run() const
+{
+	_main_window->run();
+	return run_game;
 }
 
 std::string launcher::load_content(const int res)

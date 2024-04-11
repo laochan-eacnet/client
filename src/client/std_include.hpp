@@ -84,6 +84,11 @@
 #include <asmjit/core/jitruntime.h>
 #include <asmjit/x86/x86assembler.h>
 
+#define WEBVIEW_STATIC
+#include <webview.h>
+
+#include <json.hpp>
+
 #pragma warning(pop)
 #pragma warning(disable: 4100)
 
