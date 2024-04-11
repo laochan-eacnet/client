@@ -5,6 +5,7 @@
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
 #include <utils/io.hpp>
+#include <Windows.h>
 
 using json = nlohmann::json;
 
@@ -14,6 +15,7 @@ std::string launcher::asio_device_name;
 launcher::display_mode launcher::disp_mode;
 launcher::sound_mode launcher::snd_mode;
 HMODULE launcher::dll_module;
+bool launcher::resume;
 
 launcher::launcher()
 {
@@ -24,18 +26,36 @@ void launcher::create_main_menu()
 {
 	_main_window = std::make_unique<webview::webview>(true, nullptr);
 
+	ICoreWebView2* core;
+	HWND window;
+
+	reinterpret_cast<ICoreWebView2Controller*>(_main_window->browser_controller().value())->get_CoreWebView2(&core);
+	window = reinterpret_cast<HWND>(_main_window->window().value());
+
 	_main_window->set_title("Laochan-Eacnet Infinitas");
 	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
 
-	_main_window->bind("exit", [this](auto) -> std::string {
+	_main_window->bind("startGame", [this](auto) -> std::string {
+		launcher::resume = true;
 		_main_window->terminate();
 		return {};
-	});
+		});
+
+	_main_window->bind("showWindow", [this](auto) -> std::string {
+		std::thread thr(&launcher::waitandshow, reinterpret_cast<HWND>(_main_window->window().value()), 16);
+		thr.detach();
+		return {};
+		});
+
+	_main_window->bind("hideWindow", [this](auto) -> std::string {
+		ShowWindow(reinterpret_cast<HWND>(_main_window->window().value()), SW_HIDE);
+		return {};
+		});
 
 	_main_window->bind("uuid", [this](auto) -> std::string {
 		const auto uuid = utils::string::dump_hex(utils::smbios::get_uuid(), "");
 		return json{ uuid }.dump();
-	});
+		});
 
 	_main_window->bind("getOptions", [this](auto) -> std::string {
 		if (!utils::io::file_exists("laochan-config.json")) {
@@ -43,7 +63,7 @@ void launcher::create_main_menu()
 		}
 
 		return utils::io::read_file("laochan-config.json");
-	});
+		});
 
 	_main_window->bind("setOptions", [this](auto param_json) -> std::string {
 		const json params = json::parse(param_json);
@@ -80,14 +100,25 @@ void launcher::create_main_menu()
 
 		utils::io::write_file("laochan-config.json", options.dump());
 		return {};
-	});
+		});
 
 	_main_window->set_html(load_content(MENU_MAIN));
+	std::thread thr(&launcher::waitandshow, window, 5000);
+	thr.detach();
+
+
+}
+
+void launcher::waitandshow(HWND hwnd, int milli) {
+	std::chrono::duration<int, std::milli> duration1(milli);
+	std::this_thread::sleep_for(duration1);
+	ShowWindow(hwnd, SW_SHOW);
 }
 
 void launcher::run() const
 {
 	_main_window->run();
+
 }
 
 std::string launcher::load_content(const int res)

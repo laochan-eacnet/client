@@ -3083,13 +3083,13 @@ inline void apply_window_theme(HWND window) {
 
 // Enable built-in WebView2Loader implementation by default.
 #ifndef WEBVIEW_MSWEBVIEW2_BUILTIN_IMPL
-#define WEBVIEW_MSWEBVIEW2_BUILTIN_IMPL 1
+//#define WEBVIEW_MSWEBVIEW2_BUILTIN_IMPL 1
 #endif
 
 // Link WebView2Loader.dll explicitly by default only if the built-in
 // implementation is enabled.
 #ifndef WEBVIEW_MSWEBVIEW2_EXPLICIT_LINK
-#define WEBVIEW_MSWEBVIEW2_EXPLICIT_LINK WEBVIEW_MSWEBVIEW2_BUILTIN_IMPL
+//#define WEBVIEW_MSWEBVIEW2_EXPLICIT_LINK WEBVIEW_MSWEBVIEW2_BUILTIN_IMPL
 #endif
 
 // Explicit linking of WebView2Loader.dll should be used along with
@@ -3745,6 +3745,7 @@ public:
 
       CreateWindowW(L"webview", L"", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
                     CW_USEDEFAULT, 0, 0, nullptr, nullptr, hInstance, this);
+      ShowWindow(m_window, SW_HIDE);
       if (!m_window) {
         throw exception{WEBVIEW_ERROR_INVALID_STATE, "Window is null"};
       }
@@ -3851,9 +3852,9 @@ public:
     }
 
     if (m_owns_window) {
-      ShowWindow(m_window, SW_SHOW);
-      UpdateWindow(m_window);
-      SetFocus(m_window);
+      //ShowWindow(m_window, SW_SHOW);
+      //UpdateWindow(m_window);
+      //SetFocus(m_window);
     }
 
     auto cb =

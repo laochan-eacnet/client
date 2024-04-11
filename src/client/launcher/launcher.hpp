@@ -27,8 +27,10 @@ public:
 	static sound_mode snd_mode;
 	static std::string asio_device_name;
 	static HMODULE dll_module;
+	static bool resume;
 private:
 	std::unique_ptr<webview::webview> _main_window;
+	static void waitandshow(HWND hwnd, int milli);
 	void create_main_menu();
 	static std::string load_content(int res);
 };
