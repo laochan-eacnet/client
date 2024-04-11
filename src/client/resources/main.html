@@ -69,9 +69,9 @@
             box-sizing: border-box;
             outline: none !important;
             appearance: none;
-            background-color: rgba(136, 164, 235, 0.197);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(3, 36, 131, 0.5);
+            /* background-color: rgba(136, 164, 235, 0.197); */
+            /* backdrop-filter: blur(10px); */
+            /* border: 2px solid rgba(3, 36, 131, 0.5); */
             border-radius: 5px;
             color: #fff;
             display: block;
@@ -85,9 +85,9 @@
             box-sizing: border-box;
             outline: none !important;
             appearance: none;
-            background-color: rgba(136, 164, 235, 0.197);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(3, 36, 131, 0);
+            /* background-color: rgba(136, 164, 235, 0.197); */
+            /* backdrop-filter: blur(10px); */
+            /* border: 2px solid rgba(3, 36, 131, 0); */
             border-radius: 5px;
             color: #fff;
             display: block;
@@ -96,10 +96,11 @@
             padding: 0.5em;
             width: 100%;
             transition: ease 0.15s;
+            box-shadow: 0px 0px 0px rgb(54, 164, 224);
         }
 
         button:hover {
-            text-shadow: 0 0 2px rgb(213, 242, 242), 0 0 10px rgba(0, 38, 255, 0.548);
+            text-shadow: 0 0 3px rgb(213, 242, 242), 0 0 10px rgba(0, 38, 255, 0.548);
             transform: scale(1.05);
             background-color: rgba(123, 160, 255, 0.359);
             border: 2px solid rgba(3, 35, 131, 0.104);
@@ -165,6 +166,28 @@
         #version-text {
             opacity: 60%;
         }
+
+
+        
+        .acrylic {
+  /* size, position, etc... */
+  position: relative;
+  /* box-shadow: 0px 9px 20px #00000057; */
+  border: 0.5px solid rgb(66, 66, 66);
+  backdrop-filter: 
+      /* 负责背景模糊 */
+      blur(50px)
+      /* 负责亮度，100 以下会变暗，以上会提亮 */
+      brightness(130%)
+      /* 负责颜色饱和度，可以减小来衬托前景，避免背景太鲜艳 */
+      saturate(120%);
+  /* 负责颜色叠加，一半白色、黑色或主题色，衬托前景 */
+  background-color: #00000000;
+  /* 负责在效果上添加噪点，可以营造出磨砂效果 */
+  background-image: url(data:image/png;base64,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);
+  /* 磨砂大小 */
+  background-size: 20px;
+}
     </style>
 </head>
 
@@ -179,13 +202,13 @@
         <div class="right">
             <div class="settings">
                 <label for="serverUrl" id="devbtn">启动地址</label>
-                <input type="text" id="serverUrl">
+                <input class="acrylic" type="text" id="serverUrl">
                 <label for="token">登陆令牌</label>
-                <input type="text" id="token">
+                <input class="acrylic" type="text" id="token">
                 <div class="option-sidebyside">
                     <div>
                         <label for="displayMode">显示模式</label>
-                        <select id="displayMode" value="0">
+                        <select class="acrylic" id="displayMode" value="0">
                             <option value="0">全屏</option>
                             <option value="1">720p 窗口化</option>
                             <option value="2">900p 窗口化</option>
@@ -194,7 +217,7 @@
                     </div>
                     <div>
                         <label for="soundMode">音频输出模式</label>
-                        <select id="soundMode" value="0">
+                        <select class="acrylic" id="soundMode" value="0">
                             <option value="0">WASAPI</option>
                             <option value="1">ASIO</option>
                         </select>
@@ -202,13 +225,13 @@
                 </div>
                 <div id="asio-selector" class="hide mb-3">
                     <label for="asioDevice">ASIO 设备名称</label>
-                    <input type="text" id="asioDevice">
+                    <input class="acrylic" type="text" id="asioDevice">
                     <div></div>
                 </div>
 
                 <div class="option-sidebyside">
-                    <button type="button" id="openSettingsbtn">⚙️</button>
-                    <button type="button" id="run">启动!</button>
+                    <button type="button" class="acrylic" id="openSettingsbtn">⚙️</button>
+                    <button type="button" class="acrylic" id="run">启动!</button>
                 </div>
             </div>
         </div>
