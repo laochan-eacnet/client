@@ -164,7 +164,7 @@
     <div class="wrapper">
         <div class="left">
             <h1>Infinitas Launcher</h1>
-            <h4>Powered by Laochan</h4>
+            <h4>Powered by Laochan <small id="version-text"></small></h4>
         </div>
         <div class="right">
             <div class="settings">
@@ -212,6 +212,7 @@
                 const konamisettingsbtn = document.querySelector('#openSettingsbtn');
                 const run = document.querySelector('#run');
                 const asioSelector = document.querySelector('#asio-selector');
+                const versionText = document.querySelector('#version-text');
 
                 (async () => {
                     const options = await getOptions() ?? {
@@ -227,6 +228,8 @@
                     displayModeInput.selectedIndex = options.displayMode;
                     soundModeInput.selectedIndex = options.soundMode;
                     asioDeviceInput.value = options.asioDevice;
+
+                    versionText.innerHTML = await getVersion();
                 })();
 
                 soundModeInput.addEventListener('change', () => {

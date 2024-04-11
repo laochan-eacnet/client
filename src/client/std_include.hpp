@@ -101,3 +101,5 @@
 #include "resource.hpp"
 
 using namespace std::literals;
+
+#define VERSION "0.0.2-webview"

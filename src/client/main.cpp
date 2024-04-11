@@ -38,7 +38,10 @@ int preinit()
 	try
 	{
 		const launcher launcher;
-		launcher.run();
+		if (!launcher.run())
+		{
+			ExitProcess(0);
+		}
 
 		create_console();
 

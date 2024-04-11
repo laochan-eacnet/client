@@ -28,6 +28,11 @@ void launcher::create_main_menu()
 	_main_window->set_title("Laochan-Eacnet Infinitas Launcher");
 	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
 
+	_main_window->bind("getVersion", [this](auto)->std::string
+	{
+		return VERSION;
+	});
+
 	_main_window->bind("startGame", [this](auto) -> std::string
 	{
 		run_game = true;
