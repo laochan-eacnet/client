@@ -176,4 +176,40 @@ namespace utils::string
 
 		return str;
 	}
+
+	std::wstring shiftjis_to_wide(std::string str)
+	{
+		std::wstring buffer;
+
+		auto size = MultiByteToWideChar(932, 0, str.data(), -1, nullptr, 0);
+		buffer.resize(size + 1);
+
+		MultiByteToWideChar(932, 0, str.data(), -1, buffer.data(), size);
+
+		return buffer;
+	}
+
+	std::wstring utf8_to_wide(std::string str)
+	{
+		std::wstring buffer;
+
+		auto size = MultiByteToWideChar(65001, 0, str.data(), -1, nullptr, 0);
+		buffer.resize(size + 1);
+
+		MultiByteToWideChar(65001, 0, str.data(), -1, buffer.data(), size);
+
+		return buffer;
+	}
+
+	std::string wide_to_shiftjis(std::wstring str)
+	{
+		std::string buffer;
+
+		auto size = WideCharToMultiByte(932, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);
+		buffer.resize(size + 1);
+
+		WideCharToMultiByte(932, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);
+
+		return buffer;
+	}
 }

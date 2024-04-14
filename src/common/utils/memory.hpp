@@ -45,6 +45,12 @@ namespace utils
 		static void* allocate(size_t length);
 
 		template <typename T>
+		static T* allocate(size_t length)
+		{
+			return reinterpret_cast<T*>(allocate(length));
+		}
+
+		template <typename T>
 		static T* allocate()
 		{
 			return allocate_array<T>(1);

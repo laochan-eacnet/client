@@ -2,27 +2,16 @@
 #include "loader/component_loader.hpp"
 
 #include <utils/hook.hpp>
+#include <utils/string.hpp>
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
 namespace logger
 {
-	std::wstring shiftjis_to_wstr(const char* text)
-	{
-		std::wstring buffer;
-
-		auto size = MultiByteToWideChar(932, 0, text, -1, nullptr, 0);
-		buffer.resize(size + 1);
-
-		MultiByteToWideChar(932, 0, text, -1, buffer.data(), size);
-
-		return buffer;
-	}
-
 	int __stdcall msgbox_hook(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
 	{
-		auto msg = shiftjis_to_wstr(lpText);
-		auto caption = shiftjis_to_wstr(lpCaption);
+		auto msg = utils::string::shiftjis_to_wide(lpText);
+		auto caption = utils::string::shiftjis_to_wide(lpCaption);
 
 		return MessageBoxW(hWnd, msg.data(), caption.data(), uType);
 	}
@@ -70,6 +59,14 @@ namespace logger
 		if (mod == "thread"s || mod == "mutex"s) {
 			return;
 		}
+
+		if (mod == "libeacnet"s && level == 2) {
+			return;
+		}
+
+		//if (mod == "DownloadFileManager"s && level == 2) {
+		//	__debugbreak();
+		//}
 
 		static auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(handle, log_level_color(level));

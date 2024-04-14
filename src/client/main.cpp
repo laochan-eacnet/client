@@ -59,7 +59,7 @@ int preinit()
 
 int init()
 {
-	auto hr = game::avs_init();
+	auto hr = game::init_avs();
 	if (hr) return hr;
 
 	try
