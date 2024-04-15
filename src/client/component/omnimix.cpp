@@ -38,8 +38,60 @@ namespace omnimix
 		auto result = load_music_info_hook.invoke<uint64_t>();
 		const auto music_data = game::get_music_data();
 
+		auto omni_file = game::avs_fs_open("/data/omni_music_datas.json", 1, 420);
+		if (omni_file < 0) {
+			printf("E:omnimix: can not load /data/omni_music_datas.json\n");
+			return result;
+		}
 
+		game::avs_stat stat = { 0 };
+		game::avs_fs_fstat(omni_file, &stat);
 
+		if (stat.filesize <= 0) {
+			printf("E:omnimix: can not load /data/omni_music_datas.json\n");
+			return result;
+		}
+
+		std::string omni_json;
+		omni_json.resize(stat.filesize + 1);
+
+		game::avs_fs_read(omni_file, omni_json.data(), stat.filesize);
+		game::avs_fs_close(omni_file);
+
+		//simdjson::padded_string padded_json(omni_json);
+		//simdjson::ondemand::parser SIMDJsonParser;
+		//auto jsonDocument = SIMDJsonParser.iterate(padded_json);
+		const json jsonDocument = json::parse(omni_json);
+		bool testarraybool = jsonDocument.is_array();
+		auto OmniSongDatas = jsonDocument["songs"];
+		const int SpecialMusicID = 80;
+		for (size_t i = 0; i < OmniSongDatas.size(); i++)
+		{
+			auto data = OmniSongDatas.at(i);
+			int musicID = std::stoi(data["id"].get<std::string>());
+			if (musicID >= 81000)
+			{
+				continue;
+			}
+			auto targetIndex = music_data->index_table[musicID];
+			if (targetIndex < 0 ||(musicID == SpecialMusicID && targetIndex <= 0))
+			{
+				continue;
+			}
+			auto bpmSps = data["bpms"]["sp"];
+			auto bpmDps = data["bpms"]["dp"];
+			auto noteCountsSps = data["noteCounts"]["sp"];
+			auto noteCountsDps = data["noteCounts"]["dp"];
+			for (size_t i = 0; i < 5; i++)
+			{
+				music_data->musics[targetIndex].bpm[i].max = bpmSps.at(i)["max"].get<uint32_t>();
+				music_data->musics[targetIndex].bpm[i].min = bpmSps.at(i)["min"].get<uint32_t>();
+				music_data->musics[targetIndex].bpm[i+5].max = bpmDps.at(i)["max"].get<uint32_t>();
+				music_data->musics[targetIndex].bpm[i+5].min = bpmDps.at(i)["min"].get<uint32_t>();
+				music_data->musics[targetIndex].note_count[i] = noteCountsSps.at(i).get<uint32_t>();
+				music_data->musics[targetIndex].note_count[i+5] = noteCountsDps.at(i).get<uint32_t>();
+			}
+		}
 		return result;
 	}
 
@@ -58,6 +110,11 @@ namespace omnimix
 
 		game::avs_stat stat = { 0 };
 		game::avs_fs_fstat(omni_file, &stat);
+		if (stat.filesize <= 0) {
+			printf("E:omnimix: can not load /data/omni_musics.json\n");
+			game::finalize_music_data();
+			return;
+		}
 
 		std::string omni_json;
 		omni_json.resize(stat.filesize + 1);
@@ -89,7 +146,7 @@ namespace omnimix
 		strncpy_s(music.##field, shiftjis_str.data(), sizeof(music.##field)); \
 	}
 
-	
+
 #define LOAD_INT(field) \
 	music.##field = item[#field].get<uint32_t>()
 #define LOAD_SHORT(field) \
@@ -103,7 +160,7 @@ namespace omnimix
 			LOAD_STRING(title_ascii);
 			LOAD_STRING(genre);
 			LOAD_STRING(artist);
-			
+
 			LOAD_INT(texture_title);
 			LOAD_INT(texture_artist);
 			LOAD_INT(texture_genre);
@@ -158,7 +215,7 @@ namespace omnimix
 			for (size_t n = 0; n < 10; n++)
 			{
 				auto hex = item["afp_data"][n].get<std::string>();
-				
+
 				for (size_t i = 0; i < 0x20; i++)
 				{
 					const auto& byte = hex.substr(i * 2, 2);
@@ -175,18 +232,18 @@ namespace omnimix
 			musics.push_back(backup->musics[i]);
 
 		printf("I:omnimix: total music count: %llu\n", musics.size());
-		
+
 		std::sort(musics.begin(), musics.end(), [](const game::music_t& a, const game::music_t& b) -> bool {
 			return a.song_id < b.song_id;
-		});
+			});
 
 		music_data->music_count = static_cast<uint16_t>(musics.size());
-		
+
 		for (size_t i = 0; i < MAX_ENTRIES; i++)
 		{
 			const auto find_result = std::find_if(musics.begin(), musics.end(), [i](const game::music_t& v) {
 				return v.song_id == i;
-			});
+				});
 
 			if (find_result != musics.end())
 			{
@@ -196,7 +253,7 @@ namespace omnimix
 
 			if (i >= CUR_STYLE_ENTRIES)
 				music_data->index_table[i] = 0;
-			else 
+			else
 				music_data->index_table[i] = 0xffff;
 		}
 

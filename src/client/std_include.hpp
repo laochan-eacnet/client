@@ -88,6 +88,7 @@
 #include <webview.h>
 
 #include <json.hpp>
+#include <simdjson.h>
 
 #pragma warning(pop)
 #pragma warning(disable: 4100)

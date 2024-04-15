@@ -99,7 +99,7 @@ namespace game
         uint16_t music_count;
         uint16_t zero;
         uint32_t max_entries;
-        uint16_t index_table[MAX_ENTRIES];
+        int16_t index_table[MAX_ENTRIES];
         music_t musics[1];
     };
 

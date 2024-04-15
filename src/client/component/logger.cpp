@@ -56,13 +56,14 @@ namespace logger
 
 	void avs2_log(void* _this, int level, const char* mod, const char* format, va_list va)
 	{
-		if (mod == "thread"s || mod == "mutex"s) {
-			return;
-		}
 
-		if (mod == "libeacnet"s && level == 2) {
-			return;
-		}
+		//if (mod == "thread"s || mod == "mutex"s) {
+		//	return;
+		//}
+
+		//if (mod == "libeacnet"s && level == 2) {
+		//	return;
+		//}
 
 		//if (mod == "DownloadFileManager"s && level == 2) {
 		//	__debugbreak();
