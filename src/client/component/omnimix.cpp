@@ -243,7 +243,7 @@ namespace omnimix
 			if (i >= CUR_STYLE_ENTRIES)
 				music_data->index_table[i] = 0;
 			else
-				music_data->index_table[i] = 0xffff;
+				music_data->index_table[i] = 0xffffi16;
 		}
 
 		for (size_t i = 0; i < music_data->music_count; i++)
