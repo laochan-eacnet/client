@@ -14,13 +14,22 @@ namespace patches
 		return launcher::get_service_address.data();
 	}
 
+	bool is_signature_valid()
+	{
+		return true;
+	}
+
 	class component final : public component_interface
 	{
 	public:
 		void post_start() override
 		{
 			// disable signature check
-			utils::hook::set<uint8_t>(0x1403050B5, 0xEB);
+			utils::hook::jump(0x140305FB0, is_signature_valid);
+
+			// disable music list checksum check
+			utils::hook::nop(0x1402F4C32, 2);
+			utils::hook::nop(0x1402F4C3E, 2);
 			// disable 120hz limit
 			// utils::hook::nop(0x1401F5F54, 2);
 			// change server url
