@@ -59,7 +59,6 @@ namespace omnimix
 		game::avs_fs_close(omni_file);
 
 		const json jsonDocument = json::parse(omni_json);
-		bool testarraybool = jsonDocument.is_array();
 		auto OmniSongDatas = jsonDocument["songs"];
 		const int SpecialMusicID = 80;
 		for (size_t i = 0; i < OmniSongDatas.size(); i++)
