@@ -50,11 +50,11 @@ namespace game
         uint8_t DPA_level;
         uint8_t DPL_level;
 
-        uint8_t __gap1[10];
+        uint8_t __gap1[10-8];
 
         bpm_t bpm[10];
 
-        uint8_t __gap2[44];
+        uint8_t __gap2[44+8];
 
         uint32_t note_count[10];
 

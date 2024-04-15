@@ -58,9 +58,6 @@ namespace omnimix
 		game::avs_fs_read(omni_file, omni_json.data(), stat.filesize);
 		game::avs_fs_close(omni_file);
 
-		//simdjson::padded_string padded_json(omni_json);
-		//simdjson::ondemand::parser SIMDJsonParser;
-		//auto jsonDocument = SIMDJsonParser.iterate(padded_json);
 		const json jsonDocument = json::parse(omni_json);
 		bool testarraybool = jsonDocument.is_array();
 		auto OmniSongDatas = jsonDocument["songs"];
