@@ -102,4 +102,4 @@
 
 using namespace std::literals;
 
-#define VERSION "0.0.2-webview"
+#define VERSION "0.0.3-omnimix"
