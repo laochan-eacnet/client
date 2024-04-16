@@ -20,7 +20,12 @@ namespace overlay
 	std::chrono::steady_clock::time_point last_frame;
 	std::vector<float> frametimes;
 
-	void init_imgui()
+	ImFont* font_normal;
+	ImFont* font_big;
+
+	bool show_information = false;
+
+	static void init_imgui()
 	{
 		IMGUI_CHECKVERSION();
 
@@ -36,7 +41,15 @@ namespace overlay
 		game::avs_fs_read(font_file, font_data, state.filesize);
 		game::avs_fs_close(font_file);
 
-		io.Fonts->AddFontFromMemoryTTF(font_data, state.filesize, 16.0f, nullptr, io.Fonts->GetGlyphRangesChineseFull());
+		font_normal = io.Fonts->AddFontFromMemoryTTF(
+			font_data, state.filesize, 16.0f,
+			nullptr, io.Fonts->GetGlyphRangesChineseFull()
+		);
+
+		font_big = io.Fonts->AddFontFromMemoryTTF(
+			font_data, state.filesize, 24.0f,
+			nullptr, io.Fonts->GetGlyphRangesChineseFull()
+		);
 
 		ImGui::StyleColorsDark();
 
@@ -46,11 +59,34 @@ namespace overlay
 		is_imgui_inited = true;
 	}
 
-	void draw_gui()
+	static void draw_watermark()
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 20));
+
+		ImGui::SetNextWindowPos(ImVec2(5, 5));
+		if (ImGui::Begin("INFORMATION", nullptr,
+			ImGuiWindowFlags_NoInputs |
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoBackground |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_AlwaysAutoResize
+		)) {
+
+			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
+			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
+			ImGui::Text("PRESS F12 TO EXPAND");
+			ImGui::End();
+		}
+
+		ImGui::PopStyleColor();
+	}
+
+	static void draw_debug_information()
 	{
 		float last_frametime = 0;
 		float frametime_sum = 0;
-		float max = 0;
+		float max = 33.3f;
 
 		for (const auto ft : frametimes)
 		{
@@ -60,8 +96,9 @@ namespace overlay
 			if (ft > max) max = ft;
 		}
 
-		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 120));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 20));
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 190));
+		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(255, 255, 255, 120));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 90));
 
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		if (ImGui::Begin("FRAMETIME GLYPH", nullptr,
@@ -74,7 +111,7 @@ namespace overlay
 		)) {
 			ImGui::PlotLines("",
 				frametimes.data(),
-				frametimes.size(),
+				static_cast<int>(frametimes.size()),
 				0, nullptr, 0.f, max + 10.f,
 				ImVec2(300, 75)
 			);
@@ -82,7 +119,7 @@ namespace overlay
 			ImGui::End();
 		}
 
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowPos(ImVec2(5, 5));
 		if (ImGui::Begin("INFORMATION", nullptr,
 			ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_NoDecoration |
@@ -91,7 +128,7 @@ namespace overlay
 			ImGuiWindowFlags_NoSavedSettings |
 			ImGuiWindowFlags_AlwaysAutoResize
 		)) {
-			
+
 			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
 			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
 			ImGui::Text(utils::string::va("FPS: %.1f (%.2fms)", 1000 / (frametime_sum / frametimes.size()), last_frametime));
@@ -100,9 +137,59 @@ namespace overlay
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
 	}
 
-	LRESULT wndproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+	static void draw_clock()
+	{
+		const auto& io = ImGui::GetIO();
+
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 190));
+		
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 5, 5), 0, ImVec2(1, 0));
+		if (ImGui::Begin("CLOCK", nullptr,
+			ImGuiWindowFlags_NoInputs |
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoBackground |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_AlwaysAutoResize
+		)) {
+
+			ImGui::PushFont(font_big);
+			ImGui::Text(
+				std::format("{:%T}", 
+					std::chrono::current_zone()->to_local(
+							std::chrono::time_point_cast<std::chrono::seconds>(
+								std::chrono::system_clock::now()
+							)
+					)
+				).data()
+			);
+			ImGui::PopFont();
+
+			ImGui::End();
+		}
+
+		
+		ImGui::PopStyleColor();
+	}
+
+	static void draw_gui()
+	{
+		// F12 - toggle debug info
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F12), false))
+			show_information = !show_information;
+
+		if (show_information)
+			draw_debug_information();
+		else
+			draw_watermark();
+
+		draw_clock();
+	}
+
+	static LRESULT wndproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, w_param, l_param))
 			return true;
@@ -119,47 +206,47 @@ namespace overlay
 			utils::hook::inject(0x1401F5822, wndproc);
 
 			scheduler::schedule([]() -> bool
-			{
-				const auto now = std::chrono::high_resolution_clock::now();
-				const auto diff = now - last_frame;
-
-				last_frame = now;
-				frametimes.push_back(diff.count() / 1000000.f);
-
-				if (frametimes.size() > 30)
-					frametimes.erase(frametimes.begin());
-
-				if (!is_imgui_inited)
-					init_imgui();
-
-				ImGui_ImplDX9_NewFrame();
-				ImGui_ImplWin32_NewFrame();
-				ImGui::NewFrame();
-
-				draw_gui();
-
-				ImGui::EndFrame();
-
-				auto* const device = *game::d3d9ex_device;
-
-				device->SetRenderState(D3DRS_ZENABLE, FALSE);
-				device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-				device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-
-				IDirect3DSurface9* backbuffer{};
-				device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
-				device->SetRenderTarget(0, backbuffer);
-
-				if (device->BeginScene() >= 0)
 				{
-					ImGui::Render();
-					ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+					const auto now = std::chrono::high_resolution_clock::now();
+					const auto diff = now - last_frame;
 
-					device->EndScene();
-				}
+					last_frame = now;
+					frametimes.push_back(diff.count() / 1000000.f);
 
-				return scheduler::cond_continue;
-			}, scheduler::pipeline::renderer);
+					if (frametimes.size() > 30)
+						frametimes.erase(frametimes.begin());
+
+					if (!is_imgui_inited)
+						init_imgui();
+
+					ImGui_ImplDX9_NewFrame();
+					ImGui_ImplWin32_NewFrame();
+					ImGui::NewFrame();
+
+					draw_gui();
+
+					ImGui::EndFrame();
+
+					auto* const device = *game::d3d9ex_device;
+
+					device->SetRenderState(D3DRS_ZENABLE, FALSE);
+					device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+					device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+					IDirect3DSurface9* backbuffer{};
+					device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+					device->SetRenderTarget(0, backbuffer);
+
+					if (device->BeginScene() >= 0)
+					{
+						ImGui::Render();
+						ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
+						device->EndScene();
+					}
+
+					return scheduler::cond_continue;
+				}, scheduler::pipeline::renderer);
 		}
 
 		void pre_destroy() override
