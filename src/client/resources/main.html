@@ -225,8 +225,8 @@
                 </div>
                 <div id="asio-selector" class="hide mb-3">
                     <label for="asioDevice">ASIO 设备名称</label>
-                    <input class="acrylic" type="text" id="asioDevice">
-                    <div></div>
+                    <select class="acrylic" id="asioDevice">
+                    </select>
                 </div>
 
                 <div class="option-sidebyside">
@@ -249,6 +249,15 @@
         const asioSelector = document.querySelector('#asio-selector');
         const versionText = document.querySelector('#version-text');
 
+        function onSoundModeChange() {
+            if (soundModeInput.selectedIndex) {
+                asioSelector.classList.remove("hide");
+                return;
+            }
+
+            asioSelector.classList.add("hide");
+        }
+
         (async () => {
             const options = await getOptions() ?? {
                 serverUrl: 'https://laochan.impact.wang/',
@@ -258,6 +267,15 @@
                 asioDevice: 'XONAR SOUND CARD(64)',
             };
 
+            const devices = await getAsioDeviceList();
+            for (const device of devices) {
+                const option = document.createElement('option');
+                option.value = device;
+                option.innerText = device;
+
+                asioDeviceInput.appendChild(option);
+            }
+
             serverUrlInput.value = options.serverUrl;
             tokenInput.value = options.token;
             displayModeInput.selectedIndex = options.displayMode;
@@ -265,16 +283,10 @@
             asioDeviceInput.value = options.asioDevice;
 
             versionText.innerHTML = await getVersion();
+            onSoundModeChange();
         })();
 
-        soundModeInput.addEventListener('change', () => {
-            if (soundModeInput.selectedIndex) {
-                asioSelector.classList.remove("hide");
-                return;
-            }
-
-            asioSelector.classList.add("hide");
-        });
+        soundModeInput.addEventListener('change', onSoundModeChange);
 
         devbtn.addEventListener('click', () => {
             serverUrlInput.value = 'http://localhost:25730/preProcess/GetServices';
