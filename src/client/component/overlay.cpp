@@ -16,6 +16,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 namespace overlay
 {
 	bool is_imgui_inited = false;
+	bool is_destoryed = false;
 	char* font_data;
 	std::chrono::steady_clock::time_point last_frame;
 	std::vector<float> frametimes;
@@ -206,47 +207,55 @@ namespace overlay
 			utils::hook::inject(0x1401F5822, wndproc);
 
 			scheduler::schedule([]() -> bool
+			{
+				if (is_destoryed)
+					return scheduler::cond_end;
+
+				const auto now = std::chrono::high_resolution_clock::now();
+				const auto diff = now - last_frame;
+
+				last_frame = now;
+				frametimes.push_back(diff.count() / 1000000.f);
+
+				if (frametimes.size() > 30)
+					frametimes.erase(frametimes.begin());
+
+				if (!is_imgui_inited)
+					init_imgui();
+
+				ImGui_ImplDX9_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+					
+				// HACK: this game uses fixed 1080p backbuffer
+				auto& io = ImGui::GetIO();
+				io.DisplaySize = ImVec2(1920, 1080);
+
+				ImGui::NewFrame();
+
+				draw_gui();
+
+				ImGui::EndFrame();
+
+				auto* const device = *game::d3d9ex_device;
+
+				device->SetRenderState(D3DRS_ZENABLE, FALSE);
+				device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+				device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+				IDirect3DSurface9* backbuffer{};
+				device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+				device->SetRenderTarget(0, backbuffer);
+
+				if (device->BeginScene() >= 0)
 				{
-					const auto now = std::chrono::high_resolution_clock::now();
-					const auto diff = now - last_frame;
+					ImGui::Render();
+					ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
-					last_frame = now;
-					frametimes.push_back(diff.count() / 1000000.f);
+					device->EndScene();
+				}
 
-					if (frametimes.size() > 30)
-						frametimes.erase(frametimes.begin());
-
-					if (!is_imgui_inited)
-						init_imgui();
-
-					ImGui_ImplDX9_NewFrame();
-					ImGui_ImplWin32_NewFrame();
-					ImGui::NewFrame();
-
-					draw_gui();
-
-					ImGui::EndFrame();
-
-					auto* const device = *game::d3d9ex_device;
-
-					device->SetRenderState(D3DRS_ZENABLE, FALSE);
-					device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-					device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-
-					IDirect3DSurface9* backbuffer{};
-					device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
-					device->SetRenderTarget(0, backbuffer);
-
-					if (device->BeginScene() >= 0)
-					{
-						ImGui::Render();
-						ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-						device->EndScene();
-					}
-
-					return scheduler::cond_continue;
-				}, scheduler::pipeline::renderer);
+				return scheduler::cond_continue;
+			}, scheduler::pipeline::renderer);
 		}
 
 		void pre_destroy() override
@@ -254,9 +263,14 @@ namespace overlay
 			if (!is_imgui_inited)
 				return;
 
-			ImGui_ImplDX9_Shutdown();
-			ImGui_ImplWin32_Shutdown();
-			ImGui::DestroyContext();
+			scheduler::once([]() 
+			{
+				ImGui_ImplDX9_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext();
+
+				is_destoryed = true;
+			}, scheduler::pipeline::renderer);
 		}
 	};
 }

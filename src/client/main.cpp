@@ -20,6 +20,11 @@ void enable_dpi_awareness()
 	}
 }
 
+void cleanup()
+{
+	component_loader::pre_destroy();
+}
+
 void create_console()
 {
 	AllocConsole();
@@ -28,6 +33,16 @@ void create_console()
 	auto _ = freopen_s(&f, "CONOUT$", "w+t", stdout);
 	_ = freopen_s(&f, "CONOUT$", "w", stderr);
 	_ = freopen_s(&f, "CONIN$", "r", stdin);
+
+	SetConsoleCtrlHandler([](DWORD control_type) -> BOOL
+	{
+		if (control_type == CTRL_CLOSE_EVENT)
+		{
+			cleanup();
+		}
+
+		return true;
+	}, true);
 }
 
 int preinit()
@@ -74,11 +89,6 @@ int init()
 	}
 
 	return 0;
-}
-
-void cleanup()
-{
-	component_loader::pre_destroy();
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
