@@ -25,6 +25,7 @@ namespace overlay
 	ImFont* font_big;
 
 	bool show_information = false;
+	bool show_clock = false;
 
 	static void init_imgui()
 	{
@@ -76,7 +77,6 @@ namespace overlay
 
 			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
 			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
-			ImGui::Text("PRESS F12 TO EXPAND");
 			ImGui::End();
 		}
 
@@ -182,12 +182,17 @@ namespace overlay
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F12), false))
 			show_information = !show_information;
 
+		// F11 - toggle clock
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F11), false))
+			show_clock = !show_clock;
+
 		if (show_information)
 			draw_debug_information();
 		else
 			draw_watermark();
 
-		draw_clock();
+		if (show_clock)
+			draw_clock();
 	}
 
 	static LRESULT wndproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
