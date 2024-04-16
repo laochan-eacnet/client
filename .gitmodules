@@ -10,3 +10,6 @@
 [submodule "deps/asmjit"]
 	path = deps/asmjit
 	url = https://github.com/asmjit/asmjit.git
+[submodule "deps/dearimgui"]
+	path = deps/dearimgui
+	url = https://github.com/ocornut/imgui.git

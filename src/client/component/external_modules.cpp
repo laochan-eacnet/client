@@ -3,7 +3,6 @@
 
 #include <utils/hook.hpp>
 #include <game/game.hpp>
-#include <launcher/launcher.hpp>
 
 namespace external_modules
 {

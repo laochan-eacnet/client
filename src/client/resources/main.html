@@ -294,7 +294,7 @@
             };
 
             if (!settings.token.length) {
-                tokenInput.value = uuid;
+                tokenInput.value = await uuid();
             }
 
             if (!settings.serverUrl.length) {

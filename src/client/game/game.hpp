@@ -1,6 +1,7 @@
 #pragma once
 
 #include "launcher/launcher.hpp"
+#include <utils/nt.hpp>
 
 namespace game
 {
