@@ -57,22 +57,26 @@ namespace omnimix
 
 		game::avs_fs_read(omni_file, omni_json.data(), stat.filesize);
 		game::avs_fs_close(omni_file);
+		simdjson::ondemand::parser parser;
+		//simdjson::padded_string padded_json(omni_json);
+		simdjson::ondemand::document omni_data = parser.iterate(omni_json);
+		auto test = omni_data.at(0);
+		uint64_t id = test["id"].get_uint64();//这一步就爆炸了 但是新开的项目没问题
+		//const json omni_data = json::parse(omni_json);
 
-		const json omni_data = json::parse(omni_json);
+		//if (!omni_data.is_array()) {
+		//	printf("E:omnimix: omni_data is not array!\n");
+		//	return result;
+		//}
 
-		if (!omni_data.is_array()) {
-			printf("E:omnimix: omni_data is not array!\n");
-			return result;
-		}
-
-		for (const auto& item : omni_data)
+		for (simdjson::ondemand::object item : parser.iterate(omni_json))
 		{
-			if (!item.is_object()) {
-				printf("W:omnimix: music item is not object!\n");
-				continue;
-			}
+			//if (!item.is_object()) {
+			//	printf("W:omnimix: music item is not object!\n");
+			//	continue;
+			//}
 
-			const auto id = item["id"].get<size_t>();
+			const auto id = item["id"].get_uint64().take_value();
 			const auto index = music_data->index_table[id];
 
 			if ((id >= CUR_STYLE_ENTRIES && index == 0) || index == 0xffff)
@@ -80,15 +84,24 @@ namespace omnimix
 			
 			auto* const music = music_data->musics + index;
 
+			auto bpms = item["bpms"];
+			auto bpmsp = bpms["sp"];
+			auto bpmdp = bpms["dp"];
+			auto count = item["noteCounts"];
+			auto spcount = count["sp"];
+			auto dpcount = count["dp"];
+
 			for (size_t i = 0; i < 5; i++)
 			{
-				music->bpm[i].min = item["bpms"]["sp"][i]["min"].get<uint32_t>();
-				music->bpm[i].max = item["bpms"]["sp"][i]["max"].get<uint32_t>();
-				music->bpm[i + 5].min = item["bpms"]["dp"][i]["min"].get<uint32_t>();
-				music->bpm[i + 5].max = item["bpms"]["dp"][i]["max"].get<uint32_t>();
+				auto currentspbpm = bpmsp.at(i);
+				auto currentdpbpm = bpmdp.at(i);
+				music->bpm[i].min = currentspbpm["min"].get_uint64();
+				music->bpm[i].max = currentspbpm["max"].get_uint64();
+				music->bpm[i + 5].min = currentdpbpm["min"].get_uint64();
+				music->bpm[i + 5].max = currentdpbpm["max"].get_uint64();
 
-				music->note_count[i] = item["noteCounts"]["sp"][i].get<uint32_t>();
-				music->note_count[i + 5] = item["noteCounts"]["dp"][i].get<uint32_t>();
+				music->note_count[i] = spcount.at(i).get_uint64();
+				music->note_count[i + 5] = dpcount.at(i).get_uint64();
 			}
 		}
 
