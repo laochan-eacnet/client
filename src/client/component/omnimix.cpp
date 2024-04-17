@@ -66,7 +66,7 @@ namespace omnimix
 				continue;
 			}
 
-			const uint32_t id = item["id"].get_uint64();
+			const size_t id = item["id"].get_uint64();
 			const auto index = music_data->index_table[id];
 
 			if ((id >= CUR_STYLE_ENTRIES && index == 0) || index == 0xffff)
@@ -76,13 +76,13 @@ namespace omnimix
 
 			for (size_t i = 0; i < 5; i++)
 			{
-				music->bpm[i].min = item["bpms"]["sp"].at(i)["min"].get_uint64();
-				music->bpm[i].max = item["bpms"]["sp"].at(i)["max"].get_uint64();
-				music->bpm[i + 5].min = item["bpms"]["dp"].at(i)["min"].get_uint64();
-				music->bpm[i + 5].max = item["bpms"]["dp"].at(i)["max"].get_uint64();
+				music->bpm[i].min = static_cast<uint32_t>(item["bpms"]["sp"].at(i)["min"].get_uint64());
+				music->bpm[i].max = static_cast<uint32_t>(item["bpms"]["sp"].at(i)["max"].get_uint64());
+				music->bpm[i + 5].min = static_cast<uint32_t>(item["bpms"]["dp"].at(i)["min"].get_uint64());
+				music->bpm[i + 5].max = static_cast<uint32_t>(item["bpms"]["dp"].at(i)["max"].get_uint64());
 
-				music->note_count[i] = item["noteCounts"]["sp"].at(i).get_uint64();
-				music->note_count[i + 5] = item["noteCounts"]["dp"].at(i).get_uint64();
+				music->note_count[i] = static_cast<uint32_t>(item["noteCounts"]["sp"].at(i).get_uint64());
+				music->note_count[i + 5] = static_cast<uint32_t>(item["noteCounts"]["dp"].at(i).get_uint64());
 			}
 		}
 		utils::memory::free(json_buffer);
@@ -141,11 +141,11 @@ namespace omnimix
 	}
 
 #define LOAD_INT(field, path) \
-	music.##field = item##path.get_int64();
+	music.##field = static_cast<uint32_t>(item##path.get_int64());
 #define LOAD_SHORT(field, path) \
-	music.##field = item##path.get_int64();
+	music.##field = static_cast<uint16_t>(item##path.get_int64());
 #define LOAD_BYTE(field, path) \
-	music.##field = item##path.get_int64();
+	music.##field = static_cast<uint8_t>(item##path.get_int64());
 
 			LOAD_INT(song_id, ["id"]);
 

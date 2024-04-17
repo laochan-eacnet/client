@@ -104,4 +104,4 @@
 
 using namespace std::literals;
 
-#define VERSION "0.0.3-omnimix"
+#define VERSION "0.0.4-asio-fix"

@@ -13,8 +13,8 @@ namespace game
 	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142A9C5B8 };
 	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142A9C5B8 };
 	WEAK symbol<HWND*> main_hwnd{ 0x142A9C5A8 };
-	WEAK symbol<const char> infinitas_id { 0x141AB4494 };
-	WEAK symbol<const char> game_version { 0x141AB44E3 };
+	WEAK symbol<const char> infinitas_id{ 0x141AB4494 };
+	WEAK symbol<const char> game_version{ 0x141AB44E3 };
 
 	typedef uint32_t avs_file_t;
 
@@ -28,4 +28,5 @@ namespace game
 	WEAK avs_function<avs_file_t(const char* path)> avs_fs_opendir{ "XCgsqzn000005c" };
 	WEAK avs_function<const char* (avs_file_t dir)> avs_fs_readdir{ "XCgsqzn000005d" };
 	WEAK avs_function<void(avs_file_t dir)> avs_fs_closedir{ "XCgsqzn000005e" };
+	WEAK avs_function<int(const char* mountpoint, const char* fsroot, const char* fstype, void* data)> avs_fs_mount{ "XCgsqzn000004b" };
 }

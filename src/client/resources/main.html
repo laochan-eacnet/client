@@ -259,14 +259,6 @@
         }
 
         (async () => {
-            const options = await getOptions() ?? {
-                serverUrl: 'https://laochan.impact.wang/',
-                token: await uuid(),
-                displayMode: 3,
-                soundMode: 0,
-                asioDevice: 'XONAR SOUND CARD(64)',
-            };
-
             const devices = await getAsioDeviceList();
             for (const device of devices) {
                 const option = document.createElement('option');
@@ -274,6 +266,18 @@
                 option.innerText = device;
 
                 asioDeviceInput.appendChild(option);
+            }
+
+            const options = await getOptions() ?? {
+                serverUrl: 'https://laochan.impact.wang/',
+                token: await uuid(),
+                displayMode: 3,
+                soundMode: 0,
+                asioDevice: '',
+            };
+
+            if (!devices.includes(options.asioDevice)) {
+                options.asioDevice = devices[0];
             }
 
             serverUrlInput.value = options.serverUrl;

@@ -32,24 +32,24 @@ void launcher::create_main_menu()
 		{
 			HKEY key;
 			if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\ASIO", 0, KEY_READ, &key))
-				return "[]";
+				return "[\"ASIO DEVICE NOT FOUND\"]";
 
 			DWORD subkey_counts, subkey_name_maxlen;
 			RegQueryInfoKeyA(key, nullptr, nullptr, nullptr, &subkey_counts, &subkey_name_maxlen, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 
 			auto result = json::array();
 
-			for (int i = 0; i < subkey_counts; i++)
-			{
-				std::string name;
-				DWORD size = subkey_name_maxlen;
-				name.resize(subkey_name_maxlen + 1);
-				RegEnumKeyExA(key, i, name.data(), &size, nullptr, nullptr, nullptr, nullptr);
+			char* buffer = utils::memory::allocate<char>(subkey_name_maxlen * 2);
 
-				name.resize(size);
-				result.push_back(name);
+			for (DWORD i = 0; i < subkey_counts; i++)
+			{
+				DWORD size = subkey_name_maxlen * 2;
+				RegEnumKeyExA(key, i, buffer, &size, nullptr, nullptr, nullptr, nullptr);
+
+				result.push_back(std::string{ buffer });
 			}
 
+			utils::memory::free(buffer);
 			return result.dump();
 		});
 
