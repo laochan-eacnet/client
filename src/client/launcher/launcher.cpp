@@ -11,9 +11,6 @@ using json = nlohmann::json;
 
 std::string launcher::token;
 std::string launcher::get_service_address;
-std::string launcher::asio_device_name;
-launcher::display_mode launcher::disp_mode;
-launcher::sound_mode launcher::snd_mode;
 HMODULE launcher::dll_module;
 
 launcher::launcher()
@@ -22,36 +19,16 @@ launcher::launcher()
 	this->create_main_menu();
 }
 
+std::string launcher::get_args()
+{
+	return "-t " + token + " -s " + get_service_address;
+}
+
 void launcher::create_main_menu()
 {
 	_main_window = std::make_unique<webview::webview>(true, launcher::dll_module);
-	_main_window->set_title("Laochan-Eacnet Infinitas Launcher");
-	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
-
-	_main_window->bind("getAsioDeviceList", [this](auto)->std::string
-		{
-			HKEY key;
-			if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\ASIO", 0, KEY_READ, &key))
-				return "[\"ASIO DEVICE NOT FOUND\"]";
-
-			DWORD subkey_counts, subkey_name_maxlen;
-			RegQueryInfoKeyA(key, nullptr, nullptr, nullptr, &subkey_counts, &subkey_name_maxlen, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-
-			auto result = json::array();
-
-			char* buffer = utils::memory::allocate<char>(subkey_name_maxlen * 2);
-
-			for (DWORD i = 0; i < subkey_counts; i++)
-			{
-				DWORD size = subkey_name_maxlen * 2;
-				RegEnumKeyExA(key, i, buffer, &size, nullptr, nullptr, nullptr, nullptr);
-
-				result.push_back(std::string{ buffer });
-			}
-
-			utils::memory::free(buffer);
-			return result.dump();
-		});
+	_main_window->set_title("Laochan-Eacnet SDVX:EG Launcher");
+	_main_window->set_size(480, 800, WEBVIEW_HINT_NONE);
 
 	_main_window->bind("getVersion", [this](auto)->std::string
 		{
@@ -91,7 +68,7 @@ void launcher::create_main_menu()
 
 			utils::nt::library bm2dx{};
 			auto settings_path = std::filesystem::path{
-				bm2dx.get_folder() + "/../../launcher/modules/bm2dx_settings.exe"
+				bm2dx.get_folder() + "/../../launcher/modules/settings.exe"
 			}.make_preferred().string();
 
 			CreateProcessA(
@@ -133,15 +110,6 @@ void launcher::create_main_menu()
 
 			if (options["serverUrl"].is_string())
 				launcher::get_service_address = options.value("serverUrl", "");
-
-			if (options["asioDevice"].is_string())
-				launcher::asio_device_name = options.value("asioDevice", "");
-
-			if (options["displayMode"].is_number_integer())
-				launcher::disp_mode = options.value<launcher::display_mode>("displayMode", launcher::display_mode::windowed_720p);
-
-			if (options["soundMode"].is_number_integer())
-				launcher::snd_mode = options.value<launcher::sound_mode>("soundMode", launcher::sound_mode::wasapi);
 
 			utils::io::write_file("laochan-config.json", options.dump());
 			return {};

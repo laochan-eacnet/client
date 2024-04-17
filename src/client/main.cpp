@@ -27,6 +27,9 @@ void cleanup()
 
 void create_console()
 {
+	SetConsoleCP(932);
+	std::locale::global(std::locale("ja_JP"));
+
 	AllocConsole();
 
 	FILE* f;
@@ -45,31 +48,38 @@ void create_console()
 	}, true);
 }
 
-int preinit()
+LRESULT WINAPI preinit(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	enable_dpi_awareness();
 	std::srand(uint32_t(time(nullptr)));
 
 	try
 	{
-		const launcher launcher;
-		if (!launcher.run())
+		// fix launcher window not close after launcher, strange issue
+		std::thread([]()
 		{
-			ExitProcess(0);
-		}
+			const launcher launcher;
+			if (!launcher.run())
+			{
+				ExitProcess(0);
+			}
+		}).join();
 
 		create_console();
 
 		if (!component_loader::post_start())
-			return 0;
+			return 1;
+
+		auto args = launcher::get_args();
+		auto result = game::game_winmain(hInstance, hPrevInstance, args.data(), nShowCmd);
+
+		return result;
 	}
 	catch (std::exception& e)
 	{
 		MessageBoxA(nullptr, e.what(), "ERROR", MB_ICONERROR);
-		return 0;
+		return 1;
 	}
-
-	return 1;
 }
 
 int init()
@@ -99,8 +109,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		launcher::dll_module = hModule;
-		utils::hook::call(0x1401AFADC, preinit);
-		utils::hook::call(0x1401F68ED, init);
+		utils::hook::call(0x1404FDA8D, preinit);
+		utils::hook::call(0x1401F5706, init);
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

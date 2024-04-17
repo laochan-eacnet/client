@@ -4,17 +4,8 @@
 
 namespace game
 {
-	WEAK symbol<bool(const char* args)> game_preinit{ 0x1401AF440 };
-	WEAK symbol<bool()> init_avs{ 0x1400BA240 };
-	WEAK symbol<void()> finalize_music_data{ 0x1400CD710 };
-	WEAK symbol<music_data_t* ()> get_music_data{ 0x1401B76B0 };
-	WEAK symbol<LRESULT(HWND, UINT, WPARAM, LPARAM)> main_wndproc{ 0x1401F5550 };
-
-	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142A9C5B8 };
-	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142A9C5B8 };
-	WEAK symbol<HWND*> main_hwnd{ 0x142A9C5A8 };
-	WEAK symbol<const char> infinitas_id{ 0x141AB4494 };
-	WEAK symbol<const char> game_version{ 0x141AB44E3 };
+	WEAK symbol<LRESULT WINAPI(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)> game_winmain{ 0x1401F5260 };
+	WEAK symbol<bool()> init_avs{ 0x1401F46B0 };
 
 	typedef uint32_t avs_file_t;
 
