@@ -1,12 +1,12 @@
 #pragma once
 
-#pragma warning(disable: 4067)
-
 #pragma warning(push)
+#pragma warning(disable: 4067)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4127)
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4458)
+#pragma warning(disable: 4459)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4996)
 #pragma warning(disable: 5054)
@@ -89,6 +89,7 @@
 #include <webview.h>
 
 #include <json.hpp>
+#include "../simdjson.h"
 
 #pragma warning(pop)
 #pragma warning(disable: 4100)
@@ -103,4 +104,4 @@
 
 using namespace std::literals;
 
-#define VERSION "0.0.2-webview"
+#define VERSION "0.0.3-omnimix"
