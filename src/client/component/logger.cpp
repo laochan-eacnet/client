@@ -70,6 +70,13 @@ namespace logger
 		SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
 
+	void on_assert(const wchar_t* Expression, const wchar_t* FunctionName, const wchar_t* FileName, unsigned int LineNo, uintptr_t Reserved)
+	{
+		wprintf(L"F:logger:Assertion failed!\nFile=%s, Function=%s, Line=%u, Expression=%s\n", FileName, FunctionName, LineNo, Expression);
+		MessageBoxA(nullptr, "Assertion Faild!\n\nSee console for detail.", "Fatal Error", MB_OK | MB_ICONERROR);
+
+		assert(false);
+	}
 
 	class component final : public component_interface
 	{
@@ -79,6 +86,8 @@ namespace logger
 			utils::nt::library avs2core{ "avs2-core.dll" };
 			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 			utils::hook::iat(utils::nt::library{}, "user32.dll", "MessageBoxA", msgbox_hook);
+
+			utils::hook::jump(0x14052838C, on_assert);
 		}
 	};
 }

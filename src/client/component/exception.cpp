@@ -154,7 +154,7 @@ namespace exception
 			SetUnhandledExceptionFilter(exception_filter);
 		}
 
-		void post_start() override
+		void post_load() override
 		{
 			SetUnhandledExceptionFilter(exception_filter);
 			utils::hook::jump(SetUnhandledExceptionFilter, set_unhandled_exception_filter_stub, true);
