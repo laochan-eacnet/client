@@ -87,7 +87,7 @@ namespace logger
 			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 			utils::hook::iat(utils::nt::library{}, "user32.dll", "MessageBoxA", msgbox_hook);
 
-			utils::hook::jump(0x14052838C, on_assert);
+			// utils::hook::jump(0x14052838C, on_assert);
 		}
 	};
 }

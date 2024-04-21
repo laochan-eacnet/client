@@ -134,7 +134,7 @@ namespace exception
 
 			exception_data.code = exceptioninfo->ExceptionRecord->ExceptionCode;
 			exception_data.address = exceptioninfo->ExceptionRecord->ExceptionAddress;
-			exceptioninfo->ContextRecord->Rip = get_reset_state_stub();
+			exceptioninfo->ContextRecord->Eip = get_reset_state_stub();
 
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}

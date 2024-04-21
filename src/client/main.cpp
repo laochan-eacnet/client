@@ -71,9 +71,9 @@ LRESULT WINAPI preinit(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 			return 1;
 
 		auto args = launcher::get_args();
-		auto result = game::game_winmain(hInstance, hPrevInstance, args.data(), nShowCmd);
+		// auto result = game::game_winmain(hInstance, hPrevInstance, args.data(), nShowCmd);
 
-		return result;
+		return 0;
 	}
 	catch (std::exception& e)
 	{
@@ -84,8 +84,8 @@ LRESULT WINAPI preinit(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 
 int init()
 {
-	auto hr = game::init_avs();
-	if (hr) return hr;
+	// auto hr = game::init_avs();
+	// if (hr) return hr;
 
 	try
 	{
@@ -109,8 +109,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		launcher::dll_module = hModule;
-		utils::hook::call(0x1404FDA8D, preinit);
-		utils::hook::call(0x1401F5706, init);
+		// utils::hook::call(0x1404FDA8D, preinit);
+		// utils::hook::call(0x1401F5706, init);
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

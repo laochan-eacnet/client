@@ -52,8 +52,8 @@ configurations {"Debug", "Release"}
 language "C++"
 cppdialect "C++20"
 
-architecture "x86_64"
-platforms "x64"
+architecture "x86"
+platforms "x86"
 
 systemversion "latest"
 symbols "On"
@@ -72,7 +72,7 @@ end
 
 flags {"NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks"}
 
-filter "platforms:x64"
+filter "platforms:x86"
 	defines {"_WINDOWS", "WIN32"}
 filter {}
 
