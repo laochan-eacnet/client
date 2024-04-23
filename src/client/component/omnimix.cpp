@@ -6,6 +6,8 @@
 #include <utils/memory.hpp>
 #include <game/game.hpp>
 
+#include "component/filesystem.hpp"
+
 using json = nlohmann::json;
 
 namespace omnimix
@@ -15,17 +17,14 @@ namespace omnimix
 	{
 		const auto music_bga = music->bga_filename;
 		auto path = utils::string::va("/data/movie/%s.mp4", music_bga);
-		game::avs_stat stat = { 0 };
-		game::avs_fs_lstat(path, &stat);
 
-		if (stat.filesize > 0) {
+		if (filesystem::exists(path)) {
 			return utils::string::va("%s.mp4", music_bga);
 		}
 
 		path = utils::string::va("/data/movie/%s.wmv", music_bga);
-		game::avs_fs_lstat(path, &stat);
 
-		if (stat.filesize > 0) {
+		if (filesystem::exists(path)) {
 			return utils::string::va("%s.wmv", music_bga);
 		}
 
@@ -38,26 +37,16 @@ namespace omnimix
 		auto result = load_music_info_hook.invoke<uint64_t>();
 		const auto music_data = game::get_music_data();
 
-		auto omni_file = game::avs_fs_open("/data/omni_data.json", 1, 420);
-		if (omni_file < 0) {
+		filesystem::file omni_file{ "/data/omni_data.json" };
+
+		if (!omni_file.exists()) {
 			printf("E:omnimix: can not load /data/omni_data.json\n");
 			return result;
 		}
-
-		game::avs_stat stat = { 0 };
-		game::avs_fs_fstat(omni_file, &stat);
-
-		if (stat.filesize <= 0) {
-			printf("E:omnimix: can not load /data/omni_data.json\n");
-			return result;
-		}
-		char* json_buffer = utils::memory::allocate<char>(stat.filesize + 64);
-
-		game::avs_fs_read(omni_file, json_buffer, stat.filesize);
-		game::avs_fs_close(omni_file);
 
 		simdjson::dom::parser parser;
-		auto omni_data = parser.parse(json_buffer, stat.filesize, stat.filesize + 64);
+		simdjson::padded_string padded{ omni_file.get_buffer() };
+		auto omni_data = parser.parse(padded);
 
 		for (const auto& item : omni_data)
 		{
@@ -85,43 +74,36 @@ namespace omnimix
 				music->note_count[i + 5] = static_cast<uint32_t>(item["noteCounts"]["dp"].at(i).get_uint64());
 			}
 		}
-		utils::memory::free(json_buffer);
+
 		return result;
 	}
 
 	void insert_music_datas()
 	{
-		auto omni_file = game::avs_fs_open("/data/omni_data.json", 1, 420);
-		if (omni_file < 0) {
+		filesystem::file omni_file{ "/data/omni_data.json" };
+
+		if (!omni_file.exists()) {
 			printf("E:omnimix: can not load /data/omni_data.json\n");
-			game::finalize_music_data();
-			return;
+			return game::finalize_music_data();
 		}
 
 		const auto music_data = game::get_music_data();
 		auto backup = utils::memory::allocate<game::music_data_t>(0x400000);
 		std::memcpy(backup, music_data, 0x400000);
 
-		game::avs_stat stat = { 0 };
-		game::avs_fs_fstat(omni_file, &stat);
-		if (stat.filesize <= 0) {
-			printf("E:omnimix: can not load /data/omni_data.json\n");
+		auto _ = gsl::finally([=] {
 			game::finalize_music_data();
-			return;
-		}
-
-		char* json_buffer = utils::memory::allocate<char>(stat.filesize + 64);
-
-		game::avs_fs_read(omni_file, json_buffer, stat.filesize);
-		game::avs_fs_close(omni_file);
+			utils::memory::free(backup);
+		});
 
 		simdjson::dom::parser parser;
-		auto omni_data = parser.parse(json_buffer, stat.filesize, stat.filesize + 64);
+		simdjson::padded_string padded{ omni_file.get_buffer() };
+		auto omni_data = parser.parse(padded);
 		std::vector<game::music_t> musics;
 
 		if (!omni_data.is_array()) {
 			printf("E:omnimix: omni_data is not array!\n");
-			goto exit;
+			return;
 		}
 
 		for (const auto& item : omni_data)
@@ -169,8 +151,8 @@ namespace omnimix
 
 			for (int i = 0; i < 5; i++)
 			{
-				LOAD_BYTE(level_sp[i], ["level"]["sp"].at(i));
-				LOAD_BYTE(level_dp[i], ["level"]["dp"].at(i));
+				LOAD_BYTE(level[i], ["level"]["sp"].at(i));
+				LOAD_BYTE(level[i + 5], ["level"]["dp"].at(i));
 				LOAD_BYTE(ident_sp[i], ["ident"]["sp"].at(i));
 				LOAD_BYTE(ident_dp[i], ["ident"]["dp"].at(i));
 			}
@@ -208,7 +190,6 @@ namespace omnimix
 
 			musics.push_back(music);
 		}
-		utils::memory::free(json_buffer);
 
 		printf("I:omnimix: parsed %llu musics\n", musics.size());
 
@@ -219,7 +200,7 @@ namespace omnimix
 
 		std::sort(musics.begin(), musics.end(), [](const game::music_t& a, const game::music_t& b) -> bool {
 			return a.song_id < b.song_id;
-			});
+		});
 
 		music_data->music_count = static_cast<uint16_t>(musics.size());
 
@@ -243,10 +224,6 @@ namespace omnimix
 
 		for (size_t i = 0; i < music_data->music_count; i++)
 			std::memcpy(music_data->musics + i, &musics[i], sizeof(game::music_t));
-
-	exit:
-		utils::memory::free(backup);
-		game::finalize_music_data();
 	}
 
 	class component final : public component_interface

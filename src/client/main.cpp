@@ -22,7 +22,14 @@ void enable_dpi_awareness()
 
 void cleanup()
 {
-	component_loader::pre_destroy();
+	__try
+	{
+		component_loader::pre_destroy();
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		ExitProcess(0);
+	}
 }
 
 void create_console()
