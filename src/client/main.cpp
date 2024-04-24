@@ -106,8 +106,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		launcher::dll_module = hModule;
-		utils::hook::call(0x1401AFADC, preinit);
-		utils::hook::call(0x1401F68ED, init);
+		utils::hook::call(0x1401BC3EC, preinit);
+		utils::hook::call(0x14020333D, init);
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

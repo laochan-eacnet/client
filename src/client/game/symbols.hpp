@@ -4,23 +4,23 @@
 
 namespace game
 {
-	WEAK symbol<bool(const char* args)> game_preinit{ 0x1401AF440 };
-	WEAK symbol<bool()> init_avs{ 0x1400BA240 };
-	WEAK symbol<void()> finalize_music_data{ 0x1400CD710 };
-	WEAK symbol<music_data_t* ()> get_music_data{ 0x1401B76B0 };
-	WEAK symbol<LRESULT(HWND, UINT, WPARAM, LPARAM)> main_wndproc{ 0x1401F5550 };
+	WEAK symbol<bool(const char* args)> game_preinit{ 0x1401BBD50 };
+	WEAK symbol<bool()> init_avs{ 0x1400C6410 };
+	WEAK symbol<void()> finalize_music_data{ 0x1400D98E0 };
+	WEAK symbol<music_data_t* ()> get_music_data{ 0x1401C3FC0 };
+	WEAK symbol<LRESULT(HWND, UINT, WPARAM, LPARAM)> main_wndproc{ 0x140201FA0 };
 
-	WEAK symbol<bool(void*)> music_select_scene_attach{ 0x140137B30 };
-	WEAK symbol<void(void*)> music_select_scene_detach{ 0x140138090 };
+	WEAK symbol<bool(void*)> music_select_scene_attach{ 0x140144220 };
+	WEAK symbol<void(void*)> music_select_scene_detach{ 0x140144780 };
 
-	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142A9C5B8 };
-	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142A9C5B8 };
-	WEAK symbol<HWND*> main_hwnd{ 0x142A9C5A8 };
-	WEAK symbol<const char> infinitas_id{ 0x141AB4494 };
-	WEAK symbol<const char> game_version{ 0x141AB44E3 };
+	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAC410 };
+	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142AAC410 };
+	WEAK symbol<HWND*> main_hwnd{ 0x142AAC400 };
+	WEAK symbol<const char> infinitas_id{ 0x141AC4494 };
+	WEAK symbol<const char> game_version{ 0x141AC44E3 };
 
-	WEAK symbol<bool> show_options{ 0x141ABD00F };
-	WEAK symbol<bool> selected_gauge_type{ 0x141ABD128 };
+	WEAK symbol<bool> show_options{ 0x141ACD104 };
+	WEAK symbol<bool> selected_gauge_type{ 0x141ACD138 };
 
 	WEAK avs_function<avs_file_t(const char* name, uint16_t mode, int flags)> avs_fs_open{ "XCgsqzn000004e" };
 	WEAK avs_function<int(const char* sname, const char* dname)> avs_fs_copy{ "XCgsqzn0000065" };

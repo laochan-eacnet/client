@@ -463,10 +463,10 @@ namespace overlay
 		void post_start() override
 		{
 			// hook wndproc
-			utils::hook::inject(0x1401F5822, wndproc);
+			utils::hook::inject(0x140202272, wndproc);
 
-			utils::hook::set(0x1404CA348, music_select_scene_attach);
-			utils::hook::set(0x1404CA350, music_select_scene_detach);
+			utils::hook::set(0x1404D8630, music_select_scene_attach);
+			utils::hook::set(0x1404D8638, music_select_scene_detach);
 
 			scheduler::schedule([]() -> bool
 				{

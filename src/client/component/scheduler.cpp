@@ -144,7 +144,7 @@ namespace scheduler
 				}
 			});
 
-			present.create(0x1401EAB60, scheduler::present_stub);
+			present.create(0x1401F75B0, scheduler::present_stub);
 		}
 
 		void pre_destroy() override

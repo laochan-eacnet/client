@@ -232,16 +232,16 @@ namespace omnimix
 		void post_start() override
 		{
 			// return success if file not exists
-			utils::hook::set<uint16_t>(0x1401E49E8, 0x01B0);
+			utils::hook::set<uint16_t>(0x1401F13A8, 0x01B0);
 
 			// allow mp4 and wmv bga
-			get_name_hook.create(0x1401B7910, get_bga_name);
+			get_name_hook.create(0x1401C4220, get_bga_name);
 
 			// add omni songs to music_data.bin
-			utils::hook::call(0x1401B675E, insert_music_datas);
+			utils::hook::call(0x1401C306E, insert_music_datas);
 
 			// load omni song detail
-			load_music_info_hook.create(0x1401B67A0, load_music_info);
+			load_music_info_hook.create(0x1401C30B0, load_music_info);
 		}
 	};
 }

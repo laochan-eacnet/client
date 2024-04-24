@@ -34,17 +34,14 @@ namespace patches
 		void post_start() override
 		{
 			// disable signature check
-			utils::hook::jump(0x140305FB0, is_signature_valid);
+			utils::hook::jump(0x140312A00, is_signature_valid);
 
 			// disable music list checksum check
-			utils::hook::nop(0x1402F4C32, 2);
-			utils::hook::nop(0x1402F4C3E, 2);
-			
-			// disable 120hz limit
-			// utils::hook::nop(0x1401F5F54, 2);
+			utils::hook::nop(0x140301682, 2);
+			utils::hook::nop(0x14030168E, 2);
 	
 			// change server url
-			utils::hook::jump(0x1402EBD00, get_service_url);
+			utils::hook::jump(0x1402F8750, get_service_url);
 			printf("I:launcher: using bootstrap url: %s\n", launcher::get_service_address.data());
 
 			// override asio device name
@@ -53,12 +50,12 @@ namespace patches
 			
 			std::memcpy(asio_name, launcher::asio_device_name.data(), launcher::asio_device_name.size());
 
-			utils::hook::inject(0x140246F74, asio_name);
+			utils::hook::inject(0x1402539C4, asio_name);
 			printf("I:launcher: using asio device: %s\n", launcher::asio_device_name.data());
 
 			// enable retry logic for asio
-			utils::hook::nop(0x1401CFD77, 6);
-			init_superstep_sound_hook.create(0x140246C90, init_superstep_sound_stub);
+			utils::hook::nop(0x1401DC737, 6);
+			init_superstep_sound_hook.create(0x1402536E0, init_superstep_sound_stub);
 		}
 	};
 }
