@@ -162,6 +162,12 @@ namespace overlay
 			if (!music_select_scene || !music_select_scene->current_music)
 				return;
 
+			if (music_select_scene->music_decide_layer && music_select_scene->decide_music)
+				return;
+			
+			if (*game::show_options)
+				return;
+
 			auto* const draw_list = ImGui::GetForegroundDrawList();
 			add_image_center(draw_list, textures::background, center, 182, 182);
 
@@ -176,6 +182,13 @@ namespace overlay
 			}
 
 			const auto data = iter->second[chart];
+
+			if (!data.scratch && !data.soflan && !data.charge && !data.chord && !data.notes && !data.peak)
+			{
+				add_image_center(draw_list, textures::no_data, center, 116, 21);
+				return;
+			}
+
 			float size = 78.f;
 
 			float sizes[] = { data.scratch / 10000.f, data.soflan / 10000.f, data.charge / 10000.f, data.chord / 10000.f, data.notes / 10000.f, data.peak / 10000.f };
@@ -195,14 +208,22 @@ namespace overlay
 
 			for (size_t i = 0; i < 6; i++)
 			{
-				auto x = draw_sizes[i] * size * std::cos(angles[i]);
-				auto y = draw_sizes[i] * size * std::sin(angles[i]);
+				const auto idx = (i + 1) % 6;
 
-				draw_list->PathLineTo(ImVec2(center.x + x, center.y + y));
+				auto x1 = draw_sizes[i] * size * std::cos(angles[i]);
+				auto y1 = draw_sizes[i] * size * std::sin(angles[i]);
+
+				auto x2 = draw_sizes[idx] * size * std::cos(angles[idx]);
+				auto y2 = draw_sizes[idx] * size * std::sin(angles[idx]);
+
+				
+				draw_list->PathLineTo(ImVec2(center.x + x1, center.y + y1));
+				draw_list->PathLineTo(ImVec2(center.x + x2, center.y + y2));
+				draw_list->PathLineTo(center);
+
+				draw_list->PathFillConcave(draw_color);
+				draw_list->PathClear();
 			}
-
-			draw_list->PathFillConvex(draw_color);
-			draw_list->PathClear();
 
 			for (size_t i = 0; i < 6; i++)
 			{
@@ -396,9 +417,9 @@ namespace overlay
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F11), false))
 			show_clock = !show_clock;
 
-		// F11 - toggle notes radar, etc
+		// F10 - toggle notes radar, etc
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F10), false))
-			show_clock = !show_clock;
+			show_extra_music_info = !show_extra_music_info;
 
 		if (show_information)
 			draw_debug_information();

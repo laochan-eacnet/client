@@ -286,6 +286,10 @@ namespace game
 		music_t* current_music;
 		char __gap2[480];
 		int selected_chart;
+		char __gap3[1900];
+		BM2D::CLayer *music_decide_layer;
+		char __gap4[16];
+		music_t* decide_music;
 	};
 
 #pragma pack(pop)
