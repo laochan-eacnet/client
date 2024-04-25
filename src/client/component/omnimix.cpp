@@ -31,6 +31,27 @@ namespace omnimix
 		return get_name_hook.invoke<const char*, game::music_t*, int>(music, note_id);
 	}
 
+	std::vector<json> get_additional_mdatas()
+	{
+		auto dir = game::avs_fs_opendir("./music_datas");
+
+		std::vector<json> result;
+
+		if (dir <= 0)
+			return result;
+
+		for (auto file = game::avs_fs_readdir(dir); file; file = game::avs_fs_readdir(dir))
+		{
+			filesystem::file mdata_file { utils::string::va("./music_datas/%s", file) };
+			if (!mdata_file.exists())
+				continue;
+
+			result.push_back(json::parse(mdata_file.get_buffer()));
+		}
+
+		return result;
+	}
+
 	utils::hook::detour load_music_info_hook;
 	uint64_t load_music_info()
 	{
@@ -44,18 +65,17 @@ namespace omnimix
 			return result;
 		}
 
-		simdjson::dom::parser parser;
-		simdjson::padded_string padded{ omni_file.get_buffer() };
-		auto omni_data = parser.parse(padded);
+		json omni_data = json::parse(omni_file.get_buffer());
+		auto mdatas = get_additional_mdatas();
 
-		for (const auto& item : omni_data)
+		for (const auto& item : std::ranges::join_view(std::vector{ omni_data, mdatas }))
 		{
 			if (!item.is_object()) {
 				printf("W:omnimix: music item is not object!\n");
 				continue;
 			}
 
-			const size_t id = item["id"].get_uint64();
+			const size_t id = item["id"].get<size_t>();
 			const auto index = music_data->index_table[id];
 
 			if ((id >= CUR_STYLE_ENTRIES && index == 0) || index == 0xffff)
@@ -65,13 +85,13 @@ namespace omnimix
 
 			for (size_t i = 0; i < 5; i++)
 			{
-				music->bpm[i].min = static_cast<uint32_t>(item["bpms"]["sp"].at(i)["min"].get_uint64());
-				music->bpm[i].max = static_cast<uint32_t>(item["bpms"]["sp"].at(i)["max"].get_uint64());
-				music->bpm[i + 5].min = static_cast<uint32_t>(item["bpms"]["dp"].at(i)["min"].get_uint64());
-				music->bpm[i + 5].max = static_cast<uint32_t>(item["bpms"]["dp"].at(i)["max"].get_uint64());
+				music->bpm[i].min = item["bpms"]["sp"].at(i)["min"].get<uint32_t>();
+				music->bpm[i].max = item["bpms"]["sp"].at(i)["max"].get<uint32_t>();
+				music->bpm[i + 5].min = item["bpms"]["dp"].at(i)["min"].get<uint32_t>();
+				music->bpm[i + 5].max = item["bpms"]["dp"].at(i)["max"].get<uint32_t>();
 
-				music->note_count[i] = static_cast<uint32_t>(item["noteCounts"]["sp"].at(i).get_uint64());
-				music->note_count[i + 5] = static_cast<uint32_t>(item["noteCounts"]["dp"].at(i).get_uint64());
+				music->note_count[i] = item["noteCounts"]["sp"].at(i).get<uint32_t>();
+				music->note_count[i + 5] = item["noteCounts"]["dp"].at(i).get<uint32_t>();
 			}
 		}
 
@@ -96,9 +116,9 @@ namespace omnimix
 			utils::memory::free(backup);
 		});
 
-		simdjson::dom::parser parser;
-		simdjson::padded_string padded{ omni_file.get_buffer() };
-		auto omni_data = parser.parse(padded);
+		json omni_data = json::parse(omni_file.get_buffer());
+		auto mdatas = get_additional_mdatas();
+
 		std::vector<game::music_t> musics;
 
 		if (!omni_data.is_array()) {
@@ -106,7 +126,7 @@ namespace omnimix
 			return;
 		}
 
-		for (const auto& item : omni_data)
+		for (const auto& item : std::ranges::join_view(std::vector{ omni_data, mdatas }))
 		{
 			if (!item.is_object()) {
 				printf("W:omnimix: music item is not object!\n");
@@ -117,17 +137,17 @@ namespace omnimix
 
 #define LOAD_STRING(field, path) \
 	{ \
-		const std::string str(item##path.get_string().value()); \
+		const std::string str = item##path.get<std::string>(); \
 		const auto shiftjis_str = utils::string::wide_to_shiftjis(utils::string::utf8_to_wide(str)); \
 		memcpy(music.##field, shiftjis_str.data(), std::min(sizeof(music.##field), shiftjis_str.size())); \
 	}
 
 #define LOAD_INT(field, path) \
-	music.##field = static_cast<uint32_t>(item##path.get_int64());
+	music.##field = item##path.get<uint32_t>();
 #define LOAD_SHORT(field, path) \
-	music.##field = static_cast<uint16_t>(item##path.get_int64());
+	music.##field =item##path.get<uint16_t>();
 #define LOAD_BYTE(field, path) \
-	music.##field = static_cast<uint8_t>(item##path.get_int64());
+	music.##field = item##path.get<uint8_t>();
 
 			LOAD_INT(song_id, ["id"]);
 
@@ -165,7 +185,7 @@ namespace omnimix
 
 			LOAD_INT(afp_flag, ["afpFlag"]);
 
-			if (!item["afpData"].error() == 0)
+			if (!item.contains("afpData"))
 			{
 				musics.push_back(music);
 				continue;
@@ -179,7 +199,7 @@ namespace omnimix
 
 			for (size_t n = 0; n < 10; n++)
 			{
-				std::string hex(item["afpData"].at(n).get_string().value());
+				std::string hex = item["afpData"][n].get<std::string>();
 
 				for (size_t i = 0; i < 0x20; i++)
 				{

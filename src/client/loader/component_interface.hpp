@@ -7,6 +7,10 @@ public:
 	{
 	}
 
+	virtual void pre_start()
+	{
+	}
+
 	virtual void post_start()
 	{
 	}

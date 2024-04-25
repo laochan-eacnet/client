@@ -6,6 +6,27 @@ void component_loader::register_component(std::unique_ptr<component_interface>&&
 	get_components().push_back(std::move(component_));
 }
 
+bool component_loader::pre_start()
+{
+	static auto handled = false;
+	if (handled) return true;
+	handled = true;
+
+	try
+	{
+		for (const auto& component_ : get_components())
+		{
+			component_->pre_start();
+		}
+	}
+	catch (premature_shutdown_trigger&)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool component_loader::post_start()
 {
 	static auto handled = false;

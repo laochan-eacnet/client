@@ -7,6 +7,10 @@
 #include <utils/io.hpp>
 #include <Windows.h>
 
+#include <steam/steam.hpp>
+
+#include "component/steam_proxy.hpp"
+
 using json = nlohmann::json;
 
 std::string launcher::token;
@@ -104,6 +108,10 @@ void launcher::create_main_menu()
 
 	_main_window->bind("uuid", [this](auto) -> std::string
 		{
+			const auto steamid = steam_proxy::get_steam_id();
+			if (steamid != 0xFFFFFFFFDEADBEEFul)
+				return json{ std::to_string(steamid) }.dump();
+
 			const auto uuid = utils::string::dump_hex(utils::smbios::get_uuid(), "");
 			return json{ uuid }.dump();
 		});
@@ -160,6 +168,7 @@ void launcher::wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec)
 	std::this_thread::sleep_for(msec);
 
 	ShowWindow(hwnd, SW_SHOW);
+	steam_proxy::set_status("Test");
 }
 
 bool launcher::run() const

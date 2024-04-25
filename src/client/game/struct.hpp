@@ -10,7 +10,7 @@ namespace game
 		struct stat padding;
 	};
 
-	typedef uint32_t avs_file_t;
+	typedef int32_t avs_file_t;
 
 #define CUR_STYLE_ENTRIES (80 * 1000)
 #define MAX_ENTRIES (CUR_STYLE_ENTRIES + 1000)

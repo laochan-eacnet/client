@@ -20,7 +20,8 @@ namespace game
 	WEAK symbol<const char> game_version{ 0x141AC44E3 };
 
 	WEAK symbol<bool> show_options{ 0x141ACD104 };
-	WEAK symbol<bool> selected_gauge_type{ 0x141ACD138 };
+	WEAK symbol<bool> show_consume_window{ 0x1405EE970 };
+	WEAK symbol<int> selected_gauge_type{ 0x141ACD138 };
 
 	WEAK avs_function<avs_file_t(const char* name, uint16_t mode, int flags)> avs_fs_open{ "XCgsqzn000004e" };
 	WEAK avs_function<int(const char* sname, const char* dname)> avs_fs_copy{ "XCgsqzn0000065" };

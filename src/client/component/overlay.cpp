@@ -164,8 +164,8 @@ namespace overlay
 
 			if (music_select_scene->music_decide_layer && music_select_scene->decide_music)
 				return;
-			
-			if (*game::show_options)
+
+			if (*game::show_options || *game::show_consume_window)
 				return;
 
 			auto* const draw_list = ImGui::GetForegroundDrawList();
@@ -216,7 +216,7 @@ namespace overlay
 				auto x2 = draw_sizes[idx] * size * std::cos(angles[idx]);
 				auto y2 = draw_sizes[idx] * size * std::sin(angles[idx]);
 
-				
+
 				draw_list->PathLineTo(ImVec2(center.x + x1, center.y + y1));
 				draw_list->PathLineTo(ImVec2(center.x + x2, center.y + y2));
 				draw_list->PathLineTo(center);
@@ -256,6 +256,155 @@ namespace overlay
 		}
 	}
 
+	namespace notes_difficulty
+	{
+		struct note_difficulty_data
+		{
+			std::string difficulty;
+			std::string description;
+		};
+
+		struct difficulty_table
+		{
+			std::string name;
+			std::map<int, std::map<int, note_difficulty_data>> musics;
+		};
+
+		std::map<int, difficulty_table> gauge_difficulty_tables;
+		difficulty_table aaa_difficulty_table;
+
+		bool show_aaa_table = false;
+
+		void init()
+		{
+			filesystem::file diff_file{ "/data/difficulty_data.json" };
+			if (!diff_file.exists()) {
+				printf("E:overlay: can not load /data/difficulty_data.json\n");
+				return;
+			}
+
+			json data = json::parse(diff_file.get_buffer());
+
+			if (!data.is_array()) {
+				printf("E:overlay: difficulty_data is not array\n");
+				return;
+			}
+
+			for (const auto& table : data)
+			{
+				difficulty_table t;
+				t.name = table["name"].get<std::string>();
+				t.musics = std::map<int, std::map<int, note_difficulty_data>>{};
+
+				if (!table["musics"].is_array()) {
+					printf("E:overlay: table.musics is not array\n");
+					continue;
+				}
+
+				for (const auto& music : table["musics"])
+				{
+					std::map<int, note_difficulty_data> notes;
+
+					if (!music["notes"].is_array()) {
+						printf("E:overlay: table.musics.notes is not array\n");
+						continue;
+					}
+
+					for (const auto& note : music["notes"])
+					{
+						note_difficulty_data d;
+						d.difficulty = note["difficulty"].get<std::string>();
+						d.description = note["description"].get<std::string>();
+
+						notes.emplace(note["note"].get<int>(), d);
+					}
+
+					t.musics.emplace(music["id"].get<int>(), notes);
+				}
+
+				auto table_type = table["tableType"].get<int>();
+
+				if (table_type == 0)
+				{
+					auto gauge_type = table["gaugeType"].get<int>();
+					gauge_difficulty_tables.emplace(gauge_type, t);
+				}
+				else if (table_type == 1)
+				{
+					aaa_difficulty_table = t;
+				}
+			}
+		}
+
+		void draw()
+		{
+			if (!music_select_scene || !music_select_scene->current_music)
+				return;
+
+			if (music_select_scene->music_decide_layer && music_select_scene->decide_music)
+				return;
+
+			if (*game::show_options || *game::show_consume_window)
+				return;
+
+			const auto music_id = music_select_scene->current_music->song_id;
+			const auto chart = music_select_scene->selected_chart;
+
+			difficulty_table* table;
+
+			if (show_aaa_table)
+			{
+				table = &aaa_difficulty_table;
+			}
+			else
+			{
+				auto iter = gauge_difficulty_tables.find(*game::selected_gauge_type);
+				if (iter == gauge_difficulty_tables.end())
+					return;
+
+				table = &iter->second;
+			}
+
+			auto music_iter = table->musics.find(music_id);
+			if (music_iter == table->musics.end())
+				return;
+
+			auto music = &music_iter->second;
+
+			auto note_iter = music->find(chart);
+			if (note_iter == music->end())
+				return;
+
+			auto note = note_iter->second;
+
+			ImGui::SetNextWindowPos(ImVec2(980, 500));
+			ImGui::SetNextWindowSize(ImVec2(200, 145));
+
+			if (ImGui::Begin("DIFFICULTY", nullptr,
+				ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_NoSavedSettings
+			)) {
+				ImGui::Text(table->name.data());
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+				ImGui::Text(reinterpret_cast<const char*>(u8"推定難易度:"));
+
+				ImGui::PushFont(font_big);
+				ImGui::Text(note.difficulty.data());
+				ImGui::PopFont();
+
+				ImGui::Text(note.description.data());
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+				ImGui::Text(reinterpret_cast<const char*>(u8"類型切換 F9"));
+
+				ImGui::End();
+			}
+		}
+	}
+
 	static void init_imgui()
 	{
 		IMGUI_CHECKVERSION();
@@ -274,12 +423,12 @@ namespace overlay
 
 		font_normal = io.Fonts->AddFontFromMemoryTTF(
 			font_data, state.filesize, 16.0f,
-			nullptr, io.Fonts->GetGlyphRangesChineseFull()
+			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
 		font_big = io.Fonts->AddFontFromMemoryTTF(
 			font_data, state.filesize, 24.0f,
-			nullptr, io.Fonts->GetGlyphRangesChineseFull()
+			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
 		ImGui::StyleColorsDark();
@@ -288,6 +437,7 @@ namespace overlay
 		ImGui_ImplDX9_Init(*game::d3d9_device);
 
 		notes_radar::init();
+		notes_difficulty::init();
 
 		is_imgui_inited = true;
 	}
@@ -421,6 +571,10 @@ namespace overlay
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F10), false))
 			show_extra_music_info = !show_extra_music_info;
 
+		// F9 - toggle diff table type
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F9), false))
+			notes_difficulty::show_aaa_table = !notes_difficulty::show_aaa_table;
+
 		if (show_information)
 			draw_debug_information();
 		else
@@ -430,7 +584,10 @@ namespace overlay
 			draw_clock();
 
 		if (show_extra_music_info)
+		{
 			notes_radar::draw();
+			notes_difficulty::draw();
+		}
 	}
 
 	static LRESULT wndproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)

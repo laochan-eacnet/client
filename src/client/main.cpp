@@ -59,6 +59,9 @@ int preinit()
 
 	try
 	{
+		if (!component_loader::pre_start())
+			return 0;
+
 		const launcher launcher;
 		if (!launcher.run())
 		{
