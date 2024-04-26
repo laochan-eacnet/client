@@ -12,6 +12,8 @@ namespace env
 	public:
 		void post_start() override
 		{
+			SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+
 			std::string args{ "-t " };
 			args += launcher::token;
 			args += " ";

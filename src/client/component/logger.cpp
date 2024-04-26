@@ -56,7 +56,7 @@ namespace logger
 
 	void avs2_log(void* _this, int level, const char* mod, const char* format, va_list va)
 	{
-		if (mod == "thread"s || mod == "mutex"s) {
+		if (mod == "thread"s || mod == "mutex"s || mod == "afpu-render"s || mod == "afp-sys"s) {
 			return;
 		}
 

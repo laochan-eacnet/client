@@ -57,6 +57,54 @@ namespace patches
 			utils::hook::nop(0x1401DC737, 6);
 			init_superstep_sound_hook.create(0x1402536E0, init_superstep_sound_stub);
 		}
+
+#ifdef DUMP_DATA
+		void post_load() override
+		{
+			game::avs_stat stat = { 0 };
+
+			auto file = game::avs_fs_open("/data/__metadata.metatxt", 1, 420);
+
+			game::avs_fs_fstat(file, &stat);
+			std::string buffer;
+			buffer.resize(stat.filesize + 1);
+
+			game::avs_fs_read(file, buffer.data(), stat.filesize);
+			game::avs_fs_close(file);
+
+			auto metadata = nlohmann::json::parse(buffer);
+			for (auto& entry : metadata["files"])
+			{
+				auto src = "/data" + entry["spath"].get<std::string>();
+
+				std::filesystem::path dest = "./data_dump" + entry["spath"].get<std::string>();
+				auto dest_str = dest.make_preferred().string();
+				std::replace(dest_str.begin(), dest_str.end(), '\\', '/');
+
+				std::filesystem::create_directories(dest.parent_path());
+				printf("%s\n", dest_str.data());
+
+				auto tfile = game::avs_fs_open(src.data(), 1, 420);
+
+				if (tfile < 0) {
+					printf("error dumping %s: %x\n", src.data(), tfile);
+					continue;
+				}
+
+				game::avs_fs_fstat(tfile, &stat);
+				std::string tbuffer;
+				tbuffer.resize(stat.filesize + 1);
+
+				game::avs_fs_read(tfile, tbuffer.data(), stat.filesize);
+				game::avs_fs_close(tfile);
+
+				FILE* of;
+				fopen_s(&of, dest_str.data(), "wb");
+				fwrite(tbuffer.data(), stat.filesize, 1, of);
+				fclose(of);
+			}
+		}
+#endif
 	};
 }
 

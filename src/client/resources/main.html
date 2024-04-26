@@ -259,8 +259,8 @@
         }
 
         (async () => {
-            const devices = await getAsioDeviceList();
-            for (const device of devices) {
+            window.asioDevices = await getAsioDeviceList();
+            for (const device of asioDevices) {
                 const option = document.createElement('option');
                 option.value = device;
                 option.innerText = device;
@@ -276,7 +276,7 @@
                 asioDevice: '',
             };
 
-            if (!devices.includes(options.asioDevice)) {
+            if (!asioDevices.includes(options.asioDevice)) {
                 options.asioDevice = devices[0];
             }
 
@@ -301,6 +301,18 @@
         });
 
         run.addEventListener('click', async () => {
+            if (!tokenInput.value.length) {
+                tokenInput.value = await uuid();
+            }
+
+            if (!serverUrlInput.value.length) {
+                serverUrlInput.value = 'https://laochan.impact.wang/';
+            }
+
+            if (!asioDevices.includes(asioDeviceInput.value)) {
+                asioDeviceInput.value = devices[0];
+            }
+
             const settings = {
                 serverUrl: serverUrlInput.value,
                 token: tokenInput.value,
@@ -308,18 +320,6 @@
                 soundMode: soundModeInput.selectedIndex,
                 asioDevice: asioDeviceInput.value,
             };
-
-            if (!settings.token.length) {
-                tokenInput.value = await uuid();
-            }
-
-            if (!settings.serverUrl.length) {
-                serverUrlInput.value = 'https://laochan.impact.wang/';
-            }
-
-            if (!settings.asioDevice.length) {
-                asioDevice.value = 'XONAR SOUND CARD(64)';
-            }
 
             await setOptions(settings);
             startGame();

@@ -6,7 +6,6 @@
 #include <utils/image.hpp>
 #include <utils/hook.hpp>
 #include <game/game.hpp>
-#include <component/scheduler.hpp>
 #include <component/filesystem.hpp>
 
 #include <imgui.h>
@@ -23,6 +22,7 @@ namespace overlay
 {
 	bool is_imgui_inited = false;
 	bool is_destoryed = false;
+	bool shutting_down = false;
 	char* font_data;
 	std::chrono::steady_clock::time_point last_frame;
 	std::vector<float> frametimes;
@@ -482,8 +482,9 @@ namespace overlay
 		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(255, 255, 255, 120));
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 90));
 
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		if (ImGui::Begin("FRAMETIME GLYPH", nullptr,
+		ImGui::SetNextWindowPos(ImVec2(5, 5));
+
+		if (ImGui::Begin("INFORMATION", nullptr,
 			ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_NoDecoration |
 			ImGuiWindowFlags_NoNav |
@@ -498,18 +499,7 @@ namespace overlay
 				ImVec2(300, 75)
 			);
 
-			ImGui::End();
-		}
-
-		ImGui::SetNextWindowPos(ImVec2(5, 5));
-		if (ImGui::Begin("INFORMATION", nullptr,
-			ImGuiWindowFlags_NoInputs |
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoBackground |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_AlwaysAutoResize
-		)) {
+			ImGui::SetCursorPosY(7);
 
 			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
 			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
@@ -614,67 +604,80 @@ namespace overlay
 		return game::music_select_scene_detach(scene);
 	}
 
+	void draw()
+	{
+		if (is_destoryed)
+			return;
+
+		if (shutting_down)
+		{
+			ImGui_ImplDX9_Shutdown();
+			ImGui_ImplWin32_Shutdown();
+			ImGui::DestroyContext();
+
+			is_destoryed = true;
+			return;
+		}
+
+		const auto now = std::chrono::high_resolution_clock::now();
+		const auto diff = now - last_frame;
+
+		last_frame = now;
+		frametimes.push_back(diff.count() / 1000000.f);
+
+		if (frametimes.size() > 30)
+			frametimes.erase(frametimes.begin());
+
+		if (!is_imgui_inited)
+			init_imgui();
+
+		ImGui_ImplDX9_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+
+		// HACK: this game uses fixed 1080p backbuffer
+		auto& io = ImGui::GetIO();
+		io.DisplaySize = ImVec2(1920, 1080);
+
+		ImGui::NewFrame();
+
+		draw_gui();
+
+		ImGui::EndFrame();
+
+		auto* const device = *game::d3d9ex_device;
+
+		if (device->BeginScene() >= 0)
+		{
+			IDirect3DSurface9* backbuffer{};
+			device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+			device->SetRenderTarget(0, backbuffer);
+
+			ImGui::Render();
+			ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
+			device->EndScene();
+		}
+	}
+
+	utils::hook::detour present;
+	void present_stub()
+	{
+		draw();
+		present.invoke<void>();
+	}
+
 	class component final : public component_interface
 	{
 	public:
 		void post_start() override
 		{
+			present.create(0x1401F75B0, present_stub);
+
 			// hook wndproc
 			utils::hook::inject(0x140202272, wndproc);
 
 			utils::hook::set(0x1404D8630, music_select_scene_attach);
 			utils::hook::set(0x1404D8638, music_select_scene_detach);
-
-			scheduler::schedule([]() -> bool
-				{
-					if (is_destoryed)
-						return scheduler::cond_end;
-
-					const auto now = std::chrono::high_resolution_clock::now();
-					const auto diff = now - last_frame;
-
-					last_frame = now;
-					frametimes.push_back(diff.count() / 1000000.f);
-
-					if (frametimes.size() > 30)
-						frametimes.erase(frametimes.begin());
-
-					if (!is_imgui_inited)
-						init_imgui();
-
-					ImGui_ImplDX9_NewFrame();
-					ImGui_ImplWin32_NewFrame();
-
-					// HACK: this game uses fixed 1080p backbuffer
-					auto& io = ImGui::GetIO();
-					io.DisplaySize = ImVec2(1920, 1080);
-
-					ImGui::NewFrame();
-
-					draw_gui();
-
-					ImGui::EndFrame();
-
-					auto* const device = *game::d3d9ex_device;
-
-					device->SetRenderState(D3DRS_ZENABLE, FALSE);
-					device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-					device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-
-					IDirect3DSurface9* backbuffer{};
-					device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
-					device->SetRenderTarget(0, backbuffer);
-
-					if (device->BeginScene() >= 0)
-					{
-						ImGui::Render();
-						ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-						device->EndScene();
-					}
-
-					return scheduler::cond_continue;
-				}, scheduler::pipeline::renderer);
 		}
 
 		void pre_destroy() override
@@ -682,14 +685,7 @@ namespace overlay
 			if (!is_imgui_inited)
 				return;
 
-			scheduler::once([]()
-				{
-					ImGui_ImplDX9_Shutdown();
-					ImGui_ImplWin32_Shutdown();
-					ImGui::DestroyContext();
-
-					is_destoryed = true;
-				}, scheduler::pipeline::renderer);
+			shutting_down = true;
 		}
 	};
 }

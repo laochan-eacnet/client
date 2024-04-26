@@ -1,7 +1,6 @@
 #include <std_include.hpp>
 #include "loader/component_loader.hpp"
 #include "steam_proxy.hpp"
-#include "scheduler.hpp"
 
 #include <utils/nt.hpp>
 #include <utils/flags.hpp>
@@ -37,7 +36,6 @@ namespace steam_proxy
 			try
 			{
 				this->load_client();
-				this->clean_up_on_error();
 				this->start_mod("\xF0\x9F\x97\xBF beatmania IIDX INFINITAS", 980610);
 			}
 			catch (std::exception& e)
@@ -195,26 +193,6 @@ namespace steam_proxy
 			this->global_user_ = nullptr;
 
 			this->steam_client_module_ = utils::nt::library{ nullptr };
-		}
-
-		void clean_up_on_error()
-		{
-			scheduler::schedule([this]()
-				{
-					if (this->steam_client_module_
-						&& this->steam_pipe_
-						&& this->global_user_
-						&& this->steam_client_module_.invoke<bool>("Steam_BConnected", this->global_user_,
-							this->steam_pipe_)
-						&& this->steam_client_module_.invoke<bool>("Steam_BLoggedOn", this->global_user_, this->steam_pipe_)
-						)
-					{
-						return scheduler::cond_continue;
-					}
-
-					this->do_cleanup();
-					return scheduler::cond_end;
-				});
 		}
 	};
 

@@ -105,4 +105,4 @@
 
 using namespace std::literals;
 
-#define VERSION "0.0.5-notesradar"
+#define VERSION "0.0.7"
