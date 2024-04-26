@@ -61,6 +61,7 @@ staticruntime "On"
 editandcontinue "Off"
 warnings "Extra"
 characterset "ASCII"
+floatingpoint "Fast"
 
 if _OPTIONS["dev-build"] then
 	defines {"DEV_BUILD"}
@@ -77,8 +78,8 @@ filter "platforms:x64"
 filter {}
 
 filter "configurations:Release"
-	optimize "Size"
-	buildoptions {"/GL"}
+	optimize "Speed"
+	buildoptions {"/GL", "/arch:AVX2"}
 	linkoptions {"/IGNORE:4702", "/LTCG"}
 	defines {"NDEBUG"}
 	flags {"FatalCompileWarnings"}

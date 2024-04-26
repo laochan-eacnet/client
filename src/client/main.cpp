@@ -4,6 +4,7 @@
 
 #include <utils/nt.hpp>
 #include <utils/hook.hpp>
+#include <utils/flags.hpp>
 
 #include <game/game.hpp>
 
@@ -52,10 +53,10 @@ void create_console()
 	}, true);
 }
 
-int preinit()
+int preinit(const char *args)
 {
-	enable_dpi_awareness();
-	std::srand(uint32_t(time(nullptr)));
+	if (utils::flags::has_flag("-t"))
+		return game::game_preinit(args);
 
 	try
 	{
@@ -68,8 +69,9 @@ int preinit()
 			ExitProcess(0);
 		}
 
+#if DEBUG
 		create_console();
-
+#endif
 		if (!component_loader::post_start())
 			return 0;
 	}
@@ -86,6 +88,9 @@ int init()
 {
 	auto hr = game::init_avs();
 	if (hr) return hr;
+
+	if (utils::flags::has_flag("-t"))
+		return 0;
 
 	try
 	{

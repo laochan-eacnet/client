@@ -99,4 +99,5 @@ namespace utils::string
 	std::wstring shiftjis_to_wide(std::string str);
 	std::wstring utf8_to_wide(std::string str);
 	std::string wide_to_shiftjis(std::wstring str);
+	std::string wide_to_utf8(std::wstring str);
 }

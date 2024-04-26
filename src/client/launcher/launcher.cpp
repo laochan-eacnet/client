@@ -156,11 +156,6 @@ void launcher::create_main_menu()
 		});
 
 	_main_window->set_html(load_content(MENU_MAIN));
-
-	std::thread{
-		&launcher::wait_and_show_window,
-		HWND(_main_window->window().value()), 5000ms
-	}.detach();
 }
 
 void launcher::wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec)
@@ -168,12 +163,18 @@ void launcher::wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec)
 	std::this_thread::sleep_for(msec);
 
 	ShowWindow(hwnd, SW_SHOW);
-	steam_proxy::set_status("Test");
+	steam_proxy::set_status("\xF0\x9F\x97\xBF Laochan Launcher");
 }
 
 bool launcher::run() const
 {
 	_main_window->run();
+
+	if (run_game)
+	{
+		steam_proxy::set_status("\xF0\x9F\x97\xBF beatmania IIDX INFINITAS");
+	}
+
 	return run_game;
 }
 

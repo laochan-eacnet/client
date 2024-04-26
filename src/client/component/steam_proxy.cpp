@@ -36,7 +36,6 @@ namespace steam_proxy
 			try
 			{
 				this->load_client();
-				this->start_mod("\xF0\x9F\x97\xBF beatmania IIDX INFINITAS", 980610);
 			}
 			catch (std::exception& e)
 			{
@@ -84,6 +83,18 @@ namespace steam_proxy
 			return this->steam_id_;
 		}
 
+		void start_mod(const std::string& title, const size_t app_id)
+		{
+			__try
+			{
+				this->start_mod_unsafe(title, app_id);
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				this->do_cleanup();
+			}
+		}
+
 	private:
 		utils::nt::library steam_client_module_{};
 		utils::nt::library steam_overlay_module_{};
@@ -103,7 +114,7 @@ namespace steam_proxy
 		{
 			if (!this->steam_client_module_) return nullptr;
 
-			for (auto i = 1; i > 0; ++i)
+			for (auto i = 1; ; ++i)
 			{
 				std::string name = utils::string::va("CLIENTENGINE_INTERFACE_VERSION%03i", i);
 				auto* const client_engine = this->steam_client_module_
@@ -121,7 +132,7 @@ namespace steam_proxy
 
 			utils::nt::library::load(steam_path / "tier0_s64.dll");
 			utils::nt::library::load(steam_path / "vstdlib_s64.dll");
-			this->steam_overlay_module_ = utils::nt::library::load(steam_path / "gameoverlayrenderer64.dll");
+
 			this->steam_client_module_ = utils::nt::library::load(steam_path / "steamclient64.dll");
 			if (!this->steam_client_module_) return;
 
@@ -139,21 +150,11 @@ namespace steam_proxy
 			this->client_user_.invoke<void, uint64_t*>("GetSteamID", &this->steam_id_);
 		}
 
-		void start_mod(const std::string& title, const size_t app_id)
-		{
-			__try
-			{
-				this->start_mod_unsafe(title, app_id);
-			}
-			__except (EXCEPTION_EXECUTE_HANDLER)
-			{
-				this->do_cleanup();
-			}
-		}
-
 		void start_mod_unsafe(const std::string& title, size_t app_id)
 		{
 			if (!this->client_utils_ || !this->client_user_) return;
+
+			system("taskkill /f /im laochan-runner.exe");
 
 			if (!this->client_user_.invoke<bool>("BIsSubscribedApp", app_id))
 			{
@@ -202,14 +203,14 @@ namespace steam_proxy
 		return component_loader::get<component>()->get_overlay_module();
 	}
 
-	bool set_status(const std::string& status)
+	void set_status(const std::string& status)
 	{
 		auto* const comp = component_loader::get<component>();
 
 		if (!comp)
-			return false;
+			return;
 
-		return comp->set_status(status);
+		return comp->start_mod(status, 980610);
 	}
 
 	uint64_t get_steam_id()

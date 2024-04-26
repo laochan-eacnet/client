@@ -212,4 +212,16 @@ namespace utils::string
 
 		return buffer;
 	}
+
+	std::string wide_to_utf8(std::wstring str)
+	{
+		std::string buffer;
+
+		auto size = WideCharToMultiByte(65001, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);
+		buffer.resize(size + 1);
+
+		WideCharToMultiByte(65001, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);
+
+		return buffer;
+	}
 }

@@ -6,7 +6,9 @@
 #include <utils/image.hpp>
 #include <utils/hook.hpp>
 #include <game/game.hpp>
+
 #include <component/filesystem.hpp>
+#include "component/steam_proxy.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -592,13 +594,27 @@ namespace overlay
 	{
 		printf("D:overlay: CMusicSelectScene::OnAttach\n");
 
+		steam_proxy::set_status("\xF0\x9F\x97\xBF IIDX - SELECTING MUSIC");
+
 		music_select_scene = scene;
 		return game::music_select_scene_attach(scene);
 	}
 
+	const char* chart_names[] = {
+		"SPB", "SPN", "SPH", "SPA", "SPL",
+		"DPB", "DPN", "DPH", "DPA", "DPL",
+	};
+
 	void music_select_scene_detach(game::CMusicSelectScene_s* scene)
 	{
 		printf("D:overlay: CMusicSelectScene::OnDetach\n");
+
+		if (scene->music_decide_layer && scene->decide_music) {
+			auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(scene->decide_music->title));
+			auto chart_name = chart_names[scene->selected_chart];
+
+			steam_proxy::set_status(utils::string::va("\xF0\x9F\x97\xBF IIDX - %s (%s)", title.data(), chart_name));
+		}
 
 		music_select_scene = nullptr;
 		return game::music_select_scene_detach(scene);
@@ -619,15 +635,6 @@ namespace overlay
 			return;
 		}
 
-		const auto now = std::chrono::high_resolution_clock::now();
-		const auto diff = now - last_frame;
-
-		last_frame = now;
-		frametimes.push_back(diff.count() / 1000000.f);
-
-		if (frametimes.size() > 30)
-			frametimes.erase(frametimes.begin());
-
 		if (!is_imgui_inited)
 			init_imgui();
 
@@ -639,6 +646,11 @@ namespace overlay
 		io.DisplaySize = ImVec2(1920, 1080);
 
 		ImGui::NewFrame();
+
+		frametimes.push_back(io.DeltaTime * 1000);
+
+		if (frametimes.size() > 60)
+			frametimes.erase(frametimes.begin());
 
 		draw_gui();
 
