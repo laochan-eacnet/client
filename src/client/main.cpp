@@ -58,6 +58,10 @@ int preinit(const char *args)
 	if (utils::flags::has_flag("-t"))
 		return game::game_preinit(args);
 
+#if DEBUG
+	create_console();
+#endif
+
 	try
 	{
 		if (!component_loader::pre_start())
@@ -69,9 +73,6 @@ int preinit(const char *args)
 			ExitProcess(0);
 		}
 
-#if DEBUG
-		create_console();
-#endif
 		if (!component_loader::post_start())
 			return 0;
 	}

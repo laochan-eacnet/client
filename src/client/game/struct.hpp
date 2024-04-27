@@ -292,5 +292,49 @@ namespace game
 		music_t* decide_music;
 	};
 
+	struct player_data_t
+	{
+		char unk1[4];
+		int b;
+		int best_clear_type;
+		int clear_type;
+		int best_dj_level;
+		int dj_level;
+		int best_score;
+		int score;
+		int best_bp;
+		int bp;
+		int k;
+		int l;
+		int m;
+		int n;
+		int o;
+		int p;
+	};
+
+	static_assert(sizeof(player_data_t) == 64);
+
+	struct StageResultDrawFrame_s
+	{
+		uint64_t __vfptr;
+		player_data_t player[2];
+		uint64_t unk1;
+		int is_dj_entry[2];
+	};
+
+	static_assert(offsetof(StageResultDrawFrame_s, is_dj_entry) == 144);
+
+	// https://github.com/aixxe/infinitashook/blob/master/server/src/core/bm2dx/bm2dx.h#L108C2-L117C4
+	struct state_t
+	{
+		uint32_t p1_play_style;
+		uint32_t p2_play_style;
+		uint32_t chart[2];
+		uint32_t p1_active;
+		uint32_t p2_active;
+		uint32_t __unk;
+		music_t* music;
+	};
+
 #pragma pack(pop)
 }

@@ -110,6 +110,8 @@ namespace steam_proxy
 		void* steam_pipe_ = nullptr;
 		void* global_user_ = nullptr;
 
+		HANDLE event = nullptr;
+
 		void* load_client_engine() const
 		{
 			if (!this->steam_client_module_) return nullptr;
@@ -121,8 +123,6 @@ namespace steam_proxy
 					.invoke<void*>("CreateInterface", name.data(), nullptr);
 				if (client_engine) return client_engine;
 			}
-
-			return nullptr;
 		}
 
 		void load_client()
@@ -154,7 +154,18 @@ namespace steam_proxy
 		{
 			if (!this->client_utils_ || !this->client_user_) return;
 
-			system("taskkill /f /im laochan-runner.exe");
+			auto event_name = utils::string::va("__laochan_runner__%d");
+
+			if (!event)
+			{
+				event = CreateEventA(NULL, true, false, event_name);
+
+				if (!event) [[unlikely]]
+					return;
+			}
+
+			// close last runner
+			PulseEvent(event);
 
 			if (!this->client_user_.invoke<bool>("BIsSubscribedApp", app_id))
 			{
@@ -169,7 +180,7 @@ namespace steam_proxy
 			utils::binary_resource runner_file(launcher::dll_module, RUNNER, "laochan-runner.exe");
 
 			const auto path = runner_file.get_extracted_file();
-			const std::string cmdline = utils::string::va("\"%s\" -proc %d", path.data(), GetCurrentProcessId());
+			const std::string cmdline = utils::string::va("\"%s\" -event %s -process %d", path.data(), event_name, GetCurrentProcessId());
 
 			steam::game_id game_id;
 			game_id.raw.type = 1; // k_EGameIDTypeGameMod

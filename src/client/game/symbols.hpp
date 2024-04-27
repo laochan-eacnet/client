@@ -12,6 +12,7 @@ namespace game
 
 	WEAK symbol<bool(void*)> music_select_scene_attach{ 0x140144220 };
 	WEAK symbol<void(void*)> music_select_scene_detach{ 0x140144780 };
+	WEAK symbol<void(StageResultDrawFrame_s*, void*)> stage_result_draw_frame_init{ 0x140175E10 };
 
 	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAC410 };
 	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142AAC410 };
@@ -22,6 +23,8 @@ namespace game
 	WEAK symbol<bool> show_options{ 0x141ACD104 };
 	WEAK symbol<bool> show_consume_window{ 0x1405EE970 };
 	WEAK symbol<int> selected_gauge_type{ 0x141ACD138 };
+
+	WEAK symbol<state_t> state{ 0x1426A05C4 };
 
 	WEAK avs_function<avs_file_t(const char* name, uint16_t mode, int flags)> avs_fs_open{ "XCgsqzn000004e" };
 	WEAK avs_function<int(const char* sname, const char* dname)> avs_fs_copy{ "XCgsqzn0000065" };

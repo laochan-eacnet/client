@@ -594,7 +594,7 @@ namespace overlay
 	{
 		printf("D:overlay: CMusicSelectScene::OnAttach\n");
 
-		steam_proxy::set_status("\xF0\x9F\x97\xBF IIDX - SELECTING MUSIC");
+		steam_proxy::set_status("\xF0\x9F\x97\xBF IIDX - SELECT MUSIC");
 
 		music_select_scene = scene;
 		return game::music_select_scene_attach(scene);
@@ -609,15 +609,60 @@ namespace overlay
 	{
 		printf("D:overlay: CMusicSelectScene::OnDetach\n");
 
-		if (scene->music_decide_layer && scene->decide_music) {
-			auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(scene->decide_music->title));
-			auto chart_name = chart_names[scene->selected_chart];
-
-			steam_proxy::set_status(utils::string::va("\xF0\x9F\x97\xBF IIDX - %s (%s)", title.data(), chart_name));
-		}
-
 		music_select_scene = nullptr;
 		return game::music_select_scene_detach(scene);
+	}
+
+	utils::hook::detour base_stage_attach;
+	bool base_stage_attach_hook(void* scene)
+	{
+		printf("D:overlay: CBaseStageScene::OnAttach\n");
+
+		bool result = base_stage_attach.invoke<bool>(scene);
+
+		if (!game::state->music)
+			return result;
+
+		auto music = game::state->music;
+		auto dj = game::state->p1_active ? 0 : 1;
+		auto chart = game::state->chart[dj];
+
+		auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(music->title));
+		auto chart_name = chart_names[chart];
+		auto level = music->level[chart];
+
+		steam_proxy::set_status(utils::string::va("\xF0\x9F\x97\xBF IIDX - %s (%s%d)", title.data(), chart_name, level));
+
+		return result;
+	}
+
+	const char* dj_level_names[] = {
+		"AAA", "AA", "A", "B", "C", "D", "E", "F"
+	};
+
+	const char* clear_names[] = {
+		"NO PLAY.", "FAILED.", "A-CLEAR.", "E-CLEAR.", "CLEAR.", "H-CLEAR!", "EXH-CLEAR!!", "FULL-COMBO!!!"
+	};
+
+	void stage_result_draw_frame_init(game::StageResultDrawFrame_s *_this, int* unk1)
+	{
+		game::stage_result_draw_frame_init(_this, unk1);
+
+		if (!game::state->music)
+			return;
+
+		auto music = game::state->music;
+		auto dj = game::state->p1_active ? 0 : 1;
+		auto chart = game::state->chart[dj];
+
+		auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(music->title));
+		auto chart_name = chart_names[chart];
+		auto level = music->level[chart];
+		auto clear_type = clear_names[_this->player[dj].clear_type];
+		auto djlevel = dj_level_names[_this->player[dj].dj_level];
+
+		auto status = utils::string::va("\xF0\x9F\x97\xBF IIDX - STAGE RESULT: %s DJ LEVEL: %s", title.data(), chart_name, level, clear_type, djlevel);
+		steam_proxy::set_status(status);
 	}
 
 	void draw()
@@ -690,6 +735,9 @@ namespace overlay
 
 			utils::hook::set(0x1404D8630, music_select_scene_attach);
 			utils::hook::set(0x1404D8638, music_select_scene_detach);
+
+			utils::hook::set(0x1404CA128, stage_result_draw_frame_init);
+			base_stage_attach.create(0x140184D30, base_stage_attach_hook);
 		}
 
 		void pre_destroy() override
