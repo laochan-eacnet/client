@@ -154,7 +154,7 @@ namespace steam_proxy
 		{
 			if (!this->client_utils_ || !this->client_user_) return;
 
-			auto event_name = utils::string::va("__laochan_runner__%d");
+			auto event_name = utils::string::va("__laochan_runner__%d", GetCurrentProcessId());
 
 			if (!event)
 			{

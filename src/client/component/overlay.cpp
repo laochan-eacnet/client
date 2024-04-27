@@ -651,17 +651,12 @@ namespace overlay
 		if (!game::state->music)
 			return;
 
-		auto music = game::state->music;
 		auto dj = game::state->p1_active ? 0 : 1;
-		auto chart = game::state->chart[dj];
 
-		auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(music->title));
-		auto chart_name = chart_names[chart];
-		auto level = music->level[chart];
 		auto clear_type = clear_names[_this->player[dj].clear_type];
 		auto djlevel = dj_level_names[_this->player[dj].dj_level];
 
-		auto status = utils::string::va("\xF0\x9F\x97\xBF IIDX - STAGE RESULT: %s DJ LEVEL: %s", title.data(), chart_name, level, clear_type, djlevel);
+		auto status = utils::string::va("\xF0\x9F\x97\xBF IIDX - STAGE RESULT: %s DJ LEVEL: %s", clear_type, djlevel);
 		steam_proxy::set_status(status);
 	}
 
