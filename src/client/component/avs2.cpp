@@ -1,5 +1,6 @@
 #include <std_include.hpp>
 #include "loader/component_loader.hpp"
+#include "component/filesystem.hpp"
 
 #include <utils/hook.hpp>
 #include <utils/string.hpp>
@@ -14,25 +15,6 @@ namespace logger
 		auto caption = utils::string::shiftjis_to_wide(lpCaption);
 
 		return MessageBoxW(hWnd, msg.data(), caption.data(), uType);
-	}
-
-	char log_level_char(int level)
-	{
-		switch (level)
-		{
-		case 1:
-			return 'F';
-		case 2:
-			return 'W';
-		case 3:
-			return 'I';
-		case 4:
-			return 'M';
-		default:
-			break;
-		}
-
-		return '?';
 	}
 
 	WORD log_level_color(int level)
@@ -54,31 +36,44 @@ namespace logger
 		return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 	}
 
-	void avs2_log(void* _this, int level, const char* mod, const char* format, va_list va)
+	int avs_boot_hook(game::node_ptr config, void* heap, size_t heap_size, void*, void*, HANDLE)
 	{
-		if (mod == "thread"s || mod == "mutex"s || mod == "afpu-render"s || mod == "afp-sys"s) {
-			return;
-		}
-
-		static auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(handle, log_level_color(level));
-
-		printf("%c:%s: ", log_level_char(level), mod);
-		vprintf_s(format, va);
-		putchar('\n');
-
-		SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		return game::avs_boot(config, heap, heap_size, nullptr, /*output_callback*/ nullptr, nullptr);
 	}
 
+	int read_config(uint32_t, char* data, uint32_t size)
+	{
+		static int n = 0;
+		static FILE* f = nullptr;
+
+		if (!f)
+		{
+			fopen_s(&f, "config.kbin", "rb");
+
+			if (!f) return -2;
+		}
+
+		if (n++ == 1)
+			fseek(f, 0, SEEK_SET);
+
+		auto result = fread(data, 1, size, f);
+
+		if (result < size)
+			fclose(f);
+
+		return static_cast<int>(result);
+	}
 
 	class component final : public component_interface
 	{
 	public:
 		void post_start()
 		{
+			utils::hook::nop(0x1400C685A, 6);
+			utils::hook::call(0x1400C685A, avs_boot_hook);
+
 #if DEBUG
-			utils::nt::library avs2core{ "avs2-core.dll" };
-			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
+			// utils::hook::jump(0x1400C6A30, read_config);
 			utils::hook::iat(utils::nt::library{}, "user32.dll", "MessageBoxA", msgbox_hook);
 
 			SetConsoleCP(932);

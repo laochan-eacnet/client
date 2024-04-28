@@ -12,7 +12,19 @@ namespace game
 
 	WEAK symbol<bool(void*)> music_select_scene_attach{ 0x140144220 };
 	WEAK symbol<void(void*)> music_select_scene_detach{ 0x140144780 };
+
+	WEAK symbol<bool(void*)> dan_select_flow_attach{ 0x14011F4D0 };
+	WEAK symbol<void(void*)> dan_select_flow_detach{ 0x14011F500 };
+
 	WEAK symbol<void(StageResultDrawFrame_s*, void*)> stage_result_draw_frame_init{ 0x140175E10 };
+
+	namespace EacnetRequestPost
+	{
+		WEAK symbol<bool(eacnet_request_post_s*, void*, void*)> OnRequestPropertyExported{ 0x140302CD0 };
+	}
+
+	WEAK symbol<void*(size_t size)> malloc{ 0x1403DEA10 };
+	WEAK symbol<void(void* block)> free{ 0x1403DE9D0 };
 
 	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAC410 };
 	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142AAC410 };
@@ -37,4 +49,55 @@ namespace game
 	WEAK avs_function<const char* (avs_file_t dir)> avs_fs_readdir{ "XCgsqzn000005d" };
 	WEAK avs_function<void(avs_file_t dir)> avs_fs_closedir{ "XCgsqzn000005e" };
 	WEAK avs_function<int(const char* mountpoint, const char* fsroot, const char* fstype, void* data)> avs_fs_mount{ "XCgsqzn000004b" };
+	WEAK avs_function<int(node_ptr, void*, size_t, void*, void*, HANDLE)> avs_boot{ "XCgsqzn0000129" };
+
+	WEAK avs_function<node_ptr(property_ptr prop, node_ptr node, node_type type, const char* path, ...)> property_node_create{ "XCgsqzn00000a2" };
+	WEAK avs_function<node_ptr(property_ptr prop, node_ptr node, const char* path)> property_search{ "XCgsqzn00000a2" };
+	WEAK avs_function<property_ptr(node_ptr node)> property_node_getprop{ "XCgsqzn00000ae" };
+	WEAK avs_function<void(node_ptr node)> property_remove{ "XCgsqzn00000a3" };
+	WEAK avs_function<int(property_ptr prop, uint8_t* data, uint32_t data_size)> property_mem_write{ "XCgsqzn00000b8" };
+	WEAK avs_function<int(property_ptr prop, node_ptr node, node_stat_ptr stat)> property_node_query_stat{ "XCgsqzn00000c5" };
+	WEAK avs_function<int(property_ptr prop, uint32_t set_flags, uint32_t clear_flags)> property_set_flag{ "XCgsqzn000009a" };
+
+	class string final
+	{
+	private:
+		union
+		{
+			char* ptr;
+			char raw[16];
+		} data_;
+
+		size_t size_;
+		size_t capacity_;
+
+	public:
+		inline size_t size() { return this->size_; }
+		inline void clear() { this->size_ = 0; }
+		inline size_t capacity() { return this->capacity_; };
+		inline char* data()
+		{
+			if (this->capacity() >= 0x10)
+				return this->data_.ptr;
+
+			return this->data_.raw;
+		}
+
+		inline void append(const std::string& str)
+		{
+			const auto new_size = str.size() + this->size_;
+			const auto new_capacity = new_size > 0x10 ? new_size : 0x10;
+			auto buffer = reinterpret_cast<char*>(game::malloc(new_capacity));
+
+			std::memcpy(buffer, this->data(), this->size());
+			std::memcpy(buffer + this->size(), str.data(), str.size());
+
+			if (this->capacity() >= 0x10)
+				game::free(this->data());
+
+			this->capacity_ = new_capacity;
+			this->size_ = new_size;
+			this->data_.ptr = buffer;
+		}
+	};
 }

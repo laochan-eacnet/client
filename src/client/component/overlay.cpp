@@ -7,7 +7,8 @@
 #include <utils/hook.hpp>
 #include <game/game.hpp>
 
-#include <component/filesystem.hpp>
+#include "component/filesystem.hpp"
+#include "component/chart_modifier.hpp"
 #include "component/steam_proxy.hpp"
 
 #include <imgui.h>
@@ -36,7 +37,10 @@ namespace overlay
 	bool show_clock = false;
 	bool show_extra_music_info = true;
 
+	bool in_game = false;
+
 	game::CMusicSelectScene_s* music_select_scene;
+	void* dan_select_flow;
 
 	ImTextureID load_texture(const std::string& path)
 	{
@@ -407,6 +411,39 @@ namespace overlay
 		}
 	}
 
+	namespace modifier_selector
+	{
+		void draw()
+		{
+			if (!music_select_scene && !dan_select_flow)
+				return;
+
+			if (!*game::show_options)
+				return;
+
+			uint32_t modifier = chart_modifier::get();
+
+			ImGui::SetNextWindowPos(ImVec2(460, 985));
+			if (ImGui::Begin("MODIFIER", nullptr, 
+				ImGuiWindowFlags_NoDecoration | 
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoBackground))
+			{
+				ImGui::PushFont(font_big);
+
+				ImGui::CheckboxFlags(" ALL SCRATCH ", &modifier, chart_modifier::all_scratch);
+				ImGui::SameLine();
+				ImGui::CheckboxFlags(" ALL CHARGE ", &modifier, chart_modifier::all_charge);
+
+				ImGui::PopFont();
+
+				ImGui::End();
+			}
+
+			chart_modifier::set(static_cast<chart_modifier::modifier_t>(modifier));
+		}
+	}
+
 	static void init_imgui()
 	{
 		IMGUI_CHECKVERSION();
@@ -580,6 +617,8 @@ namespace overlay
 			notes_radar::draw();
 			notes_difficulty::draw();
 		}
+
+		modifier_selector::draw();
 	}
 
 	static LRESULT wndproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
@@ -616,6 +655,8 @@ namespace overlay
 	utils::hook::detour base_stage_attach;
 	bool base_stage_attach_hook(void* scene)
 	{
+		in_game = true;
+
 		printf("D:overlay: CBaseStageScene::OnAttach\n");
 
 		bool result = base_stage_attach.invoke<bool>(scene);
@@ -646,6 +687,8 @@ namespace overlay
 
 	void stage_result_draw_frame_init(game::StageResultDrawFrame_s *_this, int* unk1)
 	{
+		in_game = false;
+
 		game::stage_result_draw_frame_init(_this, unk1);
 
 		if (!game::state->music)
@@ -658,6 +701,23 @@ namespace overlay
 
 		auto status = utils::string::va("\xF0\x9F\x97\xBF IIDX - STAGE RESULT: %s DJ LEVEL: %s", clear_type, djlevel);
 		steam_proxy::set_status(status);
+	}
+
+	bool dan_select_flow_attach(void* scene)
+	{
+		printf("D:overlay: CDanSelectFlow::OnAttach\n");
+
+		dan_select_flow = scene;
+		return game::dan_select_flow_attach(scene);
+	}
+
+
+	void dan_select_flow_detach(void* scene)
+	{
+		printf("D:overlay: CDanSelectFlow::OnDetach\n");
+
+		dan_select_flow = nullptr;
+		return game::dan_select_flow_detach(scene);
 	}
 
 	void draw()
@@ -677,6 +737,9 @@ namespace overlay
 
 		if (!is_imgui_inited)
 			init_imgui();
+
+		if (in_game)
+			return;
 
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -728,8 +791,11 @@ namespace overlay
 			// hook wndproc
 			utils::hook::inject(0x140202272, wndproc);
 
-			utils::hook::set(0x1404D8630, music_select_scene_attach);
-			utils::hook::set(0x1404D8638, music_select_scene_detach);
+			utils::hook::set(0x1404D85C8 + 13 * 8, music_select_scene_attach);
+			utils::hook::set(0x1404D85C8 + 14 * 8, music_select_scene_detach);
+
+			utils::hook::set(0x1404D8C48 + 13 * 8, dan_select_flow_attach);
+			utils::hook::set(0x1404D8C48 + 14 * 8, dan_select_flow_detach);
 
 			utils::hook::set(0x1404CA128, stage_result_draw_frame_init);
 			base_stage_attach.create(0x140184D30, base_stage_attach_hook);
