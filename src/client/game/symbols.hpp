@@ -86,11 +86,12 @@ namespace game
 		inline void append(const std::string& str)
 		{
 			const auto new_size = str.size() + this->size_;
-			const auto new_capacity = new_size > 0x10 ? new_size : 0x10;
+			const auto new_capacity = (new_size + 1) > 0x10 ? (new_size + 1) : 0x10;
 			auto buffer = reinterpret_cast<char*>(game::malloc(new_capacity));
 
 			std::memcpy(buffer, this->data(), this->size());
 			std::memcpy(buffer + this->size(), str.data(), str.size());
+			buffer[new_size] = 0;
 
 			if (this->capacity() >= 0x10)
 				game::free(this->data());

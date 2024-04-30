@@ -15,6 +15,8 @@
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx9.h>
 
+#include <windowsx.h>
+
 using json = nlohmann::json;
 
 #define RAD(n) (n * static_cast<float>(std::numbers::pi) / 180.f)
@@ -423,7 +425,7 @@ namespace overlay
 
 			uint32_t modifier = chart_modifier::get();
 
-			ImGui::SetNextWindowPos(ImVec2(460, 985));
+			ImGui::SetNextWindowPos(ImVec2(460, 975));
 			if (ImGui::Begin("MODIFIER", nullptr, 
 				ImGuiWindowFlags_NoDecoration | 
 				ImGuiWindowFlags_NoSavedSettings |
