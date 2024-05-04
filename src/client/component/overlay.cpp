@@ -180,7 +180,7 @@ namespace overlay
 			add_image_center(draw_list, textures::background, center, 182, 182);
 
 			const auto music_id = music_select_scene->current_music->song_id;
-			const auto chart = music_select_scene->selected_chart;
+			auto chart = game::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
 
 			auto iter = note_radars.find(music_id);
 			if (iter == note_radars.end())
@@ -356,7 +356,7 @@ namespace overlay
 				return;
 
 			const auto music_id = music_select_scene->current_music->song_id;
-			const auto chart = music_select_scene->selected_chart;
+			auto chart = game::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
 
 			difficulty_table* table;
 
@@ -422,6 +422,9 @@ namespace overlay
 
 			if (!*game::show_options)
 				return;
+
+			auto& io = ImGui::GetIO();
+			io.MouseDrawCursor = true;
 
 			uint32_t modifier = chart_modifier::get();
 
@@ -749,6 +752,7 @@ namespace overlay
 		// HACK: this game uses fixed 1080p backbuffer
 		auto& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(1920, 1080);
+		io.MouseDrawCursor = false;
 
 		ImGui::NewFrame();
 

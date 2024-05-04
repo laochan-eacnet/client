@@ -197,7 +197,10 @@ namespace chart_modifier
 	{
 		get_option_str_hook.invoke<void>(a1, option_str, a3, a4);
 
-		if (option_str->data() == "OFF/OFF"s)
+		if (modifier_flag == modifier_t::none)
+			return;
+
+		if (option_str->data() == "OFF"s)
 			return option_str->clear();
 
 		if (modifier_flag & modifier_t::all_scratch)

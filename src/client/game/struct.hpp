@@ -376,10 +376,12 @@ namespace game
 		char __gap1[328];
 		music_t* current_music;
 		char __gap2[480];
-		int selected_chart;
-		char __gap3[1900];
+		int selected_chart_p1;
+		char __gap3[44];
+		int selected_chart_p2;
+		char __gap4[1852];
 		BM2D::CLayer *music_decide_layer;
-		char __gap4[16];
+		char __gap5[16];
 		music_t* decide_music;
 	};
 
