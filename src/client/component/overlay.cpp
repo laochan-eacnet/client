@@ -440,6 +440,8 @@ namespace overlay
 
 				ImGui::CheckboxFlags(" D4DJ ", &modifier, chart_modifier::d4dj);
 
+				ImGui::CheckboxFlags(" REGULAR SPEED ", &modifier, chart_modifier::regular_speed);
+
 				ImGui::End();
 			}
 

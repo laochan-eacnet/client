@@ -63,10 +63,8 @@ namespace chart_modifier
 		game::event_t bpm_current = {};
 		int last_scratch_back = 0;
 
-		for (auto it = chart.begin(); it < chart.end(); it++)
+		for (auto& ev : chart)
 		{
-			auto ev = *it;
-
 			if (ev.type == game::tempo)
 				bpm_current = ev;
 
@@ -100,9 +98,10 @@ namespace chart_modifier
 			output.push_back(ev);
 		}
 
-		std::stable_sort(output.begin(), output.end(), [](const game::event_t& a, const game::event_t& b) {
-			return a.tick < b.tick;
-		});
+		std::stable_sort(output.begin(), output.end(), [](const game::event_t& a, const game::event_t& b)
+			{
+				return a.tick < b.tick;
+			});
 
 		return output;
 	}
@@ -118,7 +117,7 @@ namespace chart_modifier
 
 		for (auto it = chart.begin(); it < chart.end(); it++)
 		{
-			auto ev = *it;
+			auto& ev = *it;
 
 			if (ev.type == game::sample_p1)
 			{
@@ -212,6 +211,24 @@ namespace chart_modifier
 		return output;
 	}
 
+	chart_t regular_speed_modifier(chart_ro_t& chart)
+	{
+		chart_t output;
+
+		for (auto& ev : chart)
+		{
+			if (ev.type == game::tempo)
+			{
+				ev.param = 1;
+				ev.value = 150;
+			}
+
+			output.push_back(ev);
+		}
+
+		return output;
+	}
+
 	utils::hook::detour post_load_chart_hook;
 	void post_load_chart(game::event_t* raw_chart, int unk)
 	{
@@ -234,6 +251,12 @@ namespace chart_modifier
 		if (modifier_flag & modifier_t::all_charge)
 		{
 			modded_chart = all_charge_note_modifier(chart);
+			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
+		}
+
+		if (modifier_flag & modifier_t::regular_speed)
+		{
+			modded_chart = regular_speed_modifier(chart);
 			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
 		}
 
@@ -281,6 +304,14 @@ namespace chart_modifier
 				option_str->append(", ");
 
 			option_str->append("D4DJ");
+		}
+
+		if (modifier_flag & modifier_t::regular_speed)
+		{
+			if (option_str->size() > 0)
+				option_str->append(", ");
+
+			option_str->append("REGUL-SPD");
 	}
 	}
 
