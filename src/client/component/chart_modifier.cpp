@@ -57,6 +57,56 @@ namespace chart_modifier
 		return chart.end();
 	}
 
+	chart_t d4dj_modifier(const chart_ro_t& chart)
+	{
+		chart_t output;
+		game::event_t bpm_current = {};
+		int last_scratch_back = 0;
+
+		for (auto it = chart.begin(); it < chart.end(); it++)
+		{
+			auto ev = *it;
+
+			if (ev.type == game::tempo)
+				bpm_current = ev;
+
+			if (ev.type < 2 && ev.param == 7)
+			{
+				auto bpm = bpm_current.value / static_cast<float>(bpm_current.param);
+				auto sb_time = 7500 / bpm;
+
+				if (ev.tick > last_scratch_back)
+				{
+					last_scratch_back = static_cast<int>(ev.tick + sb_time);
+
+					output.push_back(game::event_t
+						{
+						.tick = ev.tick,
+						.type = game::tempo,
+						.param = bpm_current.param,
+						.value = static_cast<int16_t>(-bpm_current.value),
+						});
+
+					output.push_back(game::event_t
+						{
+						.tick = last_scratch_back,
+						.type = game::tempo,
+						.param = bpm_current.param,
+						.value = bpm_current.value,
+						});
+				}
+			}
+
+			output.push_back(ev);
+		}
+
+		std::stable_sort(output.begin(), output.end(), [](const game::event_t& a, const game::event_t& b) {
+			return a.tick < b.tick;
+		});
+
+		return output;
+	}
+
 	chart_t all_scratch_modifier_2dxplus(const chart_ro_t& chart)
 	{
 		chart_t output;
@@ -170,7 +220,7 @@ namespace chart_modifier
 
 		auto* eos = std::find_if(raw_chart, raw_chart + MAX_EVENT, [](const game::event_t& e) {
 			return e.type == game::end_of_song;
-		});
+			});
 
 		chart_t modded_chart;
 		auto chart = chart_ro_t{ raw_chart, eos + 1 };
@@ -184,6 +234,12 @@ namespace chart_modifier
 		if (modifier_flag & modifier_t::all_charge)
 		{
 			modded_chart = all_charge_note_modifier(chart);
+			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
+		}
+
+		if (modifier_flag & modifier_t::d4dj)
+		{
+			modded_chart = d4dj_modifier(chart);
 			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
 		}
 
@@ -201,7 +257,7 @@ namespace chart_modifier
 			return;
 
 		if (option_str->data() == "OFF"s)
-			return option_str->clear();
+			option_str->clear();
 
 		if (modifier_flag & modifier_t::all_scratch)
 		{
@@ -218,6 +274,14 @@ namespace chart_modifier
 
 			option_str->append("ALL-CN");
 		}
+
+		if (modifier_flag & modifier_t::d4dj)
+		{
+			if (option_str->size() > 0)
+				option_str->append(", ");
+
+			option_str->append("D4DJ");
+	}
 	}
 
 #ifdef DEBUG
@@ -246,8 +310,11 @@ namespace chart_modifier
 			get_option_str_hook.create(0x140131820, get_option_str);
 
 			utils::hook::set(0x140423778, report_result_export_request_property);
-		}
-	};
+
+			// allow negtive bpm (movzx -> movsx)
+			utils::hook::set<uint8_t>(0x14011C4C7, 0xBF);
+	}
+};
 }
 
 REGISTER_COMPONENT(chart_modifier::component)

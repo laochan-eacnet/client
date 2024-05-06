@@ -30,7 +30,7 @@ void launcher::create_main_menu()
 {
 	_main_window = std::make_unique<webview::webview>(true, launcher::dll_module);
 	_main_window->set_title("Laochan-Eacnet Infinitas Launcher");
-	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
+	_main_window->set_size(900, 480, WEBVIEW_HINT_NONE);
 
 	_main_window->bind("getAsioDeviceList", [this](auto)->std::string
 		{

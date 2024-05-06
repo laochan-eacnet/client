@@ -7,6 +7,7 @@ namespace chart_modifier
 		none = 0,
 		all_scratch = 1 << 0,
 		all_charge = 1 << 1,
+		d4dj = 1 << 2,
 	};
 
 	inline modifier_t operator|(modifier_t lhs, modifier_t rhs)

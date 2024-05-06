@@ -434,13 +434,11 @@ namespace overlay
 				ImGuiWindowFlags_NoSavedSettings |
 				ImGuiWindowFlags_NoBackground))
 			{
-				ImGui::PushFont(font_big);
-
 				ImGui::CheckboxFlags(" ALL SCRATCH ", &modifier, chart_modifier::all_scratch);
 				ImGui::SameLine();
 				ImGui::CheckboxFlags(" ALL CHARGE ", &modifier, chart_modifier::all_charge);
 
-				ImGui::PopFont();
+				ImGui::CheckboxFlags(" D4DJ ", &modifier, chart_modifier::d4dj);
 
 				ImGui::End();
 			}
