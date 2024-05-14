@@ -5,6 +5,7 @@
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
 #include <utils/io.hpp>
+#include <game/game.hpp>
 #include <Windows.h>
 
 using json = nlohmann::json;
@@ -19,16 +20,35 @@ launcher::launcher()
 	this->create_main_menu();
 }
 
-std::string launcher::get_args()
+const char *launcher::get_args()
 {
-	return "-t " + token + " -s " + get_service_address;
+	static char *args = nullptr;
+
+	if (!args)
+	{
+		auto args_str = "dummy dev/LocalProp/bootstrap.local.xml debug_localstrap"s + " \"" + game::install_dir() + "x\" \"" + game::resource_dir() + "work\" -t " + token;
+
+		size_t start_pos = 0;
+		while ((start_pos = args_str.find("\\", start_pos)) != std::string::npos)
+		{
+			args_str.replace(start_pos, 1, "/");
+			start_pos += 1;
+		}
+
+		args = utils::memory::allocate<char>(args_str.size() + 1);
+
+		std::memcpy(args, args_str.data(), args_str.size());
+		args[args_str.size()] = 0;
+	}
+	
+	return args;
 }
 
 void launcher::create_main_menu()
 {
 	_main_window = std::make_unique<webview::webview>(true, launcher::dll_module);
-	_main_window->set_title("Laochan-Eacnet SDVX:EG Launcher");
-	_main_window->set_size(480, 800, WEBVIEW_HINT_NONE);
+	_main_window->set_title("Laochan-Eacnet Pop'n Lively Launcher");
+	_main_window->set_size(980, 570, WEBVIEW_HINT_NONE);
 
 	_main_window->bind("getVersion", [this](auto)->std::string
 		{

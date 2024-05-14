@@ -7,7 +7,7 @@ extern "C"
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
 	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
 
-	__declspec(dllexport) HRESULT WINAPI DirectInput8Create(
+	HRESULT WINAPI DirectInput8Create_L(
 		HINSTANCE hinst, DWORD dwVersion, const IID* const riidltf, LPVOID* ppvOut, LPVOID* punkOuter
 	)
 	{
@@ -17,10 +17,15 @@ extern "C"
 			strcat_s(dir, "/dinput8.dll");
 
 			const auto dinput8 = LoadLibraryA(dir);
-			return reinterpret_cast<decltype(&DirectInput8Create)>(GetProcAddress(dinput8, "DirectInput8Create"));
+			return reinterpret_cast<decltype(&DirectInput8Create_L)>(GetProcAddress(dinput8, "DirectInput8Create"));
 			}();
 
 			return func(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+	}
+
+	__declspec(dllexport) __declspec(naked) void DirectInput8Create() 
+	{
+		__asm jmp DirectInput8Create_L
 	}
 };
 

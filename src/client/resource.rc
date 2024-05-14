@@ -68,12 +68,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Laochan Eacnet"
-            VALUE "FileDescription", "Laochan Eacnet Infinitas Launcher"
-            VALUE "FileVersion", "0.0.1"
-            VALUE "InternalName", "laochan-infas"
-            VALUE "OriginalFilename", "laochan-infas.exe"
-            VALUE "ProductName", "Laochan Eacnet Infinitas Launcher"
-            VALUE "ProductVersion", "0.0.1"
+            VALUE "FileDescription", "Laochan Eacnet Pop'n Lively Launcher"
+            VALUE "FileVersion", VERSION
+            VALUE "InternalName", "laochan-popnlively"
+            VALUE "OriginalFilename", "laochan-popnlively.exe"
+            VALUE "ProductName", "Laochan Eacnet Pop'n Lively Launcher"
+            VALUE "ProductVersion", VERSION
         END
     END
     BLOCK "VarFileInfo"

@@ -104,4 +104,3 @@
 
 using namespace std::literals;
 
-#define VERSION "sdvx-0.0.1"

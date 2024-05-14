@@ -38,7 +38,7 @@ namespace game
 	public:
 		avs_function(const char *name)
 		{
-			utils::nt::library avs_core{ "avs2-core.dll" };
+			utils::nt::library avs_core{ "libavs-win32.dll" };
 			this->object_ = reinterpret_cast<T*>(avs_core.get_proc<void*>(name));
 		}
 
@@ -85,6 +85,78 @@ namespace game
 	}
 
 	typedef basic_string_vc10<char> string;
+
+	inline std::string install_dir()
+	{
+		HKEY key;
+
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\KONAMI\\pop'n music Lively", 0, KEY_READ | KEY_WOW64_64KEY, &key)
+			&& RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\KONAMI\\pop'n music Lively", 0, KEY_READ | KEY_WOW64_64KEY, &key))
+		{
+			throw std::exception("Game is not installed properly (key is not found)");
+		}
+
+		DWORD type, size;
+
+		if (RegQueryValueExA(key, "InstallDir", 0, &type, 0, &size))
+		{
+			throw std::exception("Game is not installed properly (failed to get key value size)");
+		}
+
+		if (type != 1)
+		{
+			throw std::exception("Game is not installed properly (illegal key value type)");
+		}
+
+		std::string path;
+		path.resize(size - 1);
+
+		if (RegQueryValueExA(key, "InstallDir", 0, &type, reinterpret_cast<LPBYTE>(path.data()), &size))
+		{
+			RegCloseKey(key);
+			throw std::exception("failed to read key value");
+		}
+
+		RegCloseKey(key);
+
+		return path;
+	}
+
+	inline std::string resource_dir()
+	{
+		HKEY key;
+
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\KONAMI\\pop'n music Lively", 0, KEY_READ | KEY_WOW64_64KEY, &key)
+			&& RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\KONAMI\\pop'n music Lively", 0, KEY_READ | KEY_WOW64_64KEY, &key))
+		{
+			throw std::exception("Game is not installed properly (key is not found)");
+		}
+
+		DWORD type, size;
+
+		if (RegQueryValueExA(key, "ResourceDir", 0, &type, 0, &size))
+		{
+			throw std::exception("Game is not installed properly (failed to get key value size)");
+		}
+
+		if (type != 1)
+		{
+			throw std::exception("Game is not installed properly (illegal key value type)");
+		}
+
+		std::string path;
+		path.resize(size - 1);
+
+		if (RegQueryValueExA(key, "ResourceDir", 0, &type, reinterpret_cast<LPBYTE>(path.data()), &size))
+		{
+			RegCloseKey(key);
+			throw std::exception("failed to read key value");
+		}
+
+		RegCloseKey(key);
+
+		return path;
+	}
 }
 
 #include "struct.hpp"

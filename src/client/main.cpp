@@ -4,6 +4,7 @@
 
 #include <utils/nt.hpp>
 #include <utils/hook.hpp>
+#include <utils/memory.hpp>
 
 #include <game/game.hpp>
 
@@ -48,49 +49,41 @@ void create_console()
 	}, true);
 }
 
-LRESULT WINAPI preinit(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int win_main(HINSTANCE hinst, HINSTANCE hinstPrev, char* lpszCmdLine, int nCmdShow)
 {
 	enable_dpi_awareness();
 	std::srand(uint32_t(time(nullptr)));
 
+	// fix launcher window not close after launcher, strange issue
+	std::thread([]()
+	{
+		const launcher launcher;
+		if (!launcher.run())
+		{
+			ExitProcess(0);
+		}
+	}).join();
+
+	create_console();
+
 	try
 	{
-		// fix launcher window not close after launcher, strange issue
-		std::thread([]()
-		{
-			const launcher launcher;
-			if (!launcher.run())
-			{
-				ExitProcess(0);
-			}
-		}).join();
-
-		create_console();
+		auto game_dir = game::install_dir() + "game";
+		SetCurrentDirectoryA(game_dir.data());
 
 		if (!component_loader::post_start())
-			return 1;
+			return -2;
 
-		auto args = launcher::get_args();
-		// auto result = game::game_winmain(hInstance, hPrevInstance, args.data(), nShowCmd);
+		game::AvsBootCall("_", "_");
 
-		return 0;
-	}
-	catch (std::exception& e)
-	{
-		MessageBoxA(nullptr, e.what(), "ERROR", MB_ICONERROR);
-		return 1;
-	}
-}
-
-int init()
-{
-	// auto hr = game::init_avs();
-	// if (hr) return hr;
-
-	try
-	{
 		if (!component_loader::post_load())
-			return -1;
+			return -3;
+
+		game::DllInitCall();
+		auto retcode = game::DllMainCall();
+		game::LocalstrapShutdown();
+
+		return retcode;
 	}
 	catch (std::exception& e)
 	{
@@ -98,7 +91,7 @@ int init()
 		return -1;
 	}
 
-	return 0;
+	return -1;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
@@ -109,8 +102,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		launcher::dll_module = hModule;
-		// utils::hook::call(0x1404FDA8D, preinit);
-		// utils::hook::call(0x1401F5706, init);
+		utils::hook::jump(0x5A40C0, win_main);
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

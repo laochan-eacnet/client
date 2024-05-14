@@ -133,6 +133,12 @@ namespace utils::hook
 			return static_cast<T(*)(Args ...)>(this->get_original())(args...);
 		}
 
+		template <typename T = void, typename... Args>
+		T invoke_fast(Args ... args)
+		{
+			return static_cast<T(__fastcall*)(Args ...)>(this->get_original())(args...);
+		}
+
 		[[nodiscard]] void* get_original() const;
 
 	private:

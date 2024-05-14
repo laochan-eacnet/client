@@ -20,3 +20,5 @@
 #define RUNNER                312
 
 #define ICON_IMAGE            313
+
+#define VERSION "lively-0.1.0"

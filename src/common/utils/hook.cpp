@@ -232,10 +232,6 @@ namespace utils::hook
 
 	void jump(void* pointer, void* data, const bool use_far)
 	{
-		static const unsigned char jump_data[] = {
-			0x48, 0xb8, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0xff, 0xe0
-		};
-
 		if (!use_far && is_relatively_far(pointer, data))
 		{
 			throw std::runtime_error("Too far away to create 32bit relative branch");
@@ -245,8 +241,11 @@ namespace utils::hook
 
 		if (use_far)
 		{
-			copy(patch_pointer, jump_data, sizeof(jump_data));
-			copy(patch_pointer + 2, &data, sizeof(data));
+			// mov eax, data
+			// jmp eax
+			set<uint8_t>(patch_pointer, 0xB8);
+			set(patch_pointer + 1, data);
+			set<uint16_t>(patch_pointer + 5, 0xE0FF);
 		}
 		else
 		{

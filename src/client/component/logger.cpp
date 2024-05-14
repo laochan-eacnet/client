@@ -83,8 +83,8 @@ namespace logger
 	public:
 		void post_start()
 		{
-			utils::nt::library avs2core{ "avs2-core.dll" };
-			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
+			// utils::nt::library avs2core{ "avs2-core.dll" };
+			// utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 			utils::hook::iat(utils::nt::library{}, "user32.dll", "MessageBoxA", msgbox_hook);
 
 			// utils::hook::jump(0x14052838C, on_assert);
