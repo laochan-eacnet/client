@@ -35,7 +35,7 @@ namespace overlay
 	ImFont* font_normal;
 	ImFont* font_big;
 
-	bool show_information = false;
+	int show_information = 0;
 	bool show_clock = false;
 	bool show_extra_music_info = true;
 
@@ -429,8 +429,8 @@ namespace overlay
 			uint32_t modifier = chart_modifier::get();
 
 			ImGui::SetNextWindowPos(ImVec2(460, 975));
-			if (ImGui::Begin("MODIFIER", nullptr, 
-				ImGuiWindowFlags_NoDecoration | 
+			if (ImGui::Begin("MODIFIER", nullptr,
+				ImGuiWindowFlags_NoDecoration |
 				ImGuiWindowFlags_NoSavedSettings |
 				ImGuiWindowFlags_NoBackground))
 			{
@@ -595,7 +595,7 @@ namespace overlay
 	{
 		// F12 - toggle debug info
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F12), false))
-			show_information = !show_information;
+			show_information = (show_information + 1) % 3;
 
 		// F11 - toggle clock
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F11), false))
@@ -609,9 +609,9 @@ namespace overlay
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F9), false))
 			notes_difficulty::show_aaa_table = !notes_difficulty::show_aaa_table;
 
-		if (show_information)
+		if (show_information == 0)
 			draw_debug_information();
-		else
+		else if (show_information == 1)
 			draw_watermark();
 
 		if (show_clock)
@@ -690,7 +690,7 @@ namespace overlay
 		"NO PLAY.", "FAILED.", "A-CLEAR.", "E-CLEAR.", "CLEAR.", "H-CLEAR!", "EXH-CLEAR!!", "FULL-COMBO!!!"
 	};
 
-	void stage_result_draw_frame_init(game::StageResultDrawFrame_s *_this, int* unk1)
+	void stage_result_draw_frame_init(game::StageResultDrawFrame_s* _this, int* unk1)
 	{
 		in_game = false;
 
