@@ -8,6 +8,7 @@ namespace game
 	WEAK symbol<void()> DllInitCall{ 0x5A3E20 };
 	WEAK symbol<int()> DllMainCall{ 0x5A3EA0 };
 	WEAK symbol<void()> LocalstrapShutdown{ 0x5A3EB0 };
+	WEAK symbol<APPERROR __fastcall(const char* extdrmfs)> arg_adj_extfs{ 0x5AC750 };
 
 	typedef uint32_t avs_file_t;
 

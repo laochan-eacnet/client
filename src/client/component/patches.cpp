@@ -31,6 +31,15 @@ namespace patches
 		return launcher::get_service_address.data();
 	}
 
+	bool __stdcall is_unlocked(int item_type, int itemId, int param)
+	{
+		printf("check item %d\n", itemId);
+		return true;
+	}
+
+	game::symbol<unsigned int __cdecl(void* __formal, void* buffer, unsigned int size, char const* unk2)> get_key_salt{ 0x5AB590 };
+	game::symbol<unsigned int __cdecl(void* __formal, void* buffer, unsigned int size, char const* unk2)> get_path_salt{ 0x5AB4F0 };
+
 	class component final : public component_interface
 	{
 	public:
@@ -47,7 +56,24 @@ namespace patches
 
 			utils::hook::nop(0x5AC0CE, 6);
 			utils::hook::call(0x5AC0CE, get_command_line);
+
+			utils::hook::jump(0x4A3D60, is_unlocked, true);
 		}
+
+#ifdef DUMP_DATA
+		void post_load() override
+		{
+			char key_salt[40] = { 0 };
+			get_path_salt(0, key_salt, 40, nullptr);
+
+			printf("M:extdrmfs: key salt: %s\n", key_salt);
+
+			char path_salt[10] = { 0 };
+			get_key_salt(0, path_salt, 10, nullptr);
+
+			printf("M:extdrmfs: path salt: %s\n", path_salt);
+		}
+#endif
 	};
 }
 
