@@ -19,9 +19,11 @@ launcher::launcher()
 	this->create_main_menu();
 }
 
-std::string launcher::get_args()
+const char* launcher::get_args()
 {
-	return "-t " + token + " -s " + get_service_address;
+	static auto args = "-display0 -window -t " + token + "-gf";
+
+	return args.data();
 }
 
 void launcher::create_main_menu()

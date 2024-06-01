@@ -4,10 +4,8 @@
 
 namespace game
 {
-	WEAK symbol<LRESULT WINAPI(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)> game_winmain{ 0x1401F5260 };
-	WEAK symbol<bool()> init_avs{ 0x1401F46B0 };
-
-	WEAK symbol<char> resource_path{ 0x140E3CE04 };
+	WEAK symbol<LRESULT WINAPI(HINSTANCE hInstance, HINSTANCE hPrevInstance, const char *lpCmdLine, int nShowCmd)> game_winmain{ 0x1400039B0 };
+	WEAK symbol<bool()> init_avs{ 0x140001FC0 };
 
 	typedef uint32_t avs_file_t;
 

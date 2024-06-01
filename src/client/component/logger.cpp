@@ -70,24 +70,101 @@ namespace logger
 		SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
 
-	void on_assert(const wchar_t* Expression, const wchar_t* FunctionName, const wchar_t* FileName, unsigned int LineNo, uintptr_t Reserved)
-	{
-		wprintf(L"F:logger:Assertion failed!\nFile=%s, Function=%s, Line=%u, Expression=%s\n", FileName, FunctionName, LineNo, Expression);
-		MessageBoxA(nullptr, "Assertion Faild!\n\nSee console for detail.", "Fatal Error", MB_OK | MB_ICONERROR);
+    static BOOL output_callback(char* buf, DWORD size, HANDLE file) 
+    {
+        // check size
+        if (size == 0) {
+            return TRUE;
+        }
 
-		assert(false);
-	}
+        // state machine for parsing style and converting to CRLF
+        // this is needed because newer AVS buffers multiple lines unlike the old callback
+        static auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        static WORD last_style = log_level_color(3);
+        static WORD new_style = last_style;
+        static size_t position = 0;
+        for (size_t i = 0; i < size; i++) {
+            switch (position) {
+            case 0: {
+                if (buf[i] == ']')
+                    position++;
+                else
+                    position = 0;
+                break;
+            }
+            case 1: {
+                if (buf[i] == ' ')
+                    position++;
+                else
+                    position = 0;
+                break;
+            }
+            case 2: {
+                switch (buf[i]) {
+                case 'M':
+                    new_style = log_level_color(4);
+                    break;
+                case 'I':
+                    new_style = log_level_color(3);
+                    break;
+                case 'W':
+                    new_style = log_level_color(2);
+                    break;
+                case 'F':
+                    new_style = log_level_color(1);
+                    break;
+                default:
+                    position = 0;
+                    break;
+                }
+                if (position > 0)
+                    position++;
+                break;
+            }
+            case 3: {
+                position = 0;
+                if (buf[i] == ':') {
+                    last_style = new_style;
+
+                    // flush line
+                    for (size_t j = i + 1; j < size; j++) {
+                        if (buf[j] == '\n') {
+                            buf[j] = 0;
+                            SetConsoleTextAttribute(handle, last_style);
+                            printf("%s\n", buf);
+                            buf = &buf[j + 1];
+                            size -= j + 1;
+                            i = 0;
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            default:
+                position = 0;
+                break;
+            }
+        }
+
+        // push rest to logger
+        if (size > 1) {
+            SetConsoleTextAttribute(handle, last_style);
+            printf("%s", buf);
+        }
+
+        // success
+        return TRUE;
+    }
 
 	class component final : public component_interface
 	{
 	public:
 		void post_start()
 		{
-			utils::nt::library avs2core{ "avs2-core.dll" };
-			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
-			utils::hook::iat(utils::nt::library{}, "user32.dll", "MessageBoxA", msgbox_hook);
-
-			utils::hook::jump(0x14052838C, on_assert);
+			// set log level
+			utils::hook::inject(0x140002742 + 3, "misc");
+            utils::hook::inject(0x14000289F + 3, output_callback);
 		}
 	};
 }

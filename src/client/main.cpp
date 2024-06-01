@@ -4,6 +4,7 @@
 
 #include <utils/nt.hpp>
 #include <utils/hook.hpp>
+#include <utils/flags.hpp>
 
 #include <game/game.hpp>
 
@@ -53,25 +54,28 @@ LRESULT WINAPI preinit(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 	enable_dpi_awareness();
 	std::srand(uint32_t(time(nullptr)));
 
+	// fix launcher window not close after launcher, strange issue
+	std::thread([]()
+	{
+		const launcher launcher;
+		if (!launcher.run())
+		{
+			ExitProcess(0);
+		}
+	}).join();
+
+	auto game_dir = game::install_dir() + "game";
+	SetCurrentDirectoryA(game_dir.data());
+
 	try
 	{
-		// fix launcher window not close after launcher, strange issue
-		std::thread([]()
-		{
-			const launcher launcher;
-			if (!launcher.run())
-			{
-				ExitProcess(0);
-			}
-		}).join();
-
 		create_console();
 
 		if (!component_loader::post_start())
 			return 1;
 
 		auto args = launcher::get_args();
-		auto result = game::game_winmain(hInstance, hPrevInstance, args.data(), nShowCmd);
+		auto result = game::game_winmain(hInstance, hPrevInstance, args, nShowCmd);
 
 		return result;
 	}
@@ -106,11 +110,17 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	LPVOID lpReserved
 )
 {
+	if (utils::flags::has_flag("t"))
+	{
+		return true;
+	}
+
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		launcher::dll_module = hModule;
-		utils::hook::call(0x1404FDA8D, preinit);
-		utils::hook::call(0x1401F5706, init);
+
+		utils::hook::call(0x1401FB4AD, preinit);
+		utils::hook::call(0x140003B38, init);
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{
