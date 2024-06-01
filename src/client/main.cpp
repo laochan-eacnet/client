@@ -55,9 +55,6 @@ void create_console()
 
 int preinit(const char *args)
 {
-	if (utils::flags::has_flag("-t"))
-		return game::game_preinit(args);
-
 #if DEBUG
 	create_console();
 #endif
@@ -90,9 +87,6 @@ int init()
 	auto hr = game::init_avs();
 	if (hr) return hr;
 
-	if (utils::flags::has_flag("-t"))
-		return 0;
-
 	try
 	{
 		if (!component_loader::post_load())
@@ -112,7 +106,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	LPVOID lpReserved
 )
 {
-	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
+	if (ul_reason_for_call == DLL_PROCESS_ATTACH && !utils::flags::has_flag("t"))
 	{
 		launcher::dll_module = hModule;
 		utils::hook::call(0x1401BC3EC, preinit);
