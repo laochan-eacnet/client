@@ -9,6 +9,7 @@ namespace chart_modifier
 		all_charge = 1 << 1,
 		d4dj = 1 << 2,
 		regular_speed = 1 << 3,
+		fixed_random = 1 << 4,
 	};
 
 	inline modifier_t operator|(modifier_t lhs, modifier_t rhs)
@@ -22,5 +23,6 @@ namespace chart_modifier
 	}
 
 	void set(modifier_t modifier);
+	void set_fran(int8_t* new_template);
 	modifier_t get();
 }

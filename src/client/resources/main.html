@@ -277,7 +277,7 @@
             };
 
             if (!asioDevices.includes(options.asioDevice)) {
-                options.asioDevice = devices[0];
+                options.asioDevice = asioDevices[0];
             }
 
             serverUrlInput.value = options.serverUrl;
@@ -310,7 +310,7 @@
             }
 
             if (!asioDevices.includes(asioDeviceInput.value)) {
-                asioDeviceInput.value = devices[0];
+                asioDeviceInput.value = asioDevices[0];
             }
 
             const settings = {

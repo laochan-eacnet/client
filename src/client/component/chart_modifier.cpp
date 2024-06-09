@@ -10,10 +10,16 @@
 namespace chart_modifier
 {
 	modifier_t modifier_flag = modifier_t::none;
+	int8_t fran_template[7] = { 0, 1, 2, 3, 4, 5, 6 };
 
 	void set(modifier_t modifier)
 	{
 		modifier_flag = modifier;
+	}
+
+	void set_fran(int8_t *new_template)
+	{
+		memcpy(fran_template, new_template, 7);
 	}
 
 	modifier_t get()
@@ -229,6 +235,21 @@ namespace chart_modifier
 		return output;
 	}
 
+	chart_t fixed_random_modifier(chart_ro_t& chart)
+	{
+		chart_t output;
+
+		for (auto& ev : chart)
+		{
+			if (ev.type < game::tempo && ev.param != 7)
+				ev.param = fran_template[ev.param];
+
+			output.push_back(ev);
+		}
+
+		return output;
+	}
+
 	utils::hook::detour post_load_chart_hook;
 	void post_load_chart(game::event_t* raw_chart, int unk)
 	{
@@ -263,6 +284,12 @@ namespace chart_modifier
 		if (modifier_flag & modifier_t::d4dj)
 		{
 			modded_chart = d4dj_modifier(chart);
+			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
+		}
+
+		if (modifier_flag & modifier_t::fixed_random)
+		{
+			modded_chart = fixed_random_modifier(chart);
 			chart = chart_ro_t{ modded_chart.begin(), modded_chart.end() };
 		}
 
@@ -312,7 +339,22 @@ namespace chart_modifier
 				option_str->append(", ");
 
 			option_str->append("REGUL-SPD");
-	}
+		}
+
+		if (modifier_flag & modifier_t::fixed_random)
+		{
+			if (option_str->size() > 0)
+				option_str->append(", ");
+
+			option_str->append("F-RAN (");
+			
+			for (size_t i = 0; i < 7; i++)
+			{
+				option_str->append(std::to_string(fran_template[i] + 1));
+			}
+
+			option_str->append("}");
+		}
 	}
 
 #ifdef DEBUG
@@ -324,7 +366,7 @@ namespace chart_modifier
 
 	bool report_result_export_request_property(game::eacnet_request_post_s* _this, void* a1, void* a2)
 	{
-		game::property_node_create(_this->eacnet_property.property, nullptr, game::NODE_TYPE_u32, "/p2d/params/modifier", static_cast<uint32_t>(modifier_flag));
+		game::property_node_create(_this->eacnet_property.property, nullptr, game::NODE_TYPE_u32, "/p2d/params/modifier", static_cast<uint32_t>(modifier_flag & ~modifier_t::fixed_random));
 		return game::EacnetRequestPost::OnRequestPropertyExported(_this, a1, a2);
 	}
 

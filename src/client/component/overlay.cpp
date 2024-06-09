@@ -415,6 +415,10 @@ namespace overlay
 
 	namespace modifier_selector
 	{
+		std::vector<uint64_t> random_template;
+		int random_template_item = 0;
+		static char random_template_search_text[8] = { 0 };
+
 		void draw()
 		{
 			if (!music_select_scene && !dan_select_flow)
@@ -427,8 +431,13 @@ namespace overlay
 			io.MouseDrawCursor = true;
 
 			uint32_t modifier = chart_modifier::get();
+			static bool open_random_window = false;
 
-			ImGui::SetNextWindowPos(ImVec2(460, 975));
+			if (game::state->p1_active)
+				ImGui::SetNextWindowPos(ImVec2(460, 975));
+			else
+				ImGui::SetNextWindowPos(ImVec2(840, 975));
+
 			if (ImGui::Begin("MODIFIER", nullptr,
 				ImGuiWindowFlags_NoDecoration |
 				ImGuiWindowFlags_NoSavedSettings |
@@ -441,11 +450,104 @@ namespace overlay
 				ImGui::CheckboxFlags(" D4DJ ", &modifier, chart_modifier::d4dj);
 
 				ImGui::CheckboxFlags(" REGULAR SPEED ", &modifier, chart_modifier::regular_speed);
+				ImGui::SameLine();
+
+				ImGui::CheckboxFlags(" FIXED RANDOM ", &modifier, chart_modifier::fixed_random);
+				ImGui::SameLine();
+
+				if (ImGui::Button("F-RAN OPTION"))
+					open_random_window = true;
 
 				ImGui::End();
 			}
 
 			chart_modifier::set(static_cast<chart_modifier::modifier_t>(modifier));
+
+			if (!open_random_window)
+				return;
+
+			ImGui::PushFont(font_big);
+
+			ImGui::SetNextWindowSize(ImVec2(500, 300));
+			ImGui::SetNextWindowPos(ImVec2(710, 390));
+
+			if (ImGui::Begin("F-RAN Option", nullptr, 
+				ImGuiWindowFlags_NoSavedSettings | 
+				ImGuiWindowFlags_NoMove | 
+				ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoCollapse))
+			{
+				static auto _ = []() -> bool 
+				{
+					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
+
+					do
+					{
+						uint64_t t = 0;
+
+						for (size_t i = 0; i < 7; i++)
+							t |= static_cast<uint64_t>(v[i]) << i * 8;
+
+						random_template.push_back(t);
+					} while (std::next_permutation(v.begin(), v.end()));
+
+					return true;
+				}();
+
+				ImGui::Text("SEARCH:");
+				if (ImGui::InputText("##", random_template_search_text, 8))
+				{
+					random_template.clear();
+					random_template_item = 0;
+
+					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
+
+					do
+					{
+						bool is_target = true;
+						uint64_t t = 0;
+
+						for (size_t i = 0; i < 7; i++)
+						{
+							if (random_template_search_text[i] == 0)
+								break;
+
+							if (v[i] != random_template_search_text[i])
+							{
+								is_target = false;
+								break;
+							}
+						}
+
+						if (!is_target)
+							continue;
+
+						for (size_t i = 0; i < 7; i++)
+							t |= static_cast<uint64_t>(v[i]) << i * 8;
+						
+						random_template.push_back(t);
+					} while (std::next_permutation(v.begin(), v.end()));
+				}
+
+				ImGui::ListBox("##", &random_template_item, [](void*, int index) -> const char * {
+					return reinterpret_cast<const char*>(random_template.data() + index);
+				}, nullptr, static_cast<int>(random_template.size()), 5);
+
+				if (ImGui::Button("USE SELECTED"))
+				{
+					auto t = reinterpret_cast<int8_t*>(random_template.data() + random_template_item);
+					int8_t new_template[7];
+
+					for (size_t i = 0; i < 7; i++)
+						new_template[i] = t[i] - '1';
+
+					chart_modifier::set_fran(new_template);
+					open_random_window = false;
+				}
+
+				ImGui::End();
+			}
+			ImGui::PopFont();
 		}
 	}
 

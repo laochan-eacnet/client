@@ -105,4 +105,4 @@
 
 using namespace std::literals;
 
-#define VERSION "0.9.3-32e93e2dd7"
+#define VERSION "0.9.3-b8b0fecc"
