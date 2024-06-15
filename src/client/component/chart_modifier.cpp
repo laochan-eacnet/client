@@ -22,7 +22,7 @@ namespace chart_modifier
 	{
 		memcpy(fran_template, new_template, 7);
 
-		for (size_t i = 0; i < 7; i++)
+		for (int8_t i = 0; i < 7; i++)
 			fran_template_inv[fran_template[i]] = i;
 	}
 
