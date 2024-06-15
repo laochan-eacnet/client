@@ -11,6 +11,7 @@ namespace chart_modifier
 {
 	modifier_t modifier_flag = modifier_t::none;
 	int8_t fran_template[7] = { 0, 1, 2, 3, 4, 5, 6 };
+	int8_t fran_template_inv[7] = { 0, 1, 2, 3, 4, 5, 6 };
 
 	void set(modifier_t modifier)
 	{
@@ -20,6 +21,9 @@ namespace chart_modifier
 	void set_fran(int8_t *new_template)
 	{
 		memcpy(fran_template, new_template, 7);
+
+		for (size_t i = 0; i < 7; i++)
+			fran_template_inv[fran_template[i]] = i;
 	}
 
 	modifier_t get()
@@ -242,7 +246,7 @@ namespace chart_modifier
 		for (auto& ev : chart)
 		{
 			if (ev.type < game::tempo && ev.param != 7)
-				ev.param = fran_template[ev.param];
+				ev.param = fran_template_inv[ev.param];
 
 			output.push_back(ev);
 		}
