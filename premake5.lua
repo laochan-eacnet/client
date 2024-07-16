@@ -94,6 +94,8 @@ project "common"
 kind "StaticLib"
 language "C++"
 
+disablewarnings { "4067" }
+
 files {"./src/common/**.hpp", "./src/common/**.cpp"}
 
 includedirs {"./src/common", "%{prj.location}/src"}

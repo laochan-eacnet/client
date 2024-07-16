@@ -84,6 +84,6 @@ namespace avs2
 	};
 }
 
-#include "struct.hpp"
 #include "avs2.hpp"
+#include "struct.hpp"
 #include "symbols.hpp"

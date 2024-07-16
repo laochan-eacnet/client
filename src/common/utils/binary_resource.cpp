@@ -51,7 +51,7 @@ namespace utils
 		: filename_(std::move(file))
 	{
 		if (!module)
-			module = GetModuleHandle();
+			module = GetModuleHandle(nullptr);
 
 		this->resource_ = nt::load_resource(module, id);
 

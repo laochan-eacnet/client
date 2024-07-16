@@ -6,22 +6,6 @@ extern "C"
 {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
 	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
-
-	__declspec(dllexport) HRESULT WINAPI DirectInput8Create(
-		HINSTANCE hinst, DWORD dwVersion, const IID* const riidltf, LPVOID* ppvOut, LPVOID* punkOuter
-	)
-	{
-		static auto func = [] {
-			char dir[MAX_PATH]{ 0 };
-			GetSystemDirectoryA(dir, sizeof(dir));
-			strcat_s(dir, "/dinput8.dll");
-
-			const auto dinput8 = LoadLibraryA(dir);
-			return reinterpret_cast<decltype(&DirectInput8Create)>(GetProcAddress(dinput8, "DirectInput8Create"));
-			}();
-
-			return func(hinst, dwVersion, riidltf, ppvOut, punkOuter);
-	}
 };
 
 extern "C"

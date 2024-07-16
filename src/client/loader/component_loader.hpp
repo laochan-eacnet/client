@@ -13,7 +13,7 @@ public:
 		}
 	};
 
-	template <typename T, launcher::game G>
+	template <typename T>
 	class installer final
 	{
 		static_assert(std::is_base_of<component_interface, T>::value, "component has invalid base class");
@@ -21,7 +21,7 @@ public:
 	public:
 		installer()
 		{
-			register_component_factory([]() { return std::make_unique<T>() }, G);
+			//register_component_factory([]() { return std::make_unique<T>() }, game);
 		}
 	};
 
@@ -61,5 +61,5 @@ private:
 #define REGISTER_COMPONENT(name, game)                          \
 namespace														\
 {																\
-	static component_loader::installer<name, game> __component; \
+	static component_loader::installer<name> __component; \
 }

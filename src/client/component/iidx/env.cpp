@@ -14,7 +14,7 @@ namespace env
 		{
 			SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
-			std::string args{ "-t " };
+			/*std::string args{ "-t " };
 			args += launcher::token;
 			args += " ";
 
@@ -35,7 +35,7 @@ namespace env
 			}
 
 			printf("I:launcher: preinit game with arg: %s\n", args.data());
-			game::game_preinit(args.data());
+			game::game_preinit(args.data());*/
 		}
 	};
 }

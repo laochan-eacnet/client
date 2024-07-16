@@ -13,15 +13,15 @@
 
 using json = nlohmann::json;
 
-std::string launcher::token;
-std::string launcher::get_service_address;
-std::string launcher::asio_device_name;
+std::string token;
+std::string get_service_address;
+std::string asio_device_name;
 
-launcher::display_mode launcher::disp_mode;
-launcher::sound_mode launcher::snd_mode;
+launcher::display_mode disp_mode;
+launcher::sound_mode snd_mode;
 
-launcher::game launcher::target_game;
-HMODULE launcher::game_module;
+launcher::game target_game;
+HMODULE game_module;
 
 launcher::launcher()
 {
@@ -140,19 +140,19 @@ void launcher::create_main_menu()
 				return {};
 
 			if (options["token"].is_string())
-				launcher::token = options.value("token", "");
+				token = options.value("token", "");
 
 			if (options["serverUrl"].is_string())
-				launcher::get_service_address = options.value("serverUrl", "");
+				get_service_address = options.value("serverUrl", "");
 
 			if (options["asioDevice"].is_string())
-				launcher::asio_device_name = options.value("asioDevice", "");
+				asio_device_name = options.value("asioDevice", "");
 
 			if (options["displayMode"].is_number_integer())
-				launcher::disp_mode = options.value<launcher::display_mode>("displayMode", launcher::display_mode::windowed_720p);
+				disp_mode = options.value<launcher::display_mode>("displayMode", launcher::display_mode::windowed_720p);
 
 			if (options["soundMode"].is_number_integer())
-				launcher::snd_mode = options.value<launcher::sound_mode>("soundMode", launcher::sound_mode::wasapi);
+				snd_mode = options.value<launcher::sound_mode>("soundMode", launcher::sound_mode::wasapi);
 
 			utils::io::write_file("laochan-config.json", options.dump());
 			return {};

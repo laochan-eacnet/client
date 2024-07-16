@@ -8,8 +8,9 @@
 #include <game/game.hpp>
 
 #include "component/filesystem.hpp"
-#include "component/chart_modifier.hpp"
 #include "component/steam_proxy.hpp"
+
+#include "chart_modifier.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -558,14 +559,14 @@ namespace overlay
 		ImGui::CreateContext();
 
 		const auto& io = ImGui::GetIO();
-		const auto font_file = game::avs_fs_open("/data/font/DF-PopMix-W5.ttc", 1, 420);
-		game::avs_stat state{ 0 };
-		game::avs_fs_fstat(font_file, &state);
+		const auto font_file = avs2::fs_open("/data/font/DF-PopMix-W5.ttc", 1, 420);
+		avs2::stat state{ 0 };
+		avs2::fs_fstat(font_file, &state);
 
 		font_data = utils::memory::allocate<char>(state.filesize);
 
-		game::avs_fs_read(font_file, font_data, state.filesize);
-		game::avs_fs_close(font_file);
+		avs2::fs_read(font_file, font_data, state.filesize);
+		avs2::fs_close(font_file);
 
 		font_normal = io.Fonts->AddFontFromMemoryTTF(
 			font_data, state.filesize, 16.0f,

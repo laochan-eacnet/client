@@ -17,7 +17,7 @@ public:
 		asio,
 	};
 
-	enum class game : size_t
+	enum class game : int32_t
 	{
 		invalid = -1,
 

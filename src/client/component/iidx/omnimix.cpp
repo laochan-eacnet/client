@@ -33,14 +33,14 @@ namespace omnimix
 
 	std::vector<json> get_additional_mdatas()
 	{
-		auto dir = game::avs_fs_opendir("./music_datas");
+		auto dir = avs2::fs_opendir("./music_datas");
 
 		std::vector<json> result;
 
 		if (dir <= 0)
 			return result;
 
-		for (auto file = game::avs_fs_readdir(dir); file; file = game::avs_fs_readdir(dir))
+		for (auto file = avs2::fs_readdir(dir); file; file = avs2::fs_readdir(dir))
 		{
 			filesystem::file mdata_file { utils::string::va("./music_datas/%s", file) };
 			if (!mdata_file.exists())

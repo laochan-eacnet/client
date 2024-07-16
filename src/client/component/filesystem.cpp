@@ -4,8 +4,12 @@
 
 #include "filesystem.hpp"
 
+#include <utils/flags.hpp>
 #include <utils/hook.hpp>
 #include <utils/string.hpp>
+
+// from ifs_layeredfs
+__declspec(dllexport) int init(void);
 
 namespace filesystem
 {
@@ -63,4 +67,14 @@ namespace filesystem
 
 		return false;
 	}
+
+	class component final : public component_interface
+	{
+	public:
+		void post_avs_init() override
+		{
+			if (!utils::flags::has_flag("disable_ifs_hook"))
+				init();
+		}
+	};
 }

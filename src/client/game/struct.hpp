@@ -3,6 +3,7 @@ namespace game
 {
 #define CUR_STYLE_ENTRIES (80 * 1000)
 #define MAX_ENTRIES (CUR_STYLE_ENTRIES + 1000)
+	using namespace avs2;
 
 	namespace BM2D
 	{
@@ -353,7 +354,7 @@ namespace game
 	struct eacnet_property_s
 	{
 		uintptr_t vfptr;
-		avs2::property_ptr property;
+		property_ptr property;
 	};
 
 	static_assert(offsetof(eacnet_property_s, property) == 8);
@@ -364,7 +365,7 @@ namespace game
 		eacnet_property_s eacnet_property;
 		char __gap1[32];
 		void* data;
-		avs2::psmap_data_ptr psmap;
+		psmap_data_ptr psmap;
 	};
 
 	static_assert(offsetof(eacnet_request_post_s, data) == 120);
