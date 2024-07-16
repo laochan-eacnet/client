@@ -40,4 +40,4 @@ namespace env
 	};
 }
 
-REGISTER_COMPONENT(env::component)
+REGISTER_COMPONENT(env::component, launcher::game::iidx)

@@ -17,16 +17,21 @@ public:
 		asio,
 	};
 
+	enum class game : size_t
+	{
+		invalid = -1,
+
+		iidx,
+		sdvx,
+		gitadora,
+		
+		count,
+		all = count,
+	};
+
 	launcher();
 
 	bool run() const;
-
-	static std::string token;
-	static std::string get_service_address;
-	static display_mode disp_mode;
-	static sound_mode snd_mode;
-	static std::string asio_device_name;
-	static HMODULE dll_module;
 private:
 	std::unique_ptr<webview::webview> _main_window;
 	bool run_game;

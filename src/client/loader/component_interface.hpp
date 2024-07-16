@@ -19,10 +19,13 @@ public:
 	{
 	}
 
-	virtual void pre_destroy()
+	virtual void post_avs_init()
 	{
 	}
 
+	virtual void pre_destroy()
+	{
+	}
 
 	virtual void* load_import([[maybe_unused]] const std::string& library, [[maybe_unused]] const std::string& function)
 	{

@@ -16,9 +16,12 @@ using json = nlohmann::json;
 std::string launcher::token;
 std::string launcher::get_service_address;
 std::string launcher::asio_device_name;
+
 launcher::display_mode launcher::disp_mode;
 launcher::sound_mode launcher::snd_mode;
-HMODULE launcher::dll_module;
+
+launcher::game launcher::target_game;
+HMODULE launcher::game_module;
 
 launcher::launcher()
 {
@@ -28,7 +31,7 @@ launcher::launcher()
 
 void launcher::create_main_menu()
 {
-	_main_window = std::make_unique<webview::webview>(true, launcher::dll_module);
+	_main_window = std::make_unique<webview::webview>(true, GetModuleHandle(nullptr));
 	_main_window->set_title("Laochan-Eacnet Infinitas Launcher");
 	_main_window->set_size(750, 480, WEBVIEW_HINT_NONE);
 
@@ -180,5 +183,5 @@ bool launcher::run() const
 
 std::string launcher::load_content(const int res)
 {
-	return utils::nt::load_resource(launcher::dll_module, res);
+	return utils::nt::load_resource(GetModuleHandle(nullptr), res);
 }

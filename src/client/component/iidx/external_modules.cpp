@@ -17,4 +17,4 @@ namespace external_modules
 	};
 }
 
-REGISTER_COMPONENT(external_modules::component)
+REGISTER_COMPONENT(external_modules::component, launcher::game::iidx)

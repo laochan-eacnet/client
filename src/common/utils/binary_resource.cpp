@@ -50,6 +50,9 @@ namespace utils
 	binary_resource::binary_resource(HMODULE module, const int id, std::string file)
 		: filename_(std::move(file))
 	{
+		if (!module)
+			module = GetModuleHandle();
+
 		this->resource_ = nt::load_resource(module, id);
 
 		if (this->resource_.empty())

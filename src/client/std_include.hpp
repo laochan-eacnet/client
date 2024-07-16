@@ -100,9 +100,10 @@
 #pragma comment(lib, "urlmon.lib" )
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "winhttp.lib")
 
 #include "resource.hpp"
 
 using namespace std::literals;
 
-#define VERSION "0.9.3-b8b0fecc"
+#define VERSION "0.9.4-693c7ac2"

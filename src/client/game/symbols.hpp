@@ -38,27 +38,6 @@ namespace game
 
 	WEAK symbol<state_t> state{ 0x1426A05C4 };
 
-	WEAK avs_function<avs_file_t(const char* name, uint16_t mode, int flags)> avs_fs_open{ "XCgsqzn000004e" };
-	WEAK avs_function<int(const char* sname, const char* dname)> avs_fs_copy{ "XCgsqzn0000065" };
-	WEAK avs_function<void(avs_file_t file)> avs_fs_close{ "XCgsqzn0000055" };
-	WEAK avs_function<int(avs_file_t file, struct avs_stat* stat)> avs_fs_fstat{ "XCgsqzn0000062" };
-	WEAK avs_function<int(const char* path, struct avs_stat* stat)> avs_fs_lstat{ "XCgsqzn0000063" };
-	WEAK avs_function<int(avs_file_t file, long offset, int origin)> avs_fs_lseek{ "XCgsqzn000004f" };
-	WEAK avs_function<size_t(avs_file_t file, const char* data, uint32_t data_size)> avs_fs_read{ "XCgsqzn0000051" };
-	WEAK avs_function<avs_file_t(const char* path)> avs_fs_opendir{ "XCgsqzn000005c" };
-	WEAK avs_function<const char* (avs_file_t dir)> avs_fs_readdir{ "XCgsqzn000005d" };
-	WEAK avs_function<void(avs_file_t dir)> avs_fs_closedir{ "XCgsqzn000005e" };
-	WEAK avs_function<int(const char* mountpoint, const char* fsroot, const char* fstype, void* data)> avs_fs_mount{ "XCgsqzn000004b" };
-	WEAK avs_function<int(node_ptr, void*, size_t, void*, void*, HANDLE)> avs_boot{ "XCgsqzn0000129" };
-
-	WEAK avs_function<node_ptr(property_ptr prop, node_ptr node, node_type type, const char* path, ...)> property_node_create{ "XCgsqzn00000a2" };
-	WEAK avs_function<node_ptr(property_ptr prop, node_ptr node, const char* path)> property_search{ "XCgsqzn00000a2" };
-	WEAK avs_function<property_ptr(node_ptr node)> property_node_getprop{ "XCgsqzn00000ae" };
-	WEAK avs_function<void(node_ptr node)> property_remove{ "XCgsqzn00000a3" };
-	WEAK avs_function<int(property_ptr prop, uint8_t* data, uint32_t data_size)> property_mem_write{ "XCgsqzn00000b8" };
-	WEAK avs_function<int(property_ptr prop, node_ptr node, node_stat_ptr stat)> property_node_query_stat{ "XCgsqzn00000c5" };
-	WEAK avs_function<int(property_ptr prop, uint32_t set_flags, uint32_t clear_flags)> property_set_flag{ "XCgsqzn000009a" };
-
 	class string final
 	{
 	private:
@@ -101,4 +80,29 @@ namespace game
 			this->data_.ptr = buffer;
 		}
 	};
+}
+
+namespace avs2
+{
+	WEAK function<file_t(const char* name, uint16_t mode, int flags)> fs_open{ "XCgsqzn000004e" };
+	WEAK function<int(const char* sname, const char* dname)> fs_copy{ "XCgsqzn0000065" };
+	WEAK function<void(file_t file)> fs_close{ "XCgsqzn0000055" };
+	WEAK function<int(file_t file, struct stat* stat)> fs_fstat{ "XCgsqzn0000062" };
+	WEAK function<int(const char* path, struct stat* stat)> fs_lstat{ "XCgsqzn0000063" };
+	WEAK function<int(file_t file, long offset, int origin)> fs_lseek{ "XCgsqzn000004f" };
+	WEAK function<size_t(file_t file, const char* data, uint32_t data_size)> fs_read{ "XCgsqzn0000051" };
+	WEAK function<file_t(const char* path)> fs_opendir{ "XCgsqzn000005c" };
+	WEAK function<const char* (file_t dir)> fs_readdir{ "XCgsqzn000005d" };
+	WEAK function<void(file_t dir)> fs_closedir{ "XCgsqzn000005e" };
+	WEAK function<int(const char* mountpoint, const char* fsroot, const char* fstype, void* data)> fs_mount{ "XCgsqzn000004b" };
+	WEAK function<int(node_ptr, void*, size_t, void*, void*, HANDLE)> boot{ "XCgsqzn0000129" };
+	WEAK function<int()> fs_dump_mountpoint{ "XCgsqzn0000068" };
+
+	WEAK function<node_ptr(property_ptr prop, node_ptr node, node_type type, const char* path, ...)> property_node_create{ "XCgsqzn00000a2" };
+	WEAK function<node_ptr(property_ptr prop, node_ptr node, const char* path)> property_search{ "XCgsqzn00000a2" };
+	WEAK function<property_ptr(node_ptr node)> property_node_getprop{ "XCgsqzn00000ae" };
+	WEAK function<void(node_ptr node)> property_remove{ "XCgsqzn00000a3" };
+	WEAK function<int(property_ptr prop, uint8_t* data, uint32_t data_size)> property_mem_write{ "XCgsqzn00000b8" };
+	WEAK function<int(property_ptr prop, node_ptr node, node_stat_ptr stat)> property_node_query_stat{ "XCgsqzn00000c5" };
+	WEAK function<int(property_ptr prop, uint32_t set_flags, uint32_t clear_flags)> property_set_flag{ "XCgsqzn000009a" };
 }

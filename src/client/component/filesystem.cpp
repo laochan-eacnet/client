@@ -12,23 +12,23 @@ namespace filesystem
 	file::file(std::string name)
 		: name_(std::move(name))
 	{
-		auto file = game::avs_fs_open(name_.data(), 1, 420);
+		auto file = avs2::fs_open(name_.data(), 1, 420);
 
-		game::avs_stat stat = { 0 };
-		game::avs_fs_fstat(file, &stat);
+		avs2::stat stat = { 0 };
+		avs2::fs_fstat(file, &stat);
 
 		if (stat.filesize <= 0)
 		{
-			game::avs_fs_close(file);
+			avs2::fs_close(file);
 			return;
 		}
 
 		auto* buffer = utils::memory::allocate<char>(stat.filesize);
-		const auto size = game::avs_fs_read(file, buffer, stat.filesize);
+		const auto size = avs2::fs_read(file, buffer, stat.filesize);
 
 		auto _ = gsl::finally([=] {
 			utils::memory::free(buffer);
-			game::avs_fs_close(file);
+			avs2::fs_close(file);
 		});
 
 		if (size >= 0)
@@ -55,8 +55,8 @@ namespace filesystem
 
 	bool exists(const std::string& path)
 	{
-		game::avs_stat stat = { 0 };
-		game::avs_fs_lstat(path.data(), &stat);
+		avs2::stat stat = { 0 };
+		avs2::fs_lstat(path.data(), &stat);
 
 		if (stat.filesize > 0)
 			return true;

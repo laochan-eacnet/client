@@ -103,10 +103,10 @@ resincludedirs {"$(ProjectDir)src"}
 dependencies.imports()
 
 project "client"
-kind "SharedLib"
+kind "WindowedApp"
 language "C++"
 
-targetname "dinput8"
+targetname "laochan_bootstrap"
 
 pchheader "std_include.hpp"
 pchsource "src/client/std_include.cpp"

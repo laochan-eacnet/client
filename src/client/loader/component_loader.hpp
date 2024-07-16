@@ -1,5 +1,6 @@
 #pragma once
 #include "component_interface.hpp"
+#include "launcher/launcher.hpp"
 
 class component_loader final
 {
@@ -12,7 +13,7 @@ public:
 		}
 	};
 
-	template <typename T>
+	template <typename T, launcher::game G>
 	class installer final
 	{
 		static_assert(std::is_base_of<component_interface, T>::value, "component has invalid base class");
@@ -20,7 +21,7 @@ public:
 	public:
 		installer()
 		{
-			register_component(std::make_unique<T>());
+			register_component_factory([]() { return std::make_unique<T>() }, G);
 		}
 	};
 
@@ -39,10 +40,13 @@ public:
 	}
 
 	static void register_component(std::unique_ptr<component_interface>&& component);
+	static void register_component_factory(std::function<std::unique_ptr<component_interface>()> factory, launcher::game target_game);
+	static void create_components(launcher::game target_game);
 
 	static bool pre_start();
 	static bool post_start();
 	static bool post_load();
+	static bool post_avs_init();
 	static void pre_destroy();
 	static void clean();
 
@@ -54,8 +58,8 @@ private:
 	static std::vector<std::unique_ptr<component_interface>>& get_components();
 };
 
-#define REGISTER_COMPONENT(name)                          \
-namespace                                                 \
-{                                                         \
-	static component_loader::installer<name> __component; \
+#define REGISTER_COMPONENT(name, game)                          \
+namespace														\
+{																\
+	static component_loader::installer<name, game> __component; \
 }

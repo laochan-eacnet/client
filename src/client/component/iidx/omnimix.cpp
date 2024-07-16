@@ -266,4 +266,4 @@ namespace omnimix
 	};
 }
 
-REGISTER_COMPONENT(omnimix::component)
+REGISTER_COMPONENT(omnimix::component, launcher::game::iidx)

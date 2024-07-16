@@ -177,7 +177,7 @@ namespace steam_proxy
 			char our_directory[MAX_PATH] = { 0 };
 			GetCurrentDirectoryA(sizeof(our_directory), our_directory);
 
-			utils::binary_resource runner_file(launcher::dll_module, RUNNER, "laochan-runner.exe");
+			utils::binary_resource runner_file(nullptr, RUNNER, "laochan-runner.exe");
 
 			const auto path = runner_file.get_extracted_file();
 			const std::string cmdline = utils::string::va("\"%s\" -event %s -process %d", path.data(), event_name, GetCurrentProcessId());
@@ -188,7 +188,7 @@ namespace steam_proxy
 
 			this->app_id_ = game_id.raw.app_id;
 
-			const auto* mod_id = "IIDX";
+			const auto* mod_id = "LCAN";
 			game_id.raw.mod_id = *reinterpret_cast<const unsigned int*>(mod_id) | 0x80000000;
 
 			this->client_user_.invoke<bool>("SpawnProcess", path.data(), cmdline.data(), our_directory,
@@ -235,4 +235,4 @@ namespace steam_proxy
 	}
 }
 
-REGISTER_COMPONENT(steam_proxy::component)
+REGISTER_COMPONENT(steam_proxy::component, launcher::game::all)

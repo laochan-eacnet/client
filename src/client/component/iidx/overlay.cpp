@@ -919,4 +919,4 @@ namespace overlay
 	};
 }
 
-REGISTER_COMPONENT(overlay::component)
+REGISTER_COMPONENT(overlay::component, launcher::game::iidx)

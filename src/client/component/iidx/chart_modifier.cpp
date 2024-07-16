@@ -394,4 +394,4 @@ namespace chart_modifier
 };
 }
 
-REGISTER_COMPONENT(chart_modifier::component)
+REGISTER_COMPONENT(chart_modifier::component, launcher::game::iidx)

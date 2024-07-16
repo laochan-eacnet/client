@@ -40,13 +40,14 @@ namespace utils::nt
 		operator HMODULE() const;
 
 		void unprotect() const;
-		void* get_entry_point() const;
+		FARPROC get_entry_point() const;
 		size_t get_relative_entry_point() const;
 
 		bool is_valid() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		std::string get_folder() const;
+		std::string get_version() const;
 		std::uint8_t* get_ptr() const;
 		void free();
 

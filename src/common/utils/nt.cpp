@@ -1,4 +1,5 @@
 #include "nt.hpp"
+#include "memory.hpp"
 
 namespace utils::nt
 {
@@ -103,10 +104,10 @@ namespace utils::nt
 		return this->get_nt_headers()->OptionalHeader.AddressOfEntryPoint;
 	}
 
-	void* library::get_entry_point() const
+	FARPROC library::get_entry_point() const
 	{
 		if (!this->is_valid()) return nullptr;
-		return this->get_ptr() + this->get_relative_entry_point();
+		return reinterpret_cast<FARPROC>(this->get_ptr() + this->get_relative_entry_point());
 	}
 
 	bool library::is_valid() const
@@ -141,6 +142,38 @@ namespace utils::nt
 
 		const auto path = std::filesystem::path(this->get_path());
 		return path.parent_path().generic_string();
+	}
+
+	std::string library::get_version() const
+	{
+		DWORD handle;
+
+		auto path = this->get_path();
+		auto size = GetFileVersionInfoSizeA(path.data(), &handle);
+
+		if (!size) return {};
+
+		auto buffer = memory::allocate(size);
+		
+		if (!GetFileVersionInfoA(path.data(), handle, size, buffer))
+		{
+			memory::free(buffer);
+			return {};
+		}
+
+		LPVOID out_buffer;
+		UINT out_size;
+
+		if (!VerQueryValueA(buffer, "\\StringFileInfo\\041104b0\\ProductVersion", &out_buffer, &out_size))
+		{
+			memory::free(buffer);
+			return {};
+		}
+		
+		auto result = std::string{reinterpret_cast<const char *>(out_buffer)};
+
+		memory::free(buffer);
+		return result;
 	}
 
 	void library::free()
