@@ -27,7 +27,7 @@ void enable_dpi_awareness()
 DECLSPEC_NORETURN void WINAPI exit_hook(const int code)
 {
 	component_loader::pre_destroy();
-	exit(code);
+	ExitProcess(code);
 }
 
 void create_console()
@@ -72,16 +72,10 @@ HMODULE WINAPI get_module_handle_w(LPCWSTR lpModuleName)
 	return GetModuleHandleW(lpModuleName);
 }
 
-DWORD
-WINAPI
-get_module_file_name_a(
-	_In_opt_ HMODULE hModule,
-	_Out_writes_to_(nSize, ((return < nSize) ? (return +1) : nSize)) LPSTR lpFilename,
-	_In_ DWORD nSize
-)
+DWORD WINAPI get_module_file_name_a(HMODULE hModule,LPSTR lpFilename,DWORD nSize)
 {
 	if (!hModule)
-		game::environment::get_module().get_path();
+		hModule = game::environment::get_module();
 
 	return GetModuleFileNameA(hModule, lpFilename, nSize);
 }
@@ -94,7 +88,7 @@ FARPROC load_binary(const launcher::game game)
 	loader.set_import_resolver([self](const std::string& library, const std::string& function) -> void*
 		{
 			// dump mount point
-			if (function == "XCgsqzn0000068")
+			if (library == "avs2-core.dll" && function == "#105")
 			{
 				return dump_mount_point;
 			}
@@ -134,19 +128,10 @@ FARPROC load_binary(const launcher::game game)
 		throw std::runtime_error("Unsupported game!");
 	}
 
-	std::string data;
-	if (!utils::io::read_file(binary, &data))
-	{
-		throw std::runtime_error
-		{
-			utils::string::va(
-			"Failed to read game binary (%s)!\nPlease select the correct path in the launcher settings.",
-			binary.data())
-		};
-	}
-
 	auto mod = loader.load_library(binary);
 	game::environment::set_module(mod);
+
+	printf("version %s\n", mod.get_version().data());
 
 	return mod.get_entry_point();
 }
@@ -157,10 +142,10 @@ bool try_set_game_environment(launcher::game game)
 
 	try
 	{
-		auto install_path = game::environment::get_install_path();
-		auto modules_path = install_path / (game == launcher::game::iidx ? "app" : "modules");
+		auto game_path = game::environment::get_install_path() / "game";
+		auto modules_path = game_path / (game == launcher::game::iidx ? "app" : "modules");
 
-		SetCurrentDirectoryW(install_path.wstring().data());
+		SetCurrentDirectoryW(game_path.wstring().data());
 		SetDllDirectoryW(modules_path.wstring().data());
 
 		return true;
@@ -193,9 +178,11 @@ int main()
 
 		try
 		{
-			const launcher launcher;
+			/*const launcher launcher;
 			if (!launcher.run())
-				return 0;
+				return 0;*/
+
+			try_set_game_environment(launcher::game::iidx);
 
 			component_loader::create_components(game::environment::get_game());
 

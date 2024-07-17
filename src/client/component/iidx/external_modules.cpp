@@ -11,7 +11,6 @@ namespace external_modules
 	public:
 		void post_load() override
 		{
-			LoadLibraryA("ifs_hook.dll");
 			LoadLibraryA("2dx-gsm.dll");
 		}
 	};

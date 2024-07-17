@@ -46,7 +46,7 @@ namespace patches
 		WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(dwFlags));
 
 		// overwrite host
-		/*WinHttpAddRequestHeaders(hRequest, 
+		/*WinHttpAddRequestHeaders(hRequest,
 			L"Host: laochan.wahlap.com",
 			static_cast<DWORD>(-1),
 			WINHTTP_ADDREQ_FLAG_REPLACE | WINHTTP_ADDREQ_FLAG_ADD
@@ -61,6 +61,8 @@ namespace patches
 	public:
 		void post_start() override
 		{
+			return;
+
 			// disable signature check
 			utils::hook::jump(0x140312A00, is_signature_valid);
 
@@ -86,57 +88,9 @@ namespace patches
 			// init_superstep_sound_hook.create(0x1402536E0, init_superstep_sound_stub);
 
 			utils::nt::library winhttp{ "winhttp.dll" };
-			on_http_request_hook.create(winhttp.get_proc<void *>("WinHttpSendRequest"), on_http_request);
+			on_http_request_hook.create(winhttp.get_proc<void*>("WinHttpSendRequest"), on_http_request);
 		}
-
-#ifdef DUMP_DATA
-		void post_load() override
-		{
-			avs2::stat stat = { 0 };
-
-			auto file = avs2::fs_open("/data/__metadata.metatxt", 1, 420);
-
-			avs2::fs_fstat(file, &stat);
-			std::string buffer;
-			buffer.resize(stat.filesize + 1);
-
-			avs2::fs_read(file, buffer.data(), stat.filesize);
-			avs2::fs_close(file);
-
-			auto metadata = nlohmann::json::parse(buffer);
-			for (auto& entry : metadata["files"])
-			{
-				auto src = "/data" + entry["spath"].get<std::string>();
-
-				std::filesystem::path dest = "./data_dump" + entry["spath"].get<std::string>();
-				auto dest_str = dest.make_preferred().string();
-				std::replace(dest_str.begin(), dest_str.end(), '\\', '/');
-
-				std::filesystem::create_directories(dest.parent_path());
-				printf("%s\n", dest_str.data());
-
-				auto tfile = avs2::fs_open(src.data(), 1, 420);
-
-				if (tfile < 0) {
-					printf("error dumping %s: %x\n", src.data(), tfile);
-					continue;
-				}
-
-				avs2::fs_fstat(tfile, &stat);
-				std::string tbuffer;
-				tbuffer.resize(stat.filesize + 1);
-
-				avs2::fs_read(tfile, tbuffer.data(), stat.filesize);
-				avs2::fs_close(tfile);
-
-				FILE* of;
-				fopen_s(&of, dest_str.data(), "wb");
-				fwrite(tbuffer.data(), stat.filesize, 1, of);
-				fclose(of);
-			}
-	}
-#endif
-};
+	};
 }
 
 REGISTER_COMPONENT(patches::component, launcher::game::iidx)

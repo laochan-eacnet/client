@@ -9,7 +9,7 @@
 #include <utils/string.hpp>
 
 // from ifs_layeredfs
-__declspec(dllexport) int init(void);
+extern "C" int init(void);
 
 namespace filesystem
 {
@@ -78,3 +78,5 @@ namespace filesystem
 		}
 	};
 }
+
+REGISTER_COMPONENT(filesystem::component, launcher::game::all)

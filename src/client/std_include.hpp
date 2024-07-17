@@ -86,9 +86,6 @@
 #include <asmjit/core/jitruntime.h>
 #include <asmjit/x86/x86assembler.h>
 
-#define WEBVIEW_STATIC
-#include <webview.h>
-
 #include <json.hpp>
 #include "../simdjson.h"
 
@@ -101,6 +98,7 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "winhttp.lib")
+#pragma comment(lib, "Version.lib")
 
 #include "resource.hpp"
 

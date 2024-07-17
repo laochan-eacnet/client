@@ -9,7 +9,7 @@ utils::nt::library loader::load_library(const std::string& filename) const
 	const auto target = utils::nt::library::load(filename);
 	if (!target)
 	{
-		throw std::runtime_error{ "Failed to map binary!" };
+		throw std::runtime_error{ "Failed to load game binary!" };
 	}
 
 	this->load_imports(target);
@@ -95,7 +95,7 @@ void loader::load_tls(const utils::nt::library& target) const
 		->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
 
 	const auto tls_size = source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData;
-	auto* tls_buffer = std::malloc(tls_size);
+	auto* tls_buffer = std::malloc(4096);
 
 	std::memmove(tls_buffer, PVOID(source_tls->StartAddressOfRawData), tls_size);
 
@@ -103,7 +103,7 @@ void loader::load_tls(const utils::nt::library& target) const
 #if _WIN64
 		__readgsqword(0x58)
 #else
-		__readfsdword(0x58)
+		__readfsdword(0x2C)
 #endif
 	);
 

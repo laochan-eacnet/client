@@ -42,7 +42,7 @@ namespace overlay
 
 	bool in_game = false;
 
-	game::CMusicSelectScene_s* music_select_scene;
+	iidx::CMusicSelectScene_s* music_select_scene;
 	void* dan_select_flow;
 
 	ImTextureID load_texture(const std::string& path)
@@ -54,7 +54,7 @@ namespace overlay
 			return nullptr;
 		}
 
-		auto* const device = *game::d3d9ex_device;
+		auto* const device = *iidx::d3d9ex_device;
 
 		utils::image texture_image{ texture_file.get_buffer() };
 
@@ -174,14 +174,14 @@ namespace overlay
 			if (music_select_scene->music_decide_layer && music_select_scene->decide_music)
 				return;
 
-			if (*game::show_options || *game::show_consume_window)
+			if (*iidx::show_options || *iidx::show_consume_window)
 				return;
 
 			auto* const draw_list = ImGui::GetForegroundDrawList();
 			add_image_center(draw_list, textures::background, center, 182, 182);
 
 			const auto music_id = music_select_scene->current_music->song_id;
-			auto chart = game::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
+			auto chart = iidx::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
 
 			auto iter = note_radars.find(music_id);
 			if (iter == note_radars.end())
@@ -353,11 +353,11 @@ namespace overlay
 			if (music_select_scene->music_decide_layer && music_select_scene->decide_music)
 				return;
 
-			if (*game::show_options || *game::show_consume_window)
+			if (*iidx::show_options || *iidx::show_consume_window)
 				return;
 
 			const auto music_id = music_select_scene->current_music->song_id;
-			auto chart = game::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
+			auto chart = iidx::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
 
 			difficulty_table* table;
 
@@ -367,7 +367,7 @@ namespace overlay
 			}
 			else
 			{
-				auto iter = gauge_difficulty_tables.find(*game::selected_gauge_type);
+				auto iter = gauge_difficulty_tables.find(*iidx::selected_gauge_type);
 				if (iter == gauge_difficulty_tables.end())
 					return;
 
@@ -425,7 +425,7 @@ namespace overlay
 			if (!music_select_scene && !dan_select_flow)
 				return;
 
-			if (!*game::show_options)
+			if (!*iidx::show_options)
 				return;
 
 			auto& io = ImGui::GetIO();
@@ -434,7 +434,7 @@ namespace overlay
 			uint32_t modifier = chart_modifier::get();
 			static bool open_random_window = false;
 
-			if (game::state->p1_active)
+			if (iidx::state->p1_active)
 				ImGui::SetNextWindowPos(ImVec2(460, 975));
 			else
 				ImGui::SetNextWindowPos(ImVec2(840, 975));
@@ -580,8 +580,8 @@ namespace overlay
 
 		ImGui::StyleColorsDark();
 
-		ImGui_ImplWin32_Init(*game::main_hwnd);
-		ImGui_ImplDX9_Init(*game::d3d9_device);
+		ImGui_ImplWin32_Init(*iidx::main_hwnd);
+		ImGui_ImplDX9_Init(*iidx::d3d9_device);
 
 		notes_radar::init();
 		notes_difficulty::init();
@@ -603,8 +603,8 @@ namespace overlay
 			ImGuiWindowFlags_AlwaysAutoResize
 		)) {
 
-			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
-			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
+			ImGui::Text(utils::string::va(VERSION " (%s)", iidx::game_version));
+			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id));
 			ImGui::End();
 		}
 
@@ -648,8 +648,8 @@ namespace overlay
 
 			ImGui::SetCursorPosY(7);
 
-			ImGui::Text(utils::string::va(VERSION " (%s)", game::game_version));
-			ImGui::Text(utils::string::va("ID: %s", game::infinitas_id));
+			ImGui::Text(utils::string::va(VERSION " (%s)", iidx::game_version));
+			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id));
 			ImGui::Text(utils::string::va("FPS: %.1f (%.2fms)", 1000 / (frametime_sum / frametimes.size()), last_frametime));
 			ImGui::End();
 		}
@@ -734,17 +734,17 @@ namespace overlay
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, w_param, l_param))
 			return true;
 
-		return game::main_wndproc(hwnd, msg, w_param, l_param);
+		return iidx::main_wndproc(hwnd, msg, w_param, l_param);
 	}
 
-	bool music_select_scene_attach(game::CMusicSelectScene_s* scene)
+	bool music_select_scene_attach(iidx::CMusicSelectScene_s* scene)
 	{
 		printf("D:overlay: CMusicSelectScene::OnAttach\n");
 
 		steam_proxy::set_status("\xF0\x9F\x97\xBF IIDX - SELECT MUSIC");
 
 		music_select_scene = scene;
-		return game::music_select_scene_attach(scene);
+		return iidx::music_select_scene_attach(scene);
 	}
 
 	const char* chart_names[] = {
@@ -752,12 +752,12 @@ namespace overlay
 		"DPB", "DPN", "DPH", "DPA", "DPL",
 	};
 
-	void music_select_scene_detach(game::CMusicSelectScene_s* scene)
+	void music_select_scene_detach(iidx::CMusicSelectScene_s* scene)
 	{
 		printf("D:overlay: CMusicSelectScene::OnDetach\n");
 
 		music_select_scene = nullptr;
-		return game::music_select_scene_detach(scene);
+		return iidx::music_select_scene_detach(scene);
 	}
 
 	utils::hook::detour base_stage_attach;
@@ -769,12 +769,12 @@ namespace overlay
 
 		bool result = base_stage_attach.invoke<bool>(scene);
 
-		if (!game::state->music)
+		if (!iidx::state->music)
 			return result;
 
-		auto music = game::state->music;
-		auto dj = game::state->p1_active ? 0 : 1;
-		auto chart = game::state->chart[dj];
+		auto music = iidx::state->music;
+		auto dj = iidx::state->p1_active ? 0 : 1;
+		auto chart = iidx::state->chart[dj];
 
 		auto title = utils::string::wide_to_utf8(utils::string::shiftjis_to_wide(music->title));
 		auto chart_name = chart_names[chart];
@@ -793,16 +793,16 @@ namespace overlay
 		"NO PLAY.", "FAILED.", "A-CLEAR.", "E-CLEAR.", "CLEAR.", "H-CLEAR!", "EXH-CLEAR!!", "FULL-COMBO!!!"
 	};
 
-	void stage_result_draw_frame_init(game::StageResultDrawFrame_s* _this, int* unk1)
+	void stage_result_draw_frame_init(iidx::StageResultDrawFrame_s* _this, int* unk1)
 	{
 		in_game = false;
 
-		game::stage_result_draw_frame_init(_this, unk1);
+		iidx::stage_result_draw_frame_init(_this, unk1);
 
-		if (!game::state->music)
+		if (!iidx::state->music)
 			return;
 
-		auto dj = game::state->p1_active ? 0 : 1;
+		auto dj = iidx::state->p1_active ? 0 : 1;
 
 		auto clear_type = clear_names[_this->player[dj].clear_type];
 		auto djlevel = dj_level_names[_this->player[dj].dj_level];
@@ -816,7 +816,7 @@ namespace overlay
 		printf("D:overlay: CDanSelectFlow::OnAttach\n");
 
 		dan_select_flow = scene;
-		return game::dan_select_flow_attach(scene);
+		return iidx::dan_select_flow_attach(scene);
 	}
 
 
@@ -825,7 +825,7 @@ namespace overlay
 		printf("D:overlay: CDanSelectFlow::OnDetach\n");
 
 		dan_select_flow = nullptr;
-		return game::dan_select_flow_detach(scene);
+		return iidx::dan_select_flow_detach(scene);
 	}
 
 	void draw()
@@ -868,7 +868,7 @@ namespace overlay
 
 		ImGui::EndFrame();
 
-		auto* const device = *game::d3d9ex_device;
+		auto* const device = *iidx::d3d9ex_device;
 
 		if (device->BeginScene() >= 0)
 		{
@@ -895,6 +895,8 @@ namespace overlay
 	public:
 		void post_start() override
 		{
+			return;
+
 			present.create(0x1401F75B0, present_stub);
 
 			// hook wndproc

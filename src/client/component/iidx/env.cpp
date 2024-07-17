@@ -2,17 +2,35 @@
 #include "loader/component_loader.hpp"
 
 #include <utils/hook.hpp>
+#include <utils/string.hpp>
+
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
 namespace env
 {
+	static auto cmdline = "bm2dx.exe "s;
+
+	const char* get_cmdline()
+	{
+		return cmdline.data();
+	}
+
+	int WINAPI message_box_a(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+	{
+		auto text = utils::string::shiftjis_to_wide(lpText);
+		auto caption = utils::string::shiftjis_to_wide(lpCaption);
+
+		return MessageBoxW(hWnd, text.data(), caption.data(), uType);
+	}
+
 	class component final : public component_interface
 	{
 	public:
 		void post_start() override
 		{
 			SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+			cmdline += "-t sb --miniW";
 
 			/*std::string args{ "-t " };
 			args += launcher::token;
@@ -36,6 +54,21 @@ namespace env
 
 			printf("I:launcher: preinit game with arg: %s\n", args.data());
 			game::game_preinit(args.data());*/
+		}
+	
+		void* load_import(const std::string& library, const std::string& function) override
+		{
+			printf("%s - %s\n", library.data(), function.data());
+			if (function == "GetCommandLineA")
+			{
+				return get_cmdline;
+			}
+			else if (function == "MessageBoxA")
+			{
+				return message_box_a;
+			}
+
+			return nullptr;
 		}
 	};
 }

@@ -13,7 +13,7 @@ public:
 		}
 	};
 
-	template <typename T>
+	template <typename T, launcher::game G>
 	class installer final
 	{
 		static_assert(std::is_base_of<component_interface, T>::value, "component has invalid base class");
@@ -21,7 +21,7 @@ public:
 	public:
 		installer()
 		{
-			//register_component_factory([]() { return std::make_unique<T>() }, game);
+			register_component_factory([]() { return std::make_unique<T>(); }, G);
 		}
 	};
 
@@ -43,7 +43,6 @@ public:
 	static void register_component_factory(std::function<std::unique_ptr<component_interface>()> factory, launcher::game target_game);
 	static void create_components(launcher::game target_game);
 
-	static bool pre_start();
 	static bool post_start();
 	static bool post_load();
 	static bool post_avs_init();
@@ -56,10 +55,11 @@ public:
 
 private:
 	static std::vector<std::unique_ptr<component_interface>>& get_components();
+	static std::vector<std::function<std::unique_ptr<component_interface>()>>& get_components_factories(launcher::game);
 };
 
 #define REGISTER_COMPONENT(name, game)                          \
 namespace														\
 {																\
-	static component_loader::installer<name> __component; \
+	static component_loader::installer<name, game> __component; \
 }

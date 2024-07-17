@@ -13,7 +13,7 @@ using json = nlohmann::json;
 namespace omnimix
 {
 	utils::hook::detour get_name_hook;
-	const char* get_bga_name(game::music_t* music, int note_id)
+	const char* get_bga_name(iidx::music_t* music, int note_id)
 	{
 		const auto music_bga = music->bga_filename;
 		auto path = utils::string::va("/data/movie/%s.mp4", music_bga);
@@ -28,7 +28,7 @@ namespace omnimix
 			return utils::string::va("%s.wmv", music_bga);
 		}
 
-		return get_name_hook.invoke<const char*, game::music_t*, int>(music, note_id);
+		return get_name_hook.invoke<const char*, iidx::music_t*, int>(music, note_id);
 	}
 
 	std::vector<json> get_additional_mdatas()
@@ -56,7 +56,7 @@ namespace omnimix
 	uint64_t load_music_info()
 	{
 		auto result = load_music_info_hook.invoke<uint64_t>();
-		const auto music_data = game::get_music_data();
+		const auto music_data = iidx::get_music_data();
 
 		filesystem::file omni_file{ "/data/omni_data.json" };
 
@@ -104,22 +104,22 @@ namespace omnimix
 
 		if (!omni_file.exists()) {
 			printf("E:omnimix: can not load /data/omni_data.json\n");
-			return game::finalize_music_data();
+			return iidx::finalize_music_data();
 		}
 
-		const auto music_data = game::get_music_data();
-		auto backup = utils::memory::allocate<game::music_data_t>(0x400000);
+		const auto music_data = iidx::get_music_data();
+		auto backup = utils::memory::allocate<iidx::music_data_t>(0x400000);
 		std::memcpy(backup, music_data, 0x400000);
 
 		auto _ = gsl::finally([=] {
-			game::finalize_music_data();
+			iidx::finalize_music_data();
 			utils::memory::free(backup);
 		});
 
 		json omni_data = json::parse(omni_file.get_buffer());
 		auto mdatas = get_additional_mdatas();
 
-		std::vector<game::music_t> musics;
+		std::vector<iidx::music_t> musics;
 
 		if (!omni_data.is_array()) {
 			printf("E:omnimix: omni_data is not array!\n");
@@ -133,7 +133,7 @@ namespace omnimix
 				continue;
 			}
 
-			game::music_t music = { 0 };
+			iidx::music_t music = { 0 };
 
 #define LOAD_STRING(field, path) \
 	{ \
@@ -218,7 +218,7 @@ namespace omnimix
 
 		printf("I:omnimix: total music count: %llu\n", musics.size());
 
-		std::sort(musics.begin(), musics.end(), [](const game::music_t& a, const game::music_t& b) -> bool {
+		std::sort(musics.begin(), musics.end(), [](const iidx::music_t& a, const iidx::music_t& b) -> bool {
 			return a.song_id < b.song_id;
 		});
 
@@ -226,7 +226,7 @@ namespace omnimix
 
 		for (size_t i = 0; i < MAX_ENTRIES; i++)
 		{
-			const auto find_result = std::find_if(musics.begin(), musics.end(), [i](const game::music_t& v) {
+			const auto find_result = std::find_if(musics.begin(), musics.end(), [i](const iidx::music_t& v) {
 				return v.song_id == i;
 				});
 
@@ -243,7 +243,7 @@ namespace omnimix
 		}
 
 		for (size_t i = 0; i < music_data->music_count; i++)
-			std::memcpy(music_data->musics + i, &musics[i], sizeof(game::music_t));
+			std::memcpy(music_data->musics + i, &musics[i], sizeof(iidx::music_t));
 	}
 
 	class component final : public component_interface
@@ -251,6 +251,8 @@ namespace omnimix
 	public:
 		void post_start() override
 		{
+			return;
+
 			// return success if file not exists
 			utils::hook::set<uint16_t>(0x1401F13A8, 0x01B0);
 

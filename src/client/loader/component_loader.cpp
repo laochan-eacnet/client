@@ -1,11 +1,6 @@
 #include <std_include.hpp>
 #include "component_loader.hpp"
 
-namespace
-{
-	std::array<std::vector<std::function<std::unique_ptr<component_interface>()>>, static_cast<size_t>(launcher::game::count)> component_factories;
-}
-
 void component_loader::register_component(std::unique_ptr<component_interface>&& component_)
 {
 	get_components().push_back(std::move(component_));
@@ -19,34 +14,13 @@ void component_loader::register_component_factory(std::function<std::unique_ptr<
 		return;
 	}
 
-	component_factories[static_cast<size_t>(target_game)].push_back(factory);
+	get_components_factories(target_game).push_back(factory);
 }
 
 void component_loader::create_components(launcher::game target_game)
 {
-	for (auto& factory : component_factories[static_cast<size_t>(target_game)])
+	for (auto& factory : get_components_factories(target_game))
 		register_component(factory());
-}
-
-bool component_loader::pre_start()
-{
-	static auto handled = false;
-	if (handled) return true;
-	handled = true;
-
-	try
-	{
-		for (const auto& component_ : get_components())
-		{
-			component_->pre_start();
-		}
-	}
-	catch (premature_shutdown_trigger&)
-	{
-		return false;
-	}
-
-	return true;
 }
 
 bool component_loader::post_start()
@@ -172,10 +146,25 @@ std::vector<std::unique_ptr<component_interface>>& component_loader::get_compone
 	using component_vector_container = std::unique_ptr<component_vector, std::function<void(component_vector*)>>;
 
 	static component_vector_container components(new component_vector, [](component_vector* component_vector)
-	{
-		pre_destroy();
-		delete component_vector;
-	});
+		{
+			pre_destroy();
+			delete component_vector;
+		});
 
 	return *components;
+}
+
+std::vector<std::function<std::unique_ptr<component_interface>()>>& component_loader::get_components_factories(launcher::game game)
+{
+	using component_factory = std::function<std::unique_ptr<component_interface>()>;
+	using component_factories = std::vector<component_factory>;
+	using component_factories_container = std::array<component_factories, static_cast<size_t>(launcher::game::count)>;
+	using component_factories_container_ptr = std::unique_ptr < component_factories_container, std::function<void(component_factories_container*)>>;
+
+	static component_factories_container_ptr container(new component_factories_container, [](component_factories_container* factories)
+		{
+			delete factories;
+		});
+
+	return container->at(static_cast<size_t>(game));
 }

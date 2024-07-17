@@ -26,7 +26,7 @@ namespace steam_proxy
 	class component final : public component_interface
 	{
 	public:
-		void pre_start() override
+		void post_start() override
 		{
 			if (is_disabled())
 			{

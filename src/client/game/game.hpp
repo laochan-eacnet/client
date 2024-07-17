@@ -2,6 +2,7 @@
 
 #include "launcher/launcher.hpp"
 #include <utils/nt.hpp>
+#include <utils/string.hpp>
 
 namespace game
 {
@@ -58,32 +59,45 @@ namespace avs2
 	class function
 	{
 	public:
-		function(const char* name)
+		function(const char* name): name_(name) 
 		{
-			utils::nt::library avs_core{ "avs2-core.dll" };
-			this->object_ = reinterpret_cast<T*>(avs_core.get_proc<void*>(name));
 		}
 
-		T* get() const
+		T* get()
 		{
+			if (!this->object_)
+			{
+				utils::nt::library avs_core{ "avs2-core.dll" };
+				this->object_ = reinterpret_cast<T*>(avs_core.get_proc<void*>(this->name_));
+			}
+
+			if (!this->object_)
+			{
+				throw std::runtime_error(utils::string::va("failed to find %s of avs2\n", this->name_));
+			}
+
 			return object_;
 		}
 
-		operator T* () const
+		operator T* ()
 		{
 			return this->get();
 		}
 
-		T* operator->() const
+		T* operator->()
 		{
 			return this->get();
 		}
 
 	private:
 		T* object_;
+		const char* name_;
 	};
 }
 
 #include "avs2.hpp"
 #include "struct.hpp"
 #include "symbols.hpp"
+
+#include "iidx/struct.hpp"
+#include "iidx/symbols.hpp"

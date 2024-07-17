@@ -50,14 +50,14 @@ targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
 configurations {"Debug", "Release"}
 
 language "C++"
-cppdialect "C++20"
+cppdialect "C++latest"
 
 architecture "x86_64"
 platforms "x64"
 
 systemversion "latest"
 symbols "On"
-staticruntime "On"
+staticruntime "off"
 editandcontinue "Off"
 warnings "Extra"
 characterset "ASCII"
@@ -80,7 +80,7 @@ filter {}
 filter "configurations:Release"
 	optimize "Speed"
 	buildoptions {"/GL", "/arch:AVX2"}
-	linkoptions {"/IGNORE:4702", "/LTCG"}
+	linkoptions {"/IGNORE:4702", "/IGNORE:4099", "/LTCG", "/NODEFAULTLIB:saucer.lib"}
 	defines {"NDEBUG"}
 	flags {"FatalCompileWarnings"}
 filter {}
@@ -88,6 +88,7 @@ filter {}
 filter "configurations:Debug"
 	optimize "Debug"
 	defines {"DEBUG", "_DEBUG"}
+	linkoptions {"/IGNORE:4099", "/NODEFAULTLIB:saucer.lib"}
 filter {}
 
 project "common"

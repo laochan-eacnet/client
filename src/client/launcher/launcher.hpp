@@ -33,11 +33,6 @@ public:
 
 	bool run() const;
 private:
-	std::unique_ptr<webview::webview> _main_window;
-	bool run_game;
-
 	void create_main_menu();
-
-	static void wait_and_show_window(HWND hwnd, std::chrono::milliseconds msec);
 	static std::string load_content(int res);
 };
