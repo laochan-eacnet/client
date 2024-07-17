@@ -7,6 +7,12 @@ namespace utils::hook
 {
 	namespace
 	{
+		// hack for ifs_layeredfs is using minhook too
+		MH_STATUS WINAPI minhook_init_hack(VOID)
+		{
+			return MH_OK;
+		}
+
 		[[maybe_unused]] class _
 		{
 		public:
@@ -16,6 +22,8 @@ namespace utils::hook
 				{
 					throw std::runtime_error("Failed to initialize MinHook");
 				}
+
+				utils::hook::jump(MH_Initialize, minhook_init_hack, true);
 			}
 
 			~_()
