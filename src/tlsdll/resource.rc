@@ -8,7 +8,6 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "windows.h"
-#include "resource.hpp"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -45,19 +44,13 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
- FILEFLAGS VS_FF_DEBUG
-#else
-#ifdef PRERELEASE
- FILEFLAGS VS_FF_PRERELEASE
-#else
-#ifndef CI
- FILEFLAGS VS_FF_PRIVATEBUILD
+ FILEFLAGS 0x1L
 #else
  FILEFLAGS 0x0L
-#endif
-#endif
 #endif
  FILEOS 0x40004L
  FILETYPE VFT_DLL
@@ -67,13 +60,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Laochan Eacnet"
-            VALUE "FileDescription", "Laochan Eacnet Infinitas Launcher"
-            VALUE "FileVersion", "0.0.1"
-            VALUE "InternalName", "laochan-infas"
-            VALUE "OriginalFilename", "laochan-infas.exe"
-            VALUE "ProductName", "Laochan Eacnet Infinitas Launcher"
-            VALUE "ProductVersion", "0.0.1"
+            VALUE "CompanyName", "X Labs"
+            VALUE "FileDescription", "TLS index allocation dll"
+            VALUE "FileVersion", "1.0.0.0"
+            VALUE "InternalName", "TLS DLL"
+            VALUE "LegalCopyright", "All rights reserved."
+            VALUE "OriginalFilename", "tlsdll.dll"
+            VALUE "ProductName", "tlsdll"
+            VALUE "ProductVersion", "1.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -87,21 +81,7 @@ END
 // Binary Data
 //
 
-ID_ICON               ICON   "resources/icon.ico"
-
-MENU_MAIN             RCDATA "resources/main.html"
-
-#ifdef _DEBUG
-RUNNER                RCDATA "../../build/bin/x64/Debug/runner.exe"
-#else
-RUNNER                RCDATA "../../build/bin/x64/Release/runner.exe"
-#endif
-
-#ifdef _DEBUG
-TLS_DLL               RCDATA "../../build/bin/x64/Debug/tlsdll.dll"
-#else
-TLS_DLL               RCDATA "../../build/bin/x64/Release/tlsdll.dll"
-#endif
+// Nothing here
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

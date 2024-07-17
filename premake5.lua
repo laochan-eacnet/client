@@ -130,6 +130,18 @@ end
 
 dependencies.imports()
 
+project "tlsdll"
+kind "SharedLib"
+language "C++"
+
+files {"./src/tlsdll/**.rc", "./src/tlsdll/**.hpp", "./src/tlsdll/**.cpp", "./src/tlsdll/resources/**.*"}
+
+includedirs {"./src/tlsdll", "%{prj.location}/src"}
+
+links {"common"}
+
+resincludedirs {"$(ProjectDir)src"}
+
 project "runner"
 kind "WindowedApp"
 language "C++"

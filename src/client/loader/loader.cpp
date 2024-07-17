@@ -1,5 +1,7 @@
 #include <std_include.hpp>
+
 #include "loader.hpp"
+#include "tls.hpp"
 
 #include <utils/string.hpp>
 #include <utils/hook.hpp>
@@ -85,27 +87,54 @@ void loader::load_imports(const utils::nt::library& target) const
 	}
 }
 
-// well, this actually works
+//// well, this actually works
+//void loader::load_tls(const utils::nt::library& target) const
+//{
+//	if (!target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
+//		return;
+//
+//	auto* const source_tls = reinterpret_cast<PIMAGE_TLS_DIRECTORY>(target.get_ptr() + target.get_optional_header()
+//		->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
+//
+//	const auto tls_size = source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData;
+//	auto* tls_buffer = std::malloc(4096);
+//
+//	std::memmove(tls_buffer, PVOID(source_tls->StartAddressOfRawData), tls_size);
+//
+//	auto* const tls_ptr = reinterpret_cast<void**>(
+//#if _WIN64
+//		__readgsqword(0x58)
+//#else
+//		__readfsdword(0x2C)
+//#endif
+//		);
+//
+//	*tls_ptr = tls_buffer;
+//}
+
 void loader::load_tls(const utils::nt::library& target) const
 {
 	if (!target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
 		return;
 
+	auto* target_tls = tls::allocate_tls_index();
+
 	auto* const source_tls = reinterpret_cast<PIMAGE_TLS_DIRECTORY>(target.get_ptr() + target.get_optional_header()
 		->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
 
 	const auto tls_size = source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData;
-	auto* tls_buffer = std::malloc(4096);
+	const auto tls_index = *reinterpret_cast<DWORD*>(source_tls->AddressOfIndex);
+	utils::hook::set<DWORD>(target_tls->AddressOfIndex, tls_index);
 
-	std::memmove(tls_buffer, PVOID(source_tls->StartAddressOfRawData), tls_size);
+	DWORD old_protect;
+	VirtualProtect(PVOID(target_tls->StartAddressOfRawData),
+		source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData, PAGE_READWRITE,
+		&old_protect);
 
-	auto* const tls_ptr = reinterpret_cast<void**>(
-#if _WIN64
-		__readgsqword(0x58)
-#else
-		__readfsdword(0x2C)
-#endif
-	);
+	auto* const tls_base = *reinterpret_cast<LPVOID*>(__readgsqword(0x58) + 8ull * tls_index);
+	std::memmove(tls_base, PVOID(source_tls->StartAddressOfRawData), tls_size);
+	std::memmove(PVOID(target_tls->StartAddressOfRawData), PVOID(source_tls->StartAddressOfRawData), tls_size);
 
-	*tls_ptr = tls_buffer;
+	VirtualProtect(target_tls, sizeof(*target_tls), PAGE_READWRITE, &old_protect);
+	*target_tls = *source_tls;
 }

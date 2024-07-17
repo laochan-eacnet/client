@@ -55,6 +55,15 @@ namespace env
 			printf("I:launcher: preinit game with arg: %s\n", args.data());
 			game::game_preinit(args.data());*/
 		}
+
+		void post_load() override
+		{
+			auto version = game::environment::get_version();
+			if (version != "P2D:J:B:A:2024052200") 
+			{
+				throw std::runtime_error(utils::string::va("Unsupported version %s\n", version.data()));
+			}
+		}
 	
 		void* load_import(const std::string& library, const std::string& function) override
 		{
