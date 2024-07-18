@@ -15,39 +15,41 @@
 
 using json = nlohmann::json;
 
-namespace
-{
-	saucer::smartview<saucer::default_serializer, launcher_module> smartview
-	{
-		{
-			.chrome_flags =
-			{
-				"--disable-gpu-vsync",
-				"--disable-frame-rate-limit",
-			}
-		}
-	};
-}
-
 launcher::launcher()
 {
+	smartview_ = borderless_smartview_ptr(
+		new borderless_smartview(
+			saucer::options
+			{
+				.chrome_flags =
+				{
+					"--disable-gpu-vsync",
+					"--disable-frame-rate-limit",
+				}
+			}
+		), [](borderless_smartview* smartview) 
+		{
+			delete smartview;
+		}
+	);
+
 	this->create_main_menu();
 }
 
 void launcher::create_main_menu()
 {
-	smartview.set_title("Laochan-Eacnet Launcher");
+	smartview_->set_title("Laochan-Eacnet Launcher");
 
-	smartview.expose("close", []()
+	smartview_->expose("close", [this]()
 		{
-			smartview.close();
+			smartview_->close();
 		});
 
 #ifdef _DEBUG
-	smartview.set_url("http://localhost:5173/");
+	smartview_->set_url("http://localhost:5173/");
 #else
 	// spa hack
-	smartview.embed(([]
+	smartview_->embed(([]
 		{
 			auto resources = saucer::embedded::all();
 			resources.emplace("", resources["index.html"]);
@@ -62,9 +64,9 @@ void launcher::create_main_menu()
 
 bool launcher::run() const
 {
-	smartview.show();
-	smartview.set_dev_tools(true);
-	smartview.run();
+	smartview_->show();
+	smartview_->set_dev_tools(true);
+	smartview_->run();
 	return true;
 }
 
