@@ -1,4 +1,9 @@
 <script setup lang="ts">
+const iidx = {
+  openCustomize: () => {
+    window.saucer.call('shellExecute', ['http://laochan.ugreen.sbs/cp']);
+  }
+};
 </script>
 
 <template>
@@ -23,7 +28,7 @@
         <div>Laochan 设置</div>
         <div>游戏设置</div>
         <div>更新器</div>
-        <div>自定义选项</div>
+        <div @click="iidx.openCustomize">自定义选项</div>
       </div>
     </div>
     <div class="game gitadora disable">
@@ -42,6 +47,7 @@ main {
   height: 100vh;
   display: flex;
   align-items: stretch;
+  background-color: #000  ;
   background-image: url(@/assets/moai-bg.jpg);
   background-size: cover;;
 }
@@ -74,7 +80,7 @@ main>div {
 .game>.text {
   text-align: center;
   margin: auto;
-  margin-top: calc(40vh);
+  margin-top: 250px;
   font-size: 24px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 100;

@@ -5,11 +5,34 @@ import TitleBar from './components/TitleBar.vue'
 
 <template>
   <TitleBar title="Laochan Eacnet Launcher" />
-  <RouterView />
+  <RouterView v-slot="{ Component }">
+    <transition name="blur-fade">
+      <component :is="Component"></component>
+    </transition>
+  </RouterView>
 </template>
 
 <style scoped>
-* {
-  user-select: none;
+.blur-fade-enter-active,
+.blur-fade-leave-active {
+  transition: 0.5s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
 }
+
+.blur-fade-enter-from {
+  left: -10vw;
+  filter: blur(16px);
+  opacity: 0;
+}
+
+.blur-fade-leave-to {
+  left: 10vw;
+  filter: blur(16px);
+  opacity: 0;
+}
+
 </style>

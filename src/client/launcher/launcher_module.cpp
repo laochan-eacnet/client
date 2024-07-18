@@ -2,6 +2,7 @@
 #include "launcher_module.hpp"
 #include <dwmapi.h>
 #include <gdiplus.h>
+#include <winuser.h>
 
 namespace
 {
@@ -18,14 +19,14 @@ namespace
 	}
 }
 
-launcher_module::launcher_module(saucer::smartview_core* smartview) : saucer::module(smartview)
+launcher_module::launcher_module(saucer::smartview_core* smartview) : saucer::module(smartview), smartview_(smartview)
 {
 }
 
 void launcher_module::init(saucer::native::window* window, saucer::native::webview* webview)
 {
-	m_window = window;
-	m_webview = webview;
+	window_ = window;
+	webview_ = webview;
 
 	// create borderless window with dwm shadow
 	auto hwnd = window->hwnd;
@@ -38,4 +39,11 @@ void launcher_module::init(saucer::native::window* window, saucer::native::webvi
 	DwmExtendFrameIntoClientArea(hwnd, &m);
 
 	SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+
+	scale_ = GetDpiForWindow(hwnd) * 1.0f / USER_DEFAULT_SCREEN_DPI;
+}
+
+void launcher_module::set_dpi_aware_size(int width, int height)
+{
+	smartview_->set_size(static_cast<int>(width * scale_), static_cast<int>(height * scale_));
 }

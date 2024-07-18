@@ -4,15 +4,13 @@
   box-sizing: border-box;
   margin: 0;
   font-weight: normal;
+  color: #fff;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 body {
-  min-height: 100vh;
-  color: #fff;
-  background: #000;
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  background: #212121;
   line-height: 1.6;
   font-family:
     Inter,
@@ -31,4 +29,5 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }

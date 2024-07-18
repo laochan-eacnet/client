@@ -13,8 +13,6 @@
 
 #include "component/steam_proxy.hpp"
 
-using json = nlohmann::json;
-
 launcher::launcher()
 {
 	smartview_ = borderless_smartview_ptr(
@@ -39,14 +37,35 @@ launcher::launcher()
 void launcher::create_main_menu()
 {
 	smartview_->set_title("Laochan-Eacnet Launcher");
+	smartview_->set_dpi_aware_size(1280, 720);
 
 	smartview_->expose("close", [this]()
 		{
 			smartview_->close();
-		});
+		}
+	);
+
+	smartview_->expose("minimize", [this]()
+		{
+			smartview_->set_minimized(true);
+		}
+	);
+
+	smartview_->expose("mounted", [this]()
+		{
+			smartview_->show();
+		}
+	);
+
+	smartview_->expose("shellExecute", [](std::string command)
+		{
+			ShellExecuteA(nullptr, "open", command.data(), nullptr, nullptr, 1);
+		}
+	);
 
 #ifdef _DEBUG
 	smartview_->set_url("http://localhost:5173/");
+	smartview_->set_dev_tools(true);
 #else
 	// spa hack
 	smartview_->embed(([]
@@ -58,14 +77,12 @@ void launcher::create_main_menu()
 		}
 	)());
 
-	smartview.serve("");
+	smartview_->serve("");
 #endif
 }
 
 bool launcher::run() const
 {
-	smartview_->show();
-	smartview_->set_dev_tools(true);
 	smartview_->run();
 	return true;
 }

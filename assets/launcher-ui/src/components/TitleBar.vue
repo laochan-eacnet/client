@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, type Ref } from 'vue';
+import { RouterLink } from 'vue-router';
+
 import IconClose from '@/components/icons/IconClose.vue';
 import IconSettings from '@/components/icons/IconSettings.vue';
+import IconMinimize from '@/components/icons/IconMinimize.vue';
+import IconBack from '@/components/icons/IconBack.vue';
 
 defineProps<{
     title: string
@@ -16,10 +20,18 @@ onMounted(() => {
     }
 
     titleBar.value.addEventListener('mousedown', () => window.saucer.start_drag());
+
+    setTimeout(() => {
+        window.saucer.call('mounted', []);
+    }, 500);
 });
 
 function close() {
     window.saucer.call('close', []);
+}
+
+function minimize() {
+    window.saucer.call('minimize', []);
 }
 </script>
 
@@ -29,11 +41,23 @@ function close() {
             <div class="title" ref="titleBar">
                 <span>{{ title }}</span>
             </div>
+            <div class="nav-controls">
+                <Transition name="fade">
+                    <RouterLink id="home" to="/" v-if="$route.path != '/'">
+                        <IconBack></IconBack>
+                    </RouterLink>
+                </Transition>
+            </div>
             <div class="controls">
-                <button id="settings" @click="close">
-                    <IconSettings></IconSettings>
+                <Transition name="fade">
+                    <RouterLink id="settings" to="/settings" v-if="$route.path != '/settings'">
+                        <IconSettings></IconSettings>
+                    </RouterLink>
+                </Transition>
+                <button id="minimize" @click="minimize">
+                    <IconMinimize></IconMinimize>
                 </button>
-                <button id="close">
+                <button id="close" @click="close">
                     <IconClose></IconClose>
                 </button>
             </div>
@@ -42,23 +66,25 @@ function close() {
 </template>
 <style scoped>
 nav {
+    top: 0;
+    left: 0;
     position: fixed;
-    z-index: 9999;
+    z-index: 10;
 }
 
 .title-bar {
-    width: 100vw;
     background-color: rgba(0, 0, 0, 0.5);
     text-align: center;
     line-height: 48px;
-    display: flex;
 }
 
 .title {
-    width: 100%;
+    width: 100vw;
+    z-index: 9;
 }
 
-.controls {
+.controls,
+.nav-controls {
     position: absolute;
     right: 0;
     top: 0;
@@ -66,7 +92,14 @@ nav {
     display: flex;
 }
 
-.controls button {
+.nav-controls {
+    left: 0;
+    width: 0;
+    display: inline-block;
+}
+
+.controls>*,
+.nav-controls>* {
     margin: 0;
     display: block;
     background-color: rgba(0, 0, 0, 0.2);
@@ -87,11 +120,38 @@ nav {
     background-color: rgb(153, 33, 17);
 }
 
+#minimize:hover {
+    background-color: rgb(161, 22, 226);
+}
+
+#minimize:active {
+    background-color: rgb(106, 14, 148);
+}
+
 #settings:hover {
     background-color: rgb(22, 151, 226);
 }
 
 #settings:active {
     background-color: rgb(18, 103, 153);
+}
+
+#home:hover {
+    background-color: rgb(20, 187, 101);
+}
+
+#home:active {
+    background-color: rgb(11, 114, 61);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: 0.2s ease;
+}
+
+.fade-enter-from, 
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-100px);
 }
 </style>
