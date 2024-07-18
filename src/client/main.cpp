@@ -178,9 +178,10 @@ int main()
 
 		try
 		{
-			/*const launcher launcher;
-			if (!launcher.run())
-				return 0;*/
+			const launcher launcher;
+			launcher.run();
+			//if (!launcher.run())
+			return 0;
 
 			try_set_game_environment(launcher::game::iidx);
 

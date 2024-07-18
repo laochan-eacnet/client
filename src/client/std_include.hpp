@@ -4,11 +4,13 @@
 #pragma warning(disable: 4067)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4127)
+#pragma warning(disable: 4189)
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4458)
 #pragma warning(disable: 4459)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4996)
+#pragma warning(disable: 5030)
 #pragma warning(disable: 5054)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6297)
@@ -89,8 +91,15 @@
 #include <json.hpp>
 #include "../simdjson.h"
 
+#include <saucer/smartview.hpp>
+#include <saucer/modules/module.hpp>
+#include <saucer/modules/native/webview2.hpp>
+
+#include <resources/all.hpp>
+
 #pragma warning(pop)
 #pragma warning(disable: 4100)
+#pragma warning(disable: 4702)
 
 #pragma comment(lib, "ntdll.lib")
 #pragma comment(lib, "ws2_32.lib")
@@ -99,6 +108,7 @@
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "winhttp.lib")
 #pragma comment(lib, "Version.lib")
+#pragma comment(lib, "dwmapi.lib")
 
 #include "resource.hpp"
 

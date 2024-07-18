@@ -1,19 +1,15 @@
 #include <std_include.hpp>
+
 #include "launcher.hpp"
+#include "launcher_module.hpp"
 
 #include <utils/nt.hpp>
 #include <utils/smbios.hpp>
 #include <utils/string.hpp>
+#include <utils/hook.hpp>
 #include <utils/io.hpp>
-#include <Windows.h>
 
 #include <steam/steam.hpp>
-
-#pragma warning(push)
-#pragma warning(disable: 5030)
-#pragma warning(disable: 4189)
-#include <saucer/smartview.hpp>
-#pragma warning(pop)
 
 #include "component/steam_proxy.hpp"
 
@@ -21,18 +17,17 @@ using json = nlohmann::json;
 
 namespace
 {
-	saucer::smartview smartview;
+	saucer::smartview<saucer::default_serializer, launcher_module> smartview
+	{
+		{
+			.chrome_flags =
+			{
+				"--disable-gpu-vsync",
+				"--disable-frame-rate-limit",
+			}
+		}
+	};
 }
-
-std::string token;
-std::string get_service_address;
-std::string asio_device_name;
-
-launcher::display_mode disp_mode;
-launcher::sound_mode snd_mode;
-
-launcher::game target_game;
-HMODULE game_module;
 
 launcher::launcher()
 {
@@ -42,12 +37,33 @@ launcher::launcher()
 void launcher::create_main_menu()
 {
 	smartview.set_title("Laochan-Eacnet Launcher");
-	smartview.set_url("https://www.baidu.com");
+
+	smartview.expose("close", []()
+		{
+			smartview.close();
+		});
+
+#ifdef _DEBUG
+	smartview.set_url("http://localhost:5173/");
+#else
+	// spa hack
+	smartview.embed(([]
+		{
+			auto resources = saucer::embedded::all();
+			resources.emplace("", resources["index.html"]);
+
+			return resources;
+		}
+	)());
+
+	smartview.serve("");
+#endif
 }
 
 bool launcher::run() const
 {
 	smartview.show();
+	smartview.set_dev_tools(true);
 	smartview.run();
 	return true;
 }

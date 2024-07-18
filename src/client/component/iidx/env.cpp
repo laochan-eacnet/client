@@ -67,7 +67,6 @@ namespace env
 	
 		void* load_import(const std::string& library, const std::string& function) override
 		{
-			printf("%s - %s\n", library.data(), function.data());
 			if (function == "GetCommandLineA")
 			{
 				return get_cmdline;

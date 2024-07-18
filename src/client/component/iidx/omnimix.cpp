@@ -251,19 +251,20 @@ namespace omnimix
 	public:
 		void post_start() override
 		{
-			return;
-
 			// return success if file not exists
-			utils::hook::set<uint16_t>(0x1401F13A8, 0x01B0);
+			utils::hook::set<uint16_t>(0x1401F1508, 0x01B0);
 
 			// allow mp4 and wmv bga
-			get_name_hook.create(0x1401C4220, get_bga_name);
+			get_name_hook.create(0x1401C4380, get_bga_name);
 
+			// remove music count limit
+			utils::hook::set<uint8_t>(0x1401C31BE, 0xEB);
+			
 			// add omni songs to music_data.bin
-			utils::hook::call(0x1401C306E, insert_music_datas);
+			utils::hook::call(0x1401C31CE, insert_music_datas);
 
 			// load omni song detail
-			load_music_info_hook.create(0x1401C30B0, load_music_info);
+			load_music_info_hook.create(0x1401C3210, load_music_info);
 		}
 	};
 }

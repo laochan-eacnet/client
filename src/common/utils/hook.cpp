@@ -23,7 +23,7 @@ namespace utils::hook
 					throw std::runtime_error("Failed to initialize MinHook");
 				}
 
-				utils::hook::jump(MH_Initialize, minhook_init_hack, true);
+				jump(MH_Initialize, minhook_init_hack, true);
 			}
 
 			~_()

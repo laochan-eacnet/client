@@ -13,7 +13,7 @@ function saucer.import()
 
 	filter {}
 
-	links { "WebView2LoaderStatic", "saucer" }
+	links { "saucer" }
 	saucer.includes()
 end
 
