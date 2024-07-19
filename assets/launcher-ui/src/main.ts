@@ -1,72 +1,50 @@
 import './assets/main.css'
 
-import { createApp } from 'vue'
+import { createApp, ref } from 'vue'
 import App from './App.vue'
 import router from './router'
 
-window.saucer ??= {
-    _idc: 0,
-    _rpc: [],
-    window_edge:
-    {
-        top: 1,
-        bottom: 2,
-        left: 4,
-        right: 8,
+window.laochan = {
+    close() {
+        window.saucer.call('close', []);
     },
-    on_message: async (message: string) => {
-        window.chrome.webview.postMessage(message);
+    minimize() {
+        window.saucer.call('minimize', []);
     },
-    start_drag: async () => {
-        await window.saucer.on_message(JSON.stringify({
-            ["saucer:drag"]: true
-        }));
+    mounted() {
+        window.saucer.call('mounted', []);
     },
-    start_resize: async (edge) => {
-        await window.saucer.on_message(JSON.stringify({
-            ["saucer:resize"]: true,
-            edge,
-        }));
+    shellExecute(file: string, args: string = ''): void {
+        window.saucer.call('shellExecute', [file, args]);
     },
-    call: async (name, params) =>
-    {
-        if (!Array.isArray(params))
-        {
-            throw 'Bad Arguments, expected array';
+    async detectGameInstall(game: number) {
+        return await window.saucer.call<string[]>('detectGameInstall', [game]);
+    },
+    async readFile(path: string) {
+        const result = await window.saucer.call<string>('readFile', [path]);
+        if (result === '<NOT EXIST>') {
+            return;
         }
 
-        if (typeof name !== 'string')
-        {
-            throw 'Bad Name, expected string';
-        }
-
-        const id = ++window.saucer._idc;
-        
-        const rtn = new Promise((resolve, reject) => {
-            window.saucer._rpc[id] = {
-                reject,
-                resolve,
-            };
-        });
-
-        await window.saucer.on_message(JSON.stringify({
-                id,
-                name,
-                params,
-        }));
-
-        return rtn;
+        return result;
     },
-    _resolve : async (id, value) => {
-        await window.saucer.on_message(JSON.stringify({
-                id,
-                result: value === undefined ? null : value,
-        }));
+    writeFile(path: string, content: string) {
+        return  window.saucer.call<void>('writeFile', [path, content]);
     },
+    async uuid() {
+        return await window.saucer.call<string>('uuid', []);
+    },
+    ctx: {
+        gamePaths: ref([[], [], []]),
+    }
 };
 
+(async () => {
+    for (let i = 0; i < 3; i++) {
+        window.laochan.ctx.gamePaths.value[i] = await window.laochan.detectGameInstall(i);
+    }
+})();
+
 const app = createApp(App)
-
 app.use(router)
-
 app.mount('#app')

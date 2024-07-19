@@ -41,6 +41,14 @@ void launcher_module::init(saucer::native::window* window, saucer::native::webvi
 	SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 
 	scale_ = GetDpiForWindow(hwnd) * 1.0f / USER_DEFAULT_SCREEN_DPI;
+
+	auto wv2 = webview->web_view.Get();
+	ICoreWebView2Settings *settings;
+
+	if (wv2->get_Settings(&settings) == S_OK)
+	{
+		settings->put_AreDefaultContextMenusEnabled(false);
+	}
 }
 
 void launcher_module::set_dpi_aware_size(int width, int height)

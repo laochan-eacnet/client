@@ -1,8 +1,11 @@
 <script setup lang="ts">
 const iidx = {
-  openCustomize: () => {
-    window.saucer.call('shellExecute', ['http://laochan.ugreen.sbs/cp']);
-  }
+  openCustomize() {
+    window.laochan.shellExecute('http://laochan.ugreen.sbs/cp');
+  },
+  installed() {
+    return !!window.laochan.ctx.gamePaths.value[0].length;
+  },
 };
 </script>
 
@@ -22,14 +25,18 @@ const iidx = {
       <div class="text">
         beatmania IIDX<br>
         INFINITAS
+        <div v-if="!iidx.installed()" class="tip">
+          未安装
+        </div>
       </div>
-      <div class="options">
+      <div v-if="iidx.installed()" class="options">
         <div>启动</div>
         <div>Laochan 设置</div>
         <div>游戏设置</div>
         <div>更新器</div>
         <div @click="iidx.openCustomize">自定义选项</div>
       </div>
+
     </div>
     <div class="game gitadora disable">
       <div class="background"></div>
@@ -42,14 +49,15 @@ const iidx = {
   </main>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 main {
   height: 100vh;
   display: flex;
   align-items: stretch;
-  background-color: #000  ;
+  background-color: #000;
   background-image: url(@/assets/moai-bg.jpg);
-  background-size: cover;;
+  background-size: cover;
+  ;
 }
 
 main>div {
@@ -87,7 +95,7 @@ main>div {
   transition: 0.1s ease;
 }
 
-.game:not(.disable):hover>.text  {
+.game:not(.disable):hover>.text {
   font-weight: normal;
   text-shadow: 0 0 10px black;
 }
@@ -118,6 +126,12 @@ main>div {
   background-image: url(@/assets/iidx.jpg);
 }
 
+@property --tag-depth {
+  syntax: "auto";
+  inherits: true;
+  initial-value: 0px;
+}
+
 .game>.options {
   cursor: pointer;
   transition: 0.1s ease;
@@ -133,6 +147,12 @@ main>div {
 .game>.options>div {
   padding: 1em;
   text-align: center;
+}
+
+@for $i from 1 through 10 {
+  .game>.options>div:nth-child(#{$i}) {
+    margin-right: calc($i * 9px);
+  }
 }
 
 .game>.options>div:first-child {

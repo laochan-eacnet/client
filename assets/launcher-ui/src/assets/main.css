@@ -1,6 +1,6 @@
 @import './base.css';
 
-a {
+a, .link {
   text-decoration: none;
   color: rgb(0, 127, 189);
   transition: 0.4s;
