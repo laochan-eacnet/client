@@ -87,31 +87,6 @@ void loader::load_imports(const utils::nt::library& target) const
 	}
 }
 
-//// well, this actually works
-//void loader::load_tls(const utils::nt::library& target) const
-//{
-//	if (!target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
-//		return;
-//
-//	auto* const source_tls = reinterpret_cast<PIMAGE_TLS_DIRECTORY>(target.get_ptr() + target.get_optional_header()
-//		->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
-//
-//	const auto tls_size = source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData;
-//	auto* tls_buffer = std::malloc(4096);
-//
-//	std::memmove(tls_buffer, PVOID(source_tls->StartAddressOfRawData), tls_size);
-//
-//	auto* const tls_ptr = reinterpret_cast<void**>(
-//#if _WIN64
-//		__readgsqword(0x58)
-//#else
-//		__readfsdword(0x2C)
-//#endif
-//		);
-//
-//	*tls_ptr = tls_buffer;
-//}
-
 void loader::load_tls(const utils::nt::library& target) const
 {
 	if (!target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)

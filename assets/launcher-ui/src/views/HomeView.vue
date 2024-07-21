@@ -1,12 +1,5 @@
 <script setup lang="ts">
-const iidx = {
-  openCustomize() {
-    window.laochan.shellExecute('http://laochan.ugreen.sbs/cp');
-  },
-  installed() {
-    return !!window.laochan.ctx.gamePaths.value[0].length;
-  },
-};
+import { iidx } from '@/modules/iidx';
 </script>
 
 <template>
@@ -30,11 +23,11 @@ const iidx = {
         </div>
       </div>
       <div v-if="iidx.installed()" class="options">
-        <div>启动</div>
-        <div>Laochan 设置</div>
-        <div>游戏设置</div>
-        <div>更新器</div>
-        <div @click="iidx.openCustomize">自定义选项</div>
+        <div class="opt" @click="iidx.start">启动</div>
+        <RouterLink class="opt" to="/iidx/settings">额外设置</RouterLink>
+        <div class="opt" @click="iidx.settings">游戏设置</div>
+        <div class="opt" @click="iidx.updater">更新器</div>
+        <div class="opt" @click="iidx.openCustomize">自定义选项</div>
       </div>
 
     </div>
@@ -57,7 +50,6 @@ main {
   background-color: #000;
   background-image: url(@/assets/moai-bg.jpg);
   background-size: cover;
-  ;
 }
 
 main>div {
@@ -79,8 +71,7 @@ main>div {
   width: 100%;
   height: 100%;
   background-position: center;
-  filter: brightness(50%) opacity(90%);
-  backdrop-filter: blur(10px);
+  backdrop-filter: brightness(50%);
   transition: 0.1s ease;
   z-index: -1;
 }
@@ -144,22 +135,24 @@ main>div {
   opacity: 100%;
 }
 
-.game>.options>div {
+.game>.options>.opt {
   padding: 1em;
   text-align: center;
+  display: block;
+  color: #fff;
 }
 
 @for $i from 1 through 10 {
-  .game>.options>div:nth-child(#{$i}) {
+  .game>.options>.opt:nth-child(#{$i}) {
     margin-right: calc($i * 9px);
   }
 }
 
-.game>.options>div:first-child {
+.game>.options>.opt:first-child {
   font-size: 24px;
 }
 
-.game>.options>div:hover {
+.game>.options>.opt:hover {
   background-color: #fff;
   color: #000;
 }

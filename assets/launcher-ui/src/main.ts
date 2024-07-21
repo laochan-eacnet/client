@@ -3,6 +3,8 @@ import './assets/main.css'
 import { createApp, ref } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { launcher } from './modules/launcher';
+import { iidx } from './modules/iidx';
 
 window.laochan = {
     close() {
@@ -29,20 +31,51 @@ window.laochan = {
         return result;
     },
     writeFile(path: string, content: string) {
-        return  window.saucer.call<void>('writeFile', [path, content]);
+        return window.saucer.call<void>('writeFile', [path, content]);
     },
     async uuid() {
         return await window.saucer.call<string>('uuid', []);
     },
+    setGame(game: number) {
+        return window.saucer.call<void>('setGame', [game]);
+    },
+    setParam(key: string, value: string) {
+        return window.saucer.call<void>('setParam', [key, value]);
+    },
+    async getAsioDeviceList() {
+        const devices = await window.saucer.call<string[]>('getAsioDeviceList', []);
+        const avaliable = !!devices.length;
+        if (!avaliable) {
+            devices.push('XONAR SOUND CARD(64)');
+        }
+
+        return { devices, avaliable };
+    },
+    checkWasapiDevice() {
+        return window.saucer.call<number>('checkWasapiDeviceStatus', []);
+    },
     ctx: {
-        gamePaths: ref([[], [], []]),
-    }
+        gamePaths: ref<string[][]>([[], [], []]),
+    },
+    alert: {
+        __cb: undefined,
+        show(message, color, timeout) {
+            if (!this.__cb) {
+                return;
+            }
+
+            this.__cb(message, color, timeout);
+        }
+    },
 };
 
 (async () => {
     for (let i = 0; i < 3; i++) {
         window.laochan.ctx.gamePaths.value[i] = await window.laochan.detectGameInstall(i);
     }
+
+    launcher.loadConfig();
+    iidx.loadConfig();
 })();
 
 const app = createApp(App)

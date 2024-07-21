@@ -13,4 +13,5 @@ public:
     launcher_module(saucer::smartview_core* smartview);
     void init(saucer::native::window* window, saucer::native::webview* webview) override;
     void set_dpi_aware_size(int width, int height);
+    void send_close();
 };

@@ -48,10 +48,16 @@ void launcher_module::init(saucer::native::window* window, saucer::native::webvi
 	if (wv2->get_Settings(&settings) == S_OK)
 	{
 		settings->put_AreDefaultContextMenusEnabled(false);
+		settings->put_IsStatusBarEnabled(false);
 	}
 }
 
 void launcher_module::set_dpi_aware_size(int width, int height)
 {
 	smartview_->set_size(static_cast<int>(width * scale_), static_cast<int>(height * scale_));
+}
+
+void launcher_module::send_close()
+{
+	PostMessage(window_->hwnd, WM_CLOSE, 0, 0);
 }

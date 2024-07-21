@@ -249,7 +249,7 @@ namespace omnimix
 	class component final : public component_interface
 	{
 	public:
-		void post_start() override
+		void post_load() override
 		{
 			// return success if file not exists
 			utils::hook::set<uint16_t>(0x1401F1508, 0x01B0);

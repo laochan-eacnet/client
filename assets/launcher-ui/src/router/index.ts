@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LauncherSettingView from '../views/LauncherSettingView.vue'
+import IIDXSettingView from '../views/IIDXSettingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),  
@@ -14,7 +15,12 @@ const router = createRouter({
       path: '/settings',
       name: 'launcher_settings',
       component: LauncherSettingView
-    }
+    },
+    {
+      path: '/iidx/settings',
+      name: 'iidx_settings',
+      component: IIDXSettingView
+    },
   ]
 })
 

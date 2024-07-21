@@ -35,7 +35,7 @@ public:
 
 	launcher();
 
-	bool run() const;
+	game run() const;
 private:
 	void create_main_menu();
 	static std::string load_content(int res);

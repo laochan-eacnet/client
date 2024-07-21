@@ -7,7 +7,6 @@ namespace game
 	{
 		launcher::game game = launcher::game::invalid;
 		utils::nt::library game_module;
-
 		bool inited = false;;
 
 		launcher::game get_game()
@@ -44,6 +43,26 @@ namespace game
 		{
 			inited = true;
 			game_module = library;
+		}
+
+		std::string get_param(std::string const& key)
+		{
+			std::string result;
+			auto size = GetEnvironmentVariableA(key.data(), nullptr, 0);
+
+			if (!size) 
+				return result;
+
+			result.resize(size);
+			GetEnvironmentVariableA(key.data(), result.data(), size);
+			result.resize(size - 1);
+
+			return result;
+		}
+
+		void set_param(std::string const& key, std::string const& value)
+		{
+			SetEnvironmentVariableA(key.data(), value.data());
 		}
 
 		std::string get_string()

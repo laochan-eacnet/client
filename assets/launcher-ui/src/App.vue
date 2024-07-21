@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import TitleBar from './components/TitleBar.vue'
+import Alert from './components/Alert.vue'
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import TitleBar from './components/TitleBar.vue'
       <component :is="Component"></component>
     </transition>
   </RouterView>
+  <Alert></Alert>
 </template>
 
 <style scoped>
@@ -25,13 +27,11 @@ import TitleBar from './components/TitleBar.vue'
 
 .blur-fade-enter-from {
   left: -10vw;
-  filter: blur(16px);
   opacity: 0;
 }
 
 .blur-fade-leave-to {
   left: 10vw;
-  filter: blur(16px);
   opacity: 0;
 }
 

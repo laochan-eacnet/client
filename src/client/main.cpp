@@ -179,11 +179,11 @@ int main()
 		try
 		{
 			const launcher launcher;
-			launcher.run();
-			//if (!launcher.run())
-			return 0;
+			auto game = launcher.run();
+			if (game == launcher::game::invalid)
+				return 0;
 
-			try_set_game_environment(launcher::game::iidx);
+			try_set_game_environment(game);
 
 			component_loader::create_components(game::environment::get_game());
 

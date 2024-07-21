@@ -12,7 +12,15 @@
 #include <steam/steam.hpp>
 #include <game/game.hpp>
 
+#include "mmdeviceapi.h"
+#include "audioclient.h"
+
 #include "component/steam_proxy.hpp"
+
+namespace
+{
+	launcher::game target_game = launcher::game::invalid;
+}
 
 launcher::launcher()
 {
@@ -26,7 +34,7 @@ launcher::launcher()
 					"--disable-frame-rate-limit",
 				}
 			}
-		), [](borderless_smartview* smartview) 
+		), [](borderless_smartview* smartview)
 		{
 			delete smartview;
 		}
@@ -42,7 +50,7 @@ void launcher::create_main_menu()
 
 	smartview_->expose("close", [this]()
 		{
-			smartview_->close();
+			smartview_->send_close();
 		}
 	);
 
@@ -84,12 +92,12 @@ void launcher::create_main_menu()
 		}
 	);
 
-	smartview_->expose("readFile", [](std::string path) -> std::string 
+	smartview_->expose("readFile", [](std::string path) -> std::string
 		{
 			if (!std::filesystem::exists(path))
 				return "<NOT EXIST>";
 
-			FILE *file = nullptr;
+			FILE* file = nullptr;
 			fopen_s(&file, path.data(), "r");
 			fseek(file, 0, SEEK_END);
 			auto size = ftell(file);
@@ -129,6 +137,118 @@ void launcher::create_main_menu()
 		}
 	);
 
+	smartview_->expose("setGame", [](int target) -> void
+		{
+			auto result = static_cast<launcher::game>(target);
+			if (result >= launcher::game::count || result <= launcher::game::invalid)
+				return;
+
+			target_game = result;
+		}
+	);
+
+	smartview_->expose("setParam", [](std::string key, std::string value) -> void
+		{
+			::game::environment::set_param(key, value);
+		}
+	);
+
+	smartview_->expose("getAsioDeviceList", []() -> std::vector<std::string>
+		{
+			std::vector<std::string> result;
+
+			HKEY key;
+			if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\ASIO", 0, KEY_READ, &key))
+				return result;
+
+			DWORD subkey_counts, subkey_name_maxlen;
+			RegQueryInfoKeyA(key, nullptr, nullptr, nullptr, &subkey_counts, &subkey_name_maxlen, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
+			char* buffer = utils::memory::allocate<char>(subkey_name_maxlen * 2);
+
+			for (DWORD i = 0; i < subkey_counts; i++)
+			{
+				DWORD size = subkey_name_maxlen * 2;
+				RegEnumKeyExA(key, i, buffer, &size, nullptr, nullptr, nullptr, nullptr);
+
+				result.push_back(std::string{ buffer });
+			}
+
+			utils::memory::free(buffer);
+			return result;
+		}
+	);
+
+	smartview_->expose("checkWasapiDeviceStatus", []() -> int
+		{
+			IMMDeviceEnumerator* device_enumerator = nullptr;
+
+			auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), reinterpret_cast<void**>(&device_enumerator));
+			if (FAILED(hr))
+			{
+				return -1;
+			}
+
+			IMMDevice* device = nullptr;
+			hr = device_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+
+			if (FAILED(hr))
+			{
+				device_enumerator->Release();
+				return -2;
+			}
+
+			IAudioClient* audio_client = nullptr;
+			hr = device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, reinterpret_cast<void**>(&audio_client));
+
+			if (FAILED(hr))
+			{
+				device->Release();
+				device_enumerator->Release();
+				return -3;
+			}
+
+			WAVEFORMATEXTENSIBLE wf = { 0 };
+			wf.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+			wf.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+			wf.Format.nChannels = 2;
+			wf.Format.nSamplesPerSec = 44100;
+			wf.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;;
+			wf.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+
+			const WORD BIT_SETS[][2] =
+			{
+				{ 32, 32 },
+				{ 24, 24 },
+				{ 16, 24 },
+				{ 16, 16 },
+			};
+
+			for (auto& bit_set : BIT_SETS)
+			{
+				wf.Format.wBitsPerSample = bit_set[0];
+				wf.Samples.wValidBitsPerSample = bit_set[0];
+				wf.Format.nBlockAlign = wf.Format.nChannels * wf.Format.wBitsPerSample / 8;
+				wf.Format.nAvgBytesPerSec = wf.Format.nSamplesPerSec * wf.Format.nBlockAlign;
+
+				hr = audio_client->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, reinterpret_cast<WAVEFORMATEX*>(&wf), nullptr);
+				if (SUCCEEDED(hr))
+				{
+					audio_client->Release();
+					device->Release();
+					device_enumerator->Release();
+
+					return 0;
+				}
+			}
+
+			audio_client->Release();
+			device->Release();
+			device_enumerator->Release();
+			return 1;
+		}
+	);
+
 #ifdef _DEBUG
 	smartview_->set_url("http://localhost:5173/");
 	smartview_->set_dev_tools(true);
@@ -147,10 +267,10 @@ void launcher::create_main_menu()
 #endif
 }
 
-bool launcher::run() const
+launcher::game launcher::run() const
 {
 	smartview_->run();
-	return true;
+	return target_game;
 }
 
 std::string launcher::load_content(const int res)

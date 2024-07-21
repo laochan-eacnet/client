@@ -21,6 +21,9 @@ namespace game
 		utils::nt::library& get_module();
 		void set_module(utils::nt::library&);
 
+		std::string get_param(std::string const &key);
+		void set_param(std::string const &key, std::string const &value);
+
 		std::filesystem::path get_install_path();
 		std::filesystem::path get_resource_path();
 	}

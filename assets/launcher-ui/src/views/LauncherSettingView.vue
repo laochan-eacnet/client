@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { faHdd, faIdCard, faTape } from '@fortawesome/free-solid-svg-icons';
+import { faHdd, faIdCard, faServer, faTape } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref, getCurrentInstance } from 'vue';
+import { launcher } from '@/modules/launcher';
 
 const gameNames = [
     'beatmania IIDX INFINITAS',
@@ -9,22 +10,12 @@ const gameNames = [
     'GITADORA',
 ]
 
-interface LauncherConfig {
-    token: string;
-}
-
-const config: Ref<LauncherConfig> = ref({} as LauncherConfig)
-
 function openPath(path: string) {
     return window.saucer.call('shellExecute', [path.replaceAll('\\', '/')]);
 }
 
 function pathes() {
     return window.laochan.ctx.gamePaths.value;
-}
-
-async function resetToken() {
-    config.value['token'] = await window.laochan.uuid();
 }
 
 function revealToken(e: FocusEvent) {
@@ -35,25 +26,26 @@ function hideToken(e: FocusEvent) {
     (e.target as HTMLInputElement).type = 'password';
 }
 
-async function saveConfig() {
-    await window.laochan.writeFile('laochan-config.json', JSON.stringify(config.value));
-}
-
 function updateToken(e: Event) {
-    config.value['token'] = (e.target as HTMLInputElement).value;
+    if (!launcher.config.value) {
+        return;
+    }
+
+    launcher.config.value.token = (e.target as HTMLInputElement).value;
 }
 
-onMounted(async () => {
-    const configJson = await window.laochan.readFile('laochan-config.json');
-    if (configJson) {
-        config.value = JSON.parse(configJson);
+function updateServerUrl(e: Event) {
+    if (!launcher.config.value) {
+        return;
     }
 
-    if (!configJson || !config.value.token) {
-        await resetToken();
-        await saveConfig();
-    }
-});
+    launcher.config.value.serverUrl = (e.target as HTMLInputElement).value;
+}
+
+async function save() {
+    await launcher.saveConfig();
+    window.laochan.alert.show('已保存启动器设置', '#40B681', 2000);
+}
 </script>
 
 <template>
@@ -70,15 +62,27 @@ onMounted(async () => {
                         登入令牌
                     </h3>
                     <div>
-                        <button class="btn link" @click="resetToken">重设为机器码</button>
+                        <button class="btn link" @click="launcher.resetToken">重设为机器码</button>
                     </div>
                 </div>
-                <input class="text-input" type="password" v-bind:value="config.token" @focus="revealToken"
+                <input class="text-input" type="password" v-bind:value="launcher.config.value?.token" @focus="revealToken"
                     @blur="hideToken" @input="updateToken">
+            </div>
+            <div class="item">
+                <div class="flex">
+                    <h3>
+                        <FontAwesomeIcon :icon="faServer"></FontAwesomeIcon>
+                        Bootstrap 地址
+                    </h3>
+                    <div>
+                        <button class="btn link" @click="launcher.resetServerUrl">重设为默认地址</button>
+                    </div>
+                </div>
+                <input class="text-input" type="text" v-bind:value="launcher.config.value?.serverUrl" @input="updateServerUrl">
             </div>
             <div class="flex">
                 <div></div>
-                <button class="btn primary" @click="saveConfig">保存设置</button>
+                <button class="btn primary" @click="save">保存设置</button>
             </div>
             <hr>
             <h2>
@@ -105,115 +109,3 @@ onMounted(async () => {
         </div>
     </div>
 </template>
-
-<style scoped>
-svg.svg-inline--fa {
-    font-size: 90%;
-    margin-right: 8px;
-}
-
-.page {
-    width: 100vw;
-    margin-top: 48px;
-    height: calc(100vh - 48px);
-    overflow-y: scroll;
-    line-height: 250%;
-    font-size: 90%;
-}
-
-.gray {
-    color: #666;
-}
-
-.path {
-    user-select: text;
-    cursor: pointer;
-}
-
-.container {
-    margin: auto;
-    margin-top: 64px;
-
-    width: 960px;
-}
-
-hr {
-    border-width: 0;
-    height: 1px;
-    background-color: #808080;
-}
-
-.container>* {
-    margin-bottom: 16px;
-}
-
-.container>.item {
-    background-color: #121212;
-    padding: 1em 2em;
-    border-radius: 5px;
-}
-
-footer {
-    margin-top: 2em;
-    padding-bottom: 2em;
-    text-align: center;
-    line-height: 150%;
-}
-
-.text-input {
-    display: block;
-    border: none;
-    border-bottom: 1px solid gray;
-    background-color: #0C0C0C;
-    padding: 0.5em;
-    width: 100%;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    outline: none;
-
-}
-
-.text-input:focus {
-    border-bottom: 1px solid white;
-}
-
-.btn {
-    appearance: none;
-    outline: none;
-    border: none;
-    display: block;
-    border-radius: 5px;
-    background-color: transparent;
-    padding: 0.5em 1em;
-    position: relative;
-    overflow: hidden;
-    transition: 0.2s ease;
-    cursor: pointer;
-}
-
-.btn.primary {
-    background-color: rgb(34, 161, 51);
-    padding: 1em 2em;
-}
-
-.btn:hover {
-    filter: brightness(1.5);
-    transform: scale(1.05) translateY(-2px);
-}
-
-.btn.primary:hover {
-    box-shadow: 0 2px 2px black;
-}
-
-.btn:active {
-    filter: brightness(0.8);
-    transform: scale(0.99) translateY(2px);
-}
-
-
-.flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-</style>

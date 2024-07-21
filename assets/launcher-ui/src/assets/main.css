@@ -5,4 +5,131 @@ a, .link {
   color: rgb(0, 127, 189);
   transition: 0.4s;
   padding: 3px;
+  cursor: pointer;
+}
+
+.page {
+  width: 100vw;
+  margin-top: 48px;
+  height: calc(100vh - 48px);
+  overflow-y: scroll;
+  line-height: 250%;
+  font-size: 90%;
+}
+
+.gray {
+  color: #666;
+}
+
+svg.svg-inline--fa {
+  font-size: 90%;
+  margin-right: 8px;
+}
+
+.path {
+  user-select: text;
+  cursor: pointer;
+}
+
+.container {
+  margin: auto;
+  margin-top: 64px;
+
+  width: 960px;
+}
+
+hr {
+  border-width: 0;
+  height: 1px;
+  background-color: #808080;
+}
+
+.container>* {
+  margin-bottom: 16px;
+}
+
+.container>.item {
+  background-color: rgba(18, 18, 18, .7);
+  padding: 1em 2em;
+  border-radius: 5px;
+}
+
+footer {
+  margin-top: 2em;
+  padding-bottom: 2em;
+  text-align: center;
+  line-height: 150%;
+}
+
+.text-input {
+  display: block;
+  border: none;
+  border-bottom: 1px solid gray;
+  background-color: #0C0C0C;
+  padding: 0.5em;
+  width: 100%;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  outline: none;
+
+}
+
+.text-input:focus {
+  border-bottom: 1px solid white;
+}
+
+.btn {
+  appearance: none;
+  outline: none;
+  border: none;
+  display: block;
+  border-radius: 5px;
+  background-color: transparent;
+  padding: 0.5em 1em;
+  position: relative;
+  overflow: hidden;
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background-color: #40B681;
+  padding: 1em 2em;
+}
+
+.btn:hover {
+  filter: brightness(1.05);
+  transform: scale(1.05) translateY(-2px);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 2px 2px black;
+}
+
+.btn:active {
+  filter: brightness(0.8);
+  transform: scale(0.99) translateY(2px);
+}
+
+.flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.justify-start>* {
+  margin-right: 0.5em;
+}
+
+.justify-start {
+  justify-content: start;
+}
+
+.align-center {
+  align-items: center;
+}
+
+input[type="checkbox"] {
+  display: inline-block;
+  margin-top: 0.25em;
 }
