@@ -11,10 +11,16 @@ char asio_name[0x2048];
 
 namespace patches
 {
-	//const char* __fastcall get_service_url(void* _this, bool is_dev, char is_kr)
-	//{
-	//	return launcher::get_service_address.data();
-	//}
+	const char* __fastcall get_service_url(void* _this, bool is_dev, bool is_kr)
+	{
+		static auto service_url = ([]
+			{
+				return game::environment::get_param("LAOCHAN_SERVER_URL");
+			}
+		)();
+
+		return service_url.data();
+	}
 
 	//utils::hook::detour init_superstep_sound_hook;
 	//uint64_t __fastcall init_superstep_sound_stub(void* a1, int /* use_asio */, int a3, int16_t a4, uint32_t a5, int a6, int a7)
@@ -64,15 +70,15 @@ namespace patches
 			return;
 
 			// disable signature check
-			utils::hook::jump(0x140312A00, is_signature_valid);
+			utils::hook::jump(0x140312B60, is_signature_valid);
 
 			// disable music list checksum check
-			utils::hook::nop(0x140301682, 2);
-			utils::hook::nop(0x14030168E, 2);
+			utils::hook::nop(0x1403017E2, 2);
+			utils::hook::nop(0x1403017EE, 2);
 
 			//// change server url
-			//utils::hook::jump(0x1402F8750, get_service_url);
-			//printf("I:launcher: using bootstrap url: %s\n", launcher::get_service_address.data());
+			utils::hook::jump(0x1402F88B0, get_service_url);
+			printf("Using bootstrap url: %s\n", get_service_url(nullptr, false, false));
 
 			//// override asio device name
 			//if (launcher::asio_device_name.size() > 0x2047)

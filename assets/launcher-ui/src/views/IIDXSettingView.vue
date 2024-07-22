@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faCompactDisc, faDisplay, faLightbulb, faMicrochip, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
+import { faCompactDisc, faDisplay, faLanguage, faLightbulb, faMicrochip, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref } from 'vue';
 import { iidx, IIDXSoundMode } from '@/modules/iidx';
@@ -41,6 +41,14 @@ function updateDisplayMode(e: Event) {
     }
 
     iidx.config.value.displayMode = parseInt((e.target as HTMLInputElement).value);
+}
+
+function updateLanguage(e: Event) {
+    if (!iidx.config.value) {
+        return;
+    }
+
+    iidx.config.value.language = parseInt((e.target as HTMLInputElement).value);
 }
 
 function updateUseGsm(e: Event) {
@@ -102,10 +110,21 @@ async function save() {
             </div>
             <div class="item">
                 <h3>
+                    <FontAwesomeIcon :icon="faLanguage"></FontAwesomeIcon>
+                    游戏语言
+                </h3>
+                <select class="text-input" v-bind:value="iidx.config.value?.language" @change="updateLanguage">
+                    <option value="0">日本語</option>
+                    <option value="1">English</option>
+                    <option value="2">한국어</option>
+                </select>
+            </div>
+            <div class="item">
+                <h3>
                     <FontAwesomeIcon :icon="faLightbulb"></FontAwesomeIcon>
                     2DX-GSM by aixxe
                 </h3>
-                <div class="flex justify-start align-center">
+                <div class="flex justify-start align-center lh-100 py-1">
                     <input id="use-gsm" type="checkbox" v-bind:checked="iidx.config.value?.useGsm" @change="updateUseGsm">
                     <label for="use-gsm">加载 2DX-GSM 模块</label>
                 </div>
@@ -121,14 +140,14 @@ async function save() {
 
 <style scoped lang="scss">
 .page {
-    margin-top: 0;
-    overflow: hidden;
-    height: 100vh;
+    margin-top: 48px;
+    min-height: calc(100vh - 48px);
     position: relative;
+    padding-bottom: 2em;
 }
 
 .page>.background {
-    position: absolute;
+    position: fixed;
     background-image: url(@/assets/iidx.jpg);
     background-size: contain;
     background-position: center;

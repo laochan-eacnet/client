@@ -13,11 +13,18 @@ export enum IIDXSoundMode {
     Asio = 1,
 }
 
+export enum IIDXLanguage {
+    Japanese = 0,
+    English = 1,
+    Korean = 2,
+}
+
 export interface IIDXConfig {
     displayMode: IIDXDisplayMode;
     soundMode: IIDXSoundMode;
     asioDevice: string;
     useGsm: boolean;
+    language: IIDXLanguage;
 }
 
 export class IIDX {
@@ -54,6 +61,7 @@ export class IIDX {
             soundMode: IIDXSoundMode.Wasapi,
             asioDevice: devices[0],
             useGsm: true,
+            language: IIDXLanguage.English,
         }
 
         this._dirty = true;
@@ -82,11 +90,12 @@ export class IIDX {
             this._config.value = JSON.parse(configJson);
         }
 
-        if (!configJson || 
-            this._config.value?.asioDevice == undefined || 
+        if (!this._config.value || 
+            this._config.value.asioDevice == undefined || 
             this._config.value.displayMode === undefined ||
             this._config.value.soundMode === undefined ||
-            this._config.value.useGsm === undefined
+            this._config.value.useGsm === undefined || 
+            this._config.value.language === undefined
         ) {
             await this.resetConfig();
         }
@@ -107,6 +116,7 @@ export class IIDX {
             window.laochan.setParam('IIDX_DISPLAY_MODE', JSON.stringify(config.displayMode)),
             window.laochan.setParam('IIDX_SOUND_DEVICE', JSON.stringify(config.soundMode)),
             window.laochan.setParam('IIDX_USE_GSM', JSON.stringify(+config.useGsm)),
+            window.laochan.setParam('IIDX_LANGUAGE', JSON.stringify(+config.language)),
         ]);
     }
 
