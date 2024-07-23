@@ -7,20 +7,6 @@ using borderless_smartview_ptr = std::unique_ptr<borderless_smartview, std::func
 class launcher final
 {
 public:
-	enum class display_mode: uint32_t
-	{
-		fullscreen,
-		windowed_720p,
-		windowed_900p,
-		windowed_1080p,
-	};
-
-	enum class sound_mode : uint32_t
-	{
-		wasapi,
-		asio,
-	};
-
 	enum class game : int32_t
 	{
 		invalid = -1,
@@ -38,7 +24,5 @@ public:
 	game run() const;
 private:
 	void create_main_menu();
-	static std::string load_content(int res);
-
 	borderless_smartview_ptr smartview_;
 };

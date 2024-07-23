@@ -272,8 +272,3 @@ launcher::game launcher::run() const
 	smartview_->run();
 	return target_game;
 }
-
-std::string launcher::load_content(const int res)
-{
-	return utils::nt::load_resource(GetModuleHandle(nullptr), res);
-}
