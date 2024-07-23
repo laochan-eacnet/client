@@ -2,6 +2,7 @@
 
 #include "loader.hpp"
 #include "tls.hpp"
+#include "game/game.hpp"
 
 #include <utils/string.hpp>
 #include <utils/hook.hpp>
@@ -27,9 +28,7 @@ void loader::set_import_resolver(const std::function<void* (const std::string&, 
 
 void loader::load_imports(const utils::nt::library& target) const
 {
-	auto* const import_directory = &target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-
-	auto* descriptor = PIMAGE_IMPORT_DESCRIPTOR(target.get_ptr() + import_directory->VirtualAddress);
+	auto* descriptor = target.get_data_directory<IMAGE_IMPORT_DESCRIPTOR>(IMAGE_DIRECTORY_ENTRY_IMPORT); 
 
 	while (descriptor->Name)
 	{
@@ -87,29 +86,54 @@ void loader::load_imports(const utils::nt::library& target) const
 	}
 }
 
+//
+// saved my day, thank you
+// https://github.com/polycone/pe-loader/blob/master/loader/src/loader/tls_support.cpp#L68
+//
+IMAGE_TLS_DIRECTORY* find_ldrp_tls()
+{
+	utils::nt::library self{};
+	auto main_tls = self.get_data_directory<IMAGE_TLS_DIRECTORY>(IMAGE_DIRECTORY_ENTRY_TLS);
+
+	auto heap = reinterpret_cast<char*>(GetProcessHeap());
+	MEMORY_BASIC_INFORMATION mbi;
+	VirtualQuery(heap, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+
+	auto heap_size = mbi.RegionSize;
+	
+	for (auto p = heap; p < heap + heap_size; p += sizeof(size_t))
+	{
+		if (memcmp(p, main_tls, sizeof(IMAGE_TLS_DIRECTORY)))
+			continue;
+
+		return reinterpret_cast<IMAGE_TLS_DIRECTORY *>(p);
+	}
+
+	return nullptr;
+}
+
 void loader::load_tls(const utils::nt::library& target) const
 {
 	if (!target.get_optional_header()->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
 		return;
 
-	auto* target_tls = tls::allocate_tls_index();
+	auto ldr_tls = find_ldrp_tls();
+	auto target_tls = target.get_data_directory<IMAGE_TLS_DIRECTORY>(IMAGE_DIRECTORY_ENTRY_TLS);
 
-	auto* const source_tls = reinterpret_cast<PIMAGE_TLS_DIRECTORY>(target.get_ptr() + target.get_optional_header()
-		->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
-
-	const auto tls_size = source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData;
-	const auto tls_index = *reinterpret_cast<DWORD*>(source_tls->AddressOfIndex);
-	utils::hook::set<DWORD>(target_tls->AddressOfIndex, tls_index);
-
-	DWORD old_protect;
-	VirtualProtect(PVOID(target_tls->StartAddressOfRawData),
-		source_tls->EndAddressOfRawData - source_tls->StartAddressOfRawData, PAGE_READWRITE,
-		&old_protect);
+	const auto tls_size = target_tls->EndAddressOfRawData - target_tls->StartAddressOfRawData;
+	const auto tls_index = *reinterpret_cast<DWORD*>(ldr_tls->AddressOfIndex);
 
 	auto* const tls_base = *reinterpret_cast<LPVOID*>(__readgsqword(0x58) + 8ull * tls_index);
-	std::memmove(tls_base, PVOID(source_tls->StartAddressOfRawData), tls_size);
-	std::memmove(PVOID(target_tls->StartAddressOfRawData), PVOID(source_tls->StartAddressOfRawData), tls_size);
+	std::memmove(tls_base, PVOID(target_tls->StartAddressOfRawData), tls_size);
 
-	VirtualProtect(target_tls, sizeof(*target_tls), PAGE_READWRITE, &old_protect);
-	*target_tls = *source_tls;
+	utils::hook::set(target_tls->AddressOfIndex, tls_index);
+	ldr_tls->AddressOfIndex = target_tls->AddressOfIndex;
+	ldr_tls->StartAddressOfRawData = target_tls->StartAddressOfRawData;
+	ldr_tls->EndAddressOfRawData = target_tls->EndAddressOfRawData;
+	ldr_tls->AddressOfCallBacks = target_tls->AddressOfCallBacks;
+
+	for (auto callback = reinterpret_cast<uintptr_t*>(ldr_tls->AddressOfCallBacks); *callback; callback++)
+	{
+		utils::hook::invoke<void>(callback, target.get_ptr(), DLL_PROCESS_ATTACH, nullptr);
+	}
 }

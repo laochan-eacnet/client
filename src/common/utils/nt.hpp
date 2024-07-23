@@ -104,6 +104,12 @@ namespace utils::nt
 		PIMAGE_DOS_HEADER get_dos_header() const;
 		PIMAGE_OPTIONAL_HEADER get_optional_header() const;
 
+		template <typename T>
+		const T* get_data_directory(int directory) const
+		{
+			return reinterpret_cast<const T*>(this->get_ptr() + this->get_optional_header()->DataDirectory[directory].VirtualAddress);
+		}
+
 		void** get_iat_entry(const std::string& module_name, const std::string& proc_name) const;
 		void** get_iat_entry(const std::string& module_name, const char* name) const;
 
