@@ -64,15 +64,46 @@ namespace logger
 		SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
 
+	void create_console()
+	{
+		AllocConsole();
+
+		FILE* f;
+		auto _ = freopen_s(&f, "CONOUT$", "w+t", stdout);
+		_ = freopen_s(&f, "CONOUT$", "w", stderr);
+		_ = freopen_s(&f, "CONIN$", "r", stdin);
+
+		SetConsoleCtrlHandler([](DWORD control_type) -> BOOL
+			{
+				if (control_type == CTRL_CLOSE_EVENT)
+				{
+					component_loader::pre_destroy();
+					ExitProcess(0);
+				}
+
+				return true;
+			}, true);
+	}
+
 	class component final : public component_interface
 	{
 	public:
-		void post_load() override
+		void post_start() override
 		{
-			utils::nt::library avs2core{ "avs2-core.dll" };
-			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
+			if (game::environment::get_param("LAOCHAN_ENABLE_CONSOLE") != "1")
+				return;
 
 			SetConsoleCP(932);
+			create_console();
+		}
+
+		void post_load() override
+		{
+			if (game::environment::get_param("LAOCHAN_ENABLE_CONSOLE") != "1")
+				return;
+
+			utils::nt::library avs2core{ "avs2-core.dll" };
+			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 		}
 	};
 }

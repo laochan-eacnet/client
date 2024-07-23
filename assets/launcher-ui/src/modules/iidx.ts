@@ -114,7 +114,7 @@ export class IIDX {
         await Promise.all([
             window.laochan.setParam('IIDX_ASIO_DEVICE', config.asioDevice),
             window.laochan.setParam('IIDX_DISPLAY_MODE', JSON.stringify(config.displayMode)),
-            window.laochan.setParam('IIDX_SOUND_DEVICE', JSON.stringify(config.soundMode)),
+            window.laochan.setParam('IIDX_SOUND_MODE', JSON.stringify(config.soundMode)),
             window.laochan.setParam('IIDX_USE_GSM', JSON.stringify(+config.useGsm)),
             window.laochan.setParam('IIDX_LANGUAGE', JSON.stringify(+config.language)),
         ]);

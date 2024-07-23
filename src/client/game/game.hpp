@@ -29,6 +29,38 @@ namespace game
 	}
 
 	template <typename T>
+	class vftable_entry
+	{
+	public:
+		vftable_entry(const size_t vftable, size_t n): vftable_(vftable), n_(n)
+		{
+		}
+
+		T* get()
+		{
+			if (!object_) 
+				object_ = reinterpret_cast<T*>(*reinterpret_cast<size_t**>(vftable_)[n_]);
+
+			return object_;
+		}
+
+		operator T* ()
+		{
+			return this->get();
+		}
+
+		T* operator->()
+		{
+			return this->get();
+		}
+
+	private:
+		T* object_;
+		size_t vftable_;
+		size_t n_;
+	};
+
+	template <typename T>
 	class symbol
 	{
 	public:

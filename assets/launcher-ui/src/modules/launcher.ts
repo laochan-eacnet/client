@@ -3,6 +3,8 @@ import { ref } from "vue";
 export interface LauncherConfig {
     token: string;
     serverUrl: string;
+    enableConsole: boolean;
+    enableSteamOverlay: boolean;
 }
 
 export class Launcher {
@@ -20,6 +22,16 @@ export class Launcher {
 
     resetServerUrl() {
         this._config.value!.serverUrl = 'http://laochan.ugreen.sbs/';
+        this._dirty = true;
+    }
+
+    resetEnableConsole() {
+        this._config.value!.enableConsole = false;
+        this._dirty = true;
+    }
+
+    resetEnableSteamOverlay() {
+        this._config.value!.enableSteamOverlay = true;
         this._dirty = true;
     }
 
@@ -47,6 +59,14 @@ export class Launcher {
             this.resetServerUrl();
         }
 
+        if (!this._config.value!.enableConsole === undefined) {
+            this.resetEnableConsole();
+        }
+
+        if (!this._config.value!.enableSteamOverlay === undefined) {
+            this.resetEnableSteamOverlay();
+        }
+
         if (this._dirty) 
             this.saveConfig();
     }
@@ -57,6 +77,8 @@ export class Launcher {
 
         await window.laochan.setParam('LAOCHAN_TOKEN', this._config.value.token);
         await window.laochan.setParam('LAOCHAN_SERVER_URL', this._config.value.serverUrl);
+        await window.laochan.setParam('LAOCHAN_ENABLE_CONSOLE', JSON.stringify(+this._config.value.enableConsole));
+        await window.laochan.setParam('LAOCHAN_ENABLE_STEAM_OVERLAY', JSON.stringify(+this._config.value.enableConsole));
     }
 }
 

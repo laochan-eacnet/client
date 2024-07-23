@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { faHdd, faIdCard, faServer, faTape } from '@fortawesome/free-solid-svg-icons';
+import { faHdd, faIdCard, faInfo, faServer, faTape, faTerminal, faWarning } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref, getCurrentInstance } from 'vue';
 import { launcher } from '@/modules/launcher';
+import { faSteam } from '@fortawesome/free-brands-svg-icons';
 
 const gameNames = [
     'beatmania IIDX INFINITAS',
@@ -42,6 +43,22 @@ function updateServerUrl(e: Event) {
     launcher.config.value.serverUrl = (e.target as HTMLInputElement).value;
 }
 
+function updateEnableConsole(e: Event) {
+    if (!launcher.config.value) {
+        return;
+    }
+
+    launcher.config.value.enableConsole = (e.target as HTMLInputElement).checked;
+}
+
+function updateEnableSteamOverlay(e: Event) {
+    if (!launcher.config.value) {
+        return;
+    }
+
+    launcher.config.value.enableSteamOverlay = (e.target as HTMLInputElement).checked;
+}
+
 async function save() {
     await launcher.saveConfig();
     window.laochan.alert.show('已保存启动器设置', '#40B681', 2000);
@@ -79,6 +96,28 @@ async function save() {
                     </div>
                 </div>
                 <input class="text-input" type="text" v-bind:value="launcher.config.value?.serverUrl" @input="updateServerUrl">
+            </div>
+            <div class="item">
+                <h3>
+                    <FontAwesomeIcon :icon="faTerminal"></FontAwesomeIcon>
+                    调试控制台
+                </h3>
+                <div class="flex justify-start align-center lh-100 py-1">
+                    <input id="use-console" type="checkbox" v-bind:checked="launcher.config.value?.enableConsole" @change="updateEnableConsole">
+                    <label for="use-console">启用调试控制台</label>
+                </div>
+                <small><FontAwesomeIcon :icon="faWarning"></FontAwesomeIcon>关闭调试控制台可能可以缓解性能问题</small>
+            </div>
+            <div class="item">
+                <h3>
+                    <FontAwesomeIcon :icon="faSteam"></FontAwesomeIcon>
+                    Steam 游戏内覆盖
+                </h3>
+                <div class="flex justify-start align-center lh-100 py-1">
+                    <input id="use-steam-overlay" type="checkbox" v-bind:checked="launcher.config.value?.enableSteamOverlay" @change="updateEnableSteamOverlay">
+                    <label for="use-steam-overlay">启用 Steam 游戏内覆盖</label>
+                </div>
+                <small><FontAwesomeIcon :icon="faWarning"></FontAwesomeIcon>关闭 Steam 游戏内覆盖可能可以缓解性能问题</small>
             </div>
             <div class="flex">
                 <div></div>

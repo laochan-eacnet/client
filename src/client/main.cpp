@@ -30,26 +30,6 @@ DECLSPEC_NORETURN void WINAPI exit_hook(const int code)
 	ExitProcess(code);
 }
 
-void create_console()
-{
-	AllocConsole();
-
-	FILE* f;
-	auto _ = freopen_s(&f, "CONOUT$", "w+t", stdout);
-	_ = freopen_s(&f, "CONOUT$", "w", stderr);
-	_ = freopen_s(&f, "CONIN$", "r", stdin);
-
-	SetConsoleCtrlHandler([](DWORD control_type) -> BOOL
-		{
-			if (control_type == CTRL_CLOSE_EVENT)
-			{
-				exit_hook(0);
-			}
-
-			return true;
-		}, true);
-}
-
 int dump_mount_point()
 {
 	component_loader::post_avs_init();
@@ -162,10 +142,6 @@ int main()
 {
 	FARPROC entry_point;
 	enable_dpi_awareness();
-
-#if DEBUG
-	create_console();
-#endif
 
 	std::srand(uint32_t(time(nullptr)));
 

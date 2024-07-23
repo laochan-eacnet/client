@@ -11,7 +11,8 @@ namespace external_modules
 	public:
 		void post_load() override
 		{
-			LoadLibraryA("2dx-gsm.dll");
+			if (game::environment::get_param("IIDX_USE_GSM") != "0")
+				LoadLibraryA("2dx-gsm.dll");
 		}
 	};
 }
