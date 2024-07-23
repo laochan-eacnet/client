@@ -144,6 +144,9 @@ int main()
 	FARPROC entry_point;
 	enable_dpi_awareness();
 
+	// pin system dinput8 here to prevent old client from loading
+	LoadLibraryA("dinput8.dll");
+
 	std::srand(uint32_t(time(nullptr)));
 
 	{

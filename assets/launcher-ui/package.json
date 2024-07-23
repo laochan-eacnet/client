@@ -8,8 +8,8 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build --force && saucer embed dist ../../src/client/resources/"
+    "build-only": "vite build && node bin/gen-asset",
+    "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -28,6 +28,7 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "@vitejs/plugin-vue-jsx": "^4.0.0",
     "@vue/tsconfig": "^0.5.1",
+    "mime": "^4.0.4",
     "npm-run-all2": "^6.2.0",
     "sass": "^1.77.8",
     "typescript": "~5.4.0",

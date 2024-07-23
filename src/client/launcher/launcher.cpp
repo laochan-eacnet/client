@@ -17,6 +17,10 @@
 
 #include "component/steam_proxy.hpp"
 
+#ifndef _DEBUG
+#include "resources/all.hpp"
+#endif
+
 namespace
 {
 	launcher::game target_game = launcher::game::invalid;
@@ -259,16 +263,7 @@ void launcher::create_main_menu()
 	smartview_->set_url("http://localhost:5173/");
 	smartview_->set_dev_tools(true);
 #else
-	// spa hack
-	smartview_->embed(([]
-		{
-			auto resources = saucer::embedded::all();
-			resources.emplace("", resources["index.html"]);
-
-			return resources;
-		}
-	)());
-
+	smartview_->embed(laochan::embedded::all());
 	smartview_->serve("");
 #endif
 }

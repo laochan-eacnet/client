@@ -90,18 +90,10 @@ END
 
 ID_ICON               ICON   "resources/icon.ico"
 
-MENU_MAIN             RCDATA "resources/main.html"
-
 #ifdef _DEBUG
 RUNNER                RCDATA "../../build/bin/x64/Debug/runner.exe"
 #else
 RUNNER                RCDATA "../../build/bin/x64/Release/runner.exe"
-#endif
-
-#ifdef _DEBUG
-TLS_DLL               RCDATA "../../build/bin/x64/Debug/tlsdll.dll"
-#else
-TLS_DLL               RCDATA "../../build/bin/x64/Release/tlsdll.dll"
 #endif
 
 #endif    // English (United States) resources

@@ -69,7 +69,7 @@ nav {
     top: 0;
     left: 0;
     position: fixed;
-    z-index: 10;
+    z-index: 60;
 }
 
 .title-bar {

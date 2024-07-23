@@ -38,6 +38,7 @@ interface Window {
         /// -2 = failed to get default audio device
         /// -3 = failed to active wasapi audio client
         checkWasapiDevice: () => Promise<number>;
+        num: () => void;
         alert: {
             show: (message: string, color: string, timeout: number) => void;
             __cb: ((message: string, color: string, timeout: number) => void) | undefined;

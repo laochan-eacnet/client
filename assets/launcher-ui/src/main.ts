@@ -57,6 +57,7 @@ window.laochan = {
     checkWasapiDevice() {
         return window.saucer.call<number>('checkWasapiDeviceStatus', []);
     },
+    num: () => {},
     ctx: {
         gamePaths: ref<string[][]>([[], [], []]),
     },

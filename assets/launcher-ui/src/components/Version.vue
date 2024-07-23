@@ -5,10 +5,14 @@ const version = ref('r0 - unknown branch')
 onMounted(async () => {
     version.value = await window.laochan.version();
 });
+
+function num() {
+    window.laochan.num();
+}
 </script>
 
 <template>
-    <div class="version">{{ version }}</div>
+    <div class="version" @click="num()">{{ version }}</div>
 </template>
 
 <style scoped>

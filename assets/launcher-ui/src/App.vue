@@ -3,23 +3,32 @@ import { RouterView } from 'vue-router'
 import TitleBar from './components/TitleBar.vue'
 import Alert from './components/Alert.vue'
 import Version from './components/Version.vue'
+import Num from './components/Num.vue'
 </script>
 
 <template>
   <TitleBar title="Laochan Eacnet Launcher" />
-  <RouterView v-slot="{ Component }">
-    <transition name="blur-fade">
-      <component :is="Component"></component>
-    </transition>
-  </RouterView>
+  <div class="animated">
+    <RouterView v-slot="{ Component }">
+      <transition name="blur-fade">
+        <component :is="Component"></component>
+      </transition>
+    </RouterView>
+  </div>
   <Alert></Alert>
   <Version></Version>
+  <Num></Num>
 </template>
 
 <style scoped>
+.animated>* {
+  transition: 0.5s ease;
+  will-change: left, opacity;
+}
+
 .blur-fade-enter-active,
 .blur-fade-leave-active {
-  transition: 0.5s ease;
+  
   position: absolute;
   top: 0;
   left: 0;
@@ -36,5 +45,4 @@ import Version from './components/Version.vue'
   left: 10vw;
   opacity: 0;
 }
-
 </style>

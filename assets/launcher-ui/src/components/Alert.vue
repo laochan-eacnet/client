@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 const message = ref('');
 const color = ref('');
@@ -7,32 +7,30 @@ const element: Ref<HTMLElement | undefined> = ref(undefined);
 
 let timer: number | undefined = undefined;
 
-onMounted(() => {
-    window.laochan.alert.__cb = (msg, colour, timeout) => {
+window.laochan.alert.__cb = (msg, colour, timeout) => {
+    if (!element.value) return;
+
+    clearTimeout(timer);
+
+    color.value = colour;
+    message.value = msg;
+    element.value.classList.remove('out');
+    element.value.classList.add('in');
+
+    timer = setTimeout(() => {
         if (!element.value) return;
 
+        element.value.classList.remove('in');
+        element.value.classList.add('out');
+
         clearTimeout(timer);
-
-        color.value = colour;
-        message.value = msg;
-        element.value.classList.remove('out');
-        element.value.classList.add('in');
-
-        timer = setTimeout(() => {
-            if (!element.value) return;
-
-            element.value.classList.remove('in');
-            element.value.classList.add('out');
-
-            clearTimeout(timer);
-            timer = undefined;
-        }, timeout);
-    };
-})
+        timer = undefined;
+    }, timeout);
+};
 </script>
 
 <template>
-    <div ref="element" class="alert" >
+    <div ref="element" class="alert">
         <div class="content" :style="{ 'background-color': color }">
             {{ message }}
         </div>
@@ -63,9 +61,7 @@ onMounted(() => {
         transform: translateX(-100vw) scale(0.8);
     }
 
-    100% {
-
-    }
+    100% {}
 }
 
 @keyframes out {
@@ -75,9 +71,7 @@ onMounted(() => {
         transform: translateX(50vw) scale(0.8);
     }
 
-    0% {
-
-    }
+    0% {}
 }
 
 .in {

@@ -60,6 +60,7 @@ main>div {
 
 .game {
   transition: 0.5s ease;
+  will-change: width;
   position: relative;
   clip-path: polygon(100px 0%, 100% 0%, calc(100% - 100px) 100%, 0% 100%);
 }
@@ -115,12 +116,6 @@ main>div {
 
 .iidx>.background {
   background-image: url(@/assets/iidx.jpg);
-}
-
-@property --tag-depth {
-  syntax: "auto";
-  inherits: true;
-  initial-value: 0px;
 }
 
 .game>.options {

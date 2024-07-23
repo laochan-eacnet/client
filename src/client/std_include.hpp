@@ -95,8 +95,6 @@
 #include <saucer/modules/module.hpp>
 #include <saucer/modules/native/webview2.hpp>
 
-#include <resources/all.hpp>
-
 #pragma warning(pop)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4702)
