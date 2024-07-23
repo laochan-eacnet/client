@@ -17,6 +17,11 @@ void component_loader::register_component_factory(std::function<std::unique_ptr<
 	get_components_factories(target_game).push_back(factory);
 }
 
+void component_loader::register_symbol(resolve_after_load_symbol_interface* symbol, launcher::game target_game)
+{
+	get_symbols(target_game).push_back(symbol);
+}
+
 void component_loader::create_components(launcher::game target_game)
 {
 	for (auto& factory : get_components_factories(target_game))
@@ -54,6 +59,16 @@ bool component_loader::post_load()
 
 	try
 	{
+		for (const auto& symbol_ : get_symbols(launcher::game::all))
+		{
+			symbol_->resolve();
+		}
+
+		for (const auto& symbol_ : get_symbols(game::environment::get_game()))
+		{
+			symbol_->resolve();
+		}
+
 		for (const auto& component_ : get_components())
 		{
 			component_->post_load();
@@ -167,4 +182,14 @@ std::vector<std::function<std::unique_ptr<component_interface>()>>& component_lo
 		});
 
 	return container->at(static_cast<size_t>(game));
+}
+
+std::vector<resolve_after_load_symbol_interface*>& component_loader::get_symbols(launcher::game game)
+{
+	using symbols = std::vector<resolve_after_load_symbol_interface*>;
+	using symbols_container = std::array<symbols, static_cast<size_t>(launcher::game::count) + 1>;
+
+	static symbols_container container{};
+
+	return container.at(static_cast<size_t>(game));
 }

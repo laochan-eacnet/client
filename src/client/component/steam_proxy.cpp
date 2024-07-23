@@ -26,7 +26,7 @@ namespace steam_proxy
 	class component final : public component_interface
 	{
 	public:
-		void post_start() override
+		void load_steam()
 		{
 			if (is_disabled())
 			{
@@ -41,6 +41,19 @@ namespace steam_proxy
 			{
 				printf("Steam: %s\n", e.what());
 			}
+		}
+
+		void post_load() override
+		{
+			if (game::environment::get_param("LAOCHAN_ENABLE_STEAM_OVERLAY") != "1")
+				return;
+
+			const std::filesystem::path steam_path = steam::get_steam_install_path();
+
+			if (steam_path.empty()) 
+				return;
+
+			this->steam_overlay_module_ = utils::nt::library::load(steam_path / "gameoverlayrenderer64.dll");
 		}
 
 		void pre_destroy() override
@@ -229,9 +242,19 @@ namespace steam_proxy
 		auto* const comp = component_loader::get<component>();
 
 		if (!comp)
-			return false;
+			return 0xFFFFFFFFDEADBEEFul;
 
 		return comp->get_steam_id();
+	}
+
+	void load_steam()
+	{
+		auto* const comp = component_loader::get<component>();
+
+		if (!comp)
+			return;
+		
+		return comp->load_steam();
 	}
 }
 

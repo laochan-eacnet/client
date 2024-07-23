@@ -379,18 +379,17 @@ namespace chart_modifier
 	public:
 		void post_load() override
 		{
-			return;
 #ifdef DEBUG
-			utils::hook::jump(0x14016DC30, test_fps);
+			utils::hook::jump(0x14016DD30, test_fps);
 #endif
 
-			post_load_chart_hook.create(0x14011B940, post_load_chart);
-			get_option_str_hook.create(0x140131820, get_option_str);
+			post_load_chart_hook.create(0x14011B990, post_load_chart);
+			get_option_str_hook.create(0x140131890, get_option_str);
 
 			utils::hook::set(0x140423778, report_result_export_request_property);
 
 			// allow negtive bpm (movzx -> movsx)
-			utils::hook::set<uint8_t>(0x14011C4C7, 0xBF);
+			utils::hook::set<uint8_t>(0x14011C517, 0xBF);
 	}
 };
 }

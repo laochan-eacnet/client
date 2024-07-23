@@ -10,6 +10,9 @@ window.laochan = {
     close() {
         window.saucer.call('close', []);
     },
+    version() {
+        return window.saucer.call<string>('version', []);
+    },
     minimize() {
         window.saucer.call('minimize', []);
     },

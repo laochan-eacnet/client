@@ -1,6 +1,7 @@
 #pragma once
 #include "component_interface.hpp"
 #include "launcher/launcher.hpp"
+#include "game/game.hpp"
 
 class component_loader final
 {
@@ -41,6 +42,7 @@ public:
 
 	static void register_component(std::unique_ptr<component_interface>&& component);
 	static void register_component_factory(std::function<std::unique_ptr<component_interface>()> factory, launcher::game target_game);
+	static void register_symbol(resolve_after_load_symbol_interface*, launcher::game target_game);
 	static void create_components(launcher::game target_game);
 
 	static bool post_start();
@@ -56,6 +58,7 @@ public:
 private:
 	static std::vector<std::unique_ptr<component_interface>>& get_components();
 	static std::vector<std::function<std::unique_ptr<component_interface>()>>& get_components_factories(launcher::game);
+	static std::vector<resolve_after_load_symbol_interface *>& get_symbols(launcher::game);
 };
 
 #define REGISTER_COMPONENT(name, game)                          \

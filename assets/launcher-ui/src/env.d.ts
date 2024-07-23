@@ -21,6 +21,7 @@ interface Window {
     };
     laochan: {
         close: () => void;
+        version: () => Promise<string>;
         minimize: () => void;
         mounted: () => void;
         shellExecute: (file: string, args?: string) => void;

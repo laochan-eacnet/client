@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import TitleBar from './components/TitleBar.vue'
 import Alert from './components/Alert.vue'
+import Version from './components/Version.vue'
 </script>
 
 <template>
@@ -12,6 +13,7 @@ import Alert from './components/Alert.vue'
     </transition>
   </RouterView>
   <Alert></Alert>
+  <Version></Version>
 </template>
 
 <style scoped>

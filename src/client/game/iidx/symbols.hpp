@@ -8,13 +8,13 @@ namespace iidx
 	WEAK symbol<music_data_t* ()> get_music_data{ 0x1401C4120 };
 	WEAK symbol<LRESULT(HWND, UINT, WPARAM, LPARAM)> main_wndproc{ 0x140202100 };
 
-	WEAK vftable_entry<bool(void*)> music_select_scene_attach{ 0x1404D9610, 13 };
-	WEAK vftable_entry<void(void*)> music_select_scene_detach{ 0x1404D9610, 14 };
+	WEAK vftable_entry<bool(void*)> music_select_scene_attach{ 0x1404D9610, 13, launcher::game::iidx };
+	WEAK vftable_entry<void(void*)> music_select_scene_detach{ 0x1404D9610, 14, launcher::game::iidx };
 
-	WEAK vftable_entry<bool(void*)> dan_select_flow_attach{ 0x1404CC1B8, 13 };
-	WEAK vftable_entry<void(void*)> dan_select_flow_detach{ 0x1404CC1B8, 14 };
+	WEAK vftable_entry<bool(void*)> dan_select_flow_attach{ 0x1404CC1B8, 13, launcher::game::iidx };
+	WEAK vftable_entry<void(void*)> dan_select_flow_detach{ 0x1404CC1B8, 14, launcher::game::iidx };
 
-	WEAK vftable_entry<void(StageResultDrawFrame_s*, void*)> stage_result_draw_frame_init{ 0x1404CB160, 1 };
+	WEAK vftable_entry<void(StageResultDrawFrame_s*, void*)> stage_result_draw_frame_init{ 0x1404CB160, 1, launcher::game::iidx };
 
 	namespace EacnetRequestPost
 	{

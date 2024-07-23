@@ -2,6 +2,7 @@
 #include "launcher/launcher.hpp"
 #include "loader/loader.hpp"
 #include "loader/component_loader.hpp"
+#include "component/steam_proxy.hpp"
 
 #include <utils/nt.hpp>
 #include <utils/hook.hpp>
@@ -151,6 +152,8 @@ int main()
 			{
 				component_loader::pre_destroy();
 			});
+
+		steam_proxy::load_steam();
 
 		try
 		{

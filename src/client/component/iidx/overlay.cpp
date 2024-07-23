@@ -893,23 +893,21 @@ namespace overlay
 	class component final : public component_interface
 	{
 	public:
-		void post_start() override
+		void post_load() override
 		{
-			return;
-
-			present.create(0x1401F75B0, present_stub);
+			present.create(0x1401F7710, present_stub);
 
 			// hook wndproc
-			utils::hook::inject(0x140202272, wndproc);
+			utils::hook::inject(0x1402023D2, wndproc);
 
-			utils::hook::set(0x1404D85C8 + 13 * 8, music_select_scene_attach);
-			utils::hook::set(0x1404D85C8 + 14 * 8, music_select_scene_detach);
+			utils::hook::set(iidx::music_select_scene_attach.get_entry_ptr(), music_select_scene_attach);
+			utils::hook::set(iidx::music_select_scene_detach.get_entry_ptr(), music_select_scene_detach);
 
-			utils::hook::set(0x1404D8C48 + 13 * 8, dan_select_flow_attach);
-			utils::hook::set(0x1404D8C48 + 14 * 8, dan_select_flow_detach);
+			utils::hook::set(iidx::dan_select_flow_attach.get_entry_ptr(), dan_select_flow_attach);
+			utils::hook::set(iidx::dan_select_flow_detach.get_entry_ptr(), dan_select_flow_detach);
 
-			utils::hook::set(0x1404CA128, stage_result_draw_frame_init);
-			base_stage_attach.create(0x140184D30, base_stage_attach_hook);
+			utils::hook::set(iidx::stage_result_draw_frame_init.get_entry_ptr(), stage_result_draw_frame_init);
+			base_stage_attach.create(0x140184E30, base_stage_attach_hook);
 		}
 
 		void pre_destroy() override

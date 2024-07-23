@@ -1,6 +1,7 @@
 #pragma once
 
 #include "launcher/launcher.hpp"
+#include "loader/component_loader.hpp"
 #include <utils/nt.hpp>
 #include <utils/string.hpp>
 
@@ -29,27 +30,36 @@ namespace game
 	}
 
 	template <typename T>
-	class vftable_entry
+	class vftable_entry: resolve_after_load_symbol_interface
 	{
 	public:
-		vftable_entry(const size_t vftable, size_t n): vftable_(vftable), n_(n)
+		vftable_entry(const size_t vftable, size_t n, launcher::game game): vftable_(vftable), n_(n), object_(nullptr)
 		{
+			::component_loader::register_symbol(this, game);
 		}
 
-		T* get()
+		void resolve()
 		{
-			if (!object_) 
-				object_ = reinterpret_cast<T*>(*reinterpret_cast<size_t**>(vftable_)[n_]);
+			object_ = reinterpret_cast<T*>(reinterpret_cast<size_t*>(vftable_)[n_]);
+			printf("resolve %s to %p\n", __FUNCSIG__, this->object_);
+		}
 
+		size_t get_entry_ptr() const
+		{
+			return vftable_ + n_ * sizeof(size_t);
+		}
+
+		T* get() const
+		{
 			return object_;
 		}
 
-		operator T* ()
+		operator T* () const
 		{
 			return this->get();
 		}
 
-		T* operator->()
+		T* operator->() const
 		{
 			return this->get();
 		}
@@ -91,35 +101,38 @@ namespace game
 namespace avs2
 {
 	template <typename T>
-	class function
+	class function : resolve_after_load_symbol_interface
 	{
 	public:
-		function(const char* name): name_(name) 
+		function(const char* name): name_(name), object_(nullptr)
 		{
+			::component_loader::register_symbol(this, launcher::game::all);
 		}
 
-		T* get()
+		void resolve()
 		{
-			if (!this->object_)
-			{
-				utils::nt::library avs_core{ "avs2-core.dll" };
-				this->object_ = reinterpret_cast<T*>(avs_core.get_proc<void*>(this->name_));
-			}
+			utils::nt::library avs_core{ "avs2-core.dll" };
+			this->object_ = reinterpret_cast<T*>(avs_core.get_proc<void*>(this->name_));
 
 			if (!this->object_)
 			{
 				throw std::runtime_error(utils::string::va("failed to find %s of avs2\n", this->name_));
 			}
 
+			printf("%s: %p\n", __FUNCSIG__, this->object_);
+		}
+
+		T* get() const
+		{
 			return object_;
 		}
 
-		operator T* ()
+		operator T* () const
 		{
 			return this->get();
 		}
 
-		T* operator->()
+		T* operator->() const
 		{
 			return this->get();
 		}

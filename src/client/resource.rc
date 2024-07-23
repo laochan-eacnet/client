@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "windows.h"
+#include "version.h"
 #include "resource.hpp"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -68,12 +69,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Laochan Eacnet"
-            VALUE "FileDescription", "Laochan Eacnet Infinitas Launcher"
-            VALUE "FileVersion", "0.0.1"
-            VALUE "InternalName", "laochan-infas"
-            VALUE "OriginalFilename", "laochan-infas.exe"
-            VALUE "ProductName", "Laochan Eacnet Infinitas Launcher"
-            VALUE "ProductVersion", "0.0.1"
+            VALUE "FileDescription", "Laochan Eacnet Launcher (64bit)"
+            VALUE "FileVersion", VERSION
+            VALUE "InternalName", "laochan_bootstrap64"
+            VALUE "OriginalFilename", "laochan_bootstrap64.exe"
+            VALUE "ProductName", "Laochan Eacnet Launcher (64bit)"
+            VALUE "ProductVersion", VERSION
         END
     END
     BLOCK "VarFileInfo"

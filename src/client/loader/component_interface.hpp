@@ -33,3 +33,9 @@ public:
 		return true;
 	}
 };
+
+class resolve_after_load_symbol_interface
+{
+public:
+	virtual void resolve() = 0;
+};

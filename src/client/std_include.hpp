@@ -109,9 +109,11 @@
 #pragma comment(lib, "winhttp.lib")
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "dwmapi.lib")
+// prevent loading old client
+#pragma comment(lib, "dinput8.lib")
 
 #include "resource.hpp"
 
 using namespace std::literals;
 
-#define VERSION "0.9.4-693c7ac2"
+#include "version.hpp"
