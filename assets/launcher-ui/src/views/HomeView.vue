@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { iidx } from '@/modules/iidx';
+import { sdvx } from '@/modules/sdvx';
 </script>
 
 <template>
   <main>
     <div></div>
-    <div class="game sdvx disable">
+    <div class="game sdvx">
       <div class="background"></div>
       <div class="text">
         SOUND VOLTEX<br>
         EXCEED GEAR
-        <div class="tip"><small>COMING S∞N</small></div>
+        <div v-if="!sdvx.installed()" class="tip">
+          未安装
+        </div>
+      </div>
+      <div v-if="sdvx.installed()" class="options">
+        <div class="opt" @click="sdvx.start">启动</div>
+        <div class="opt" @click="sdvx.settings">游戏设置</div>
+        <div class="opt" @click="sdvx.updater">更新器</div>
       </div>
     </div>
     <div class="game iidx">
@@ -29,7 +37,6 @@ import { iidx } from '@/modules/iidx';
         <div class="opt" @click="iidx.updater">更新器</div>
         <div class="opt" @click="iidx.openCustomize">自定义选项</div>
       </div>
-
     </div>
     <div class="game gitadora disable">
       <div class="background"></div>
@@ -96,10 +103,6 @@ main>div {
   width: 250%;
 }
 
-.game:not(.disable):hover>.background {
-  filter: brightness(100%);
-}
-
 .game.disable:hover {
   width: 120%;
 }
@@ -150,5 +153,14 @@ main>div {
 .game>.options>.opt:hover {
   background-color: #fff;
   color: #000;
+}
+
+.sdvx>.background {
+  background-image: url(@/assets/sdvx.jpg);
+  filter: brightness(0.4);
+}
+
+.sdvx:hover>.background {
+  filter: brightness(0.5);
 }
 </style>

@@ -7,7 +7,7 @@
 
 #include <winhttp.h>
 
-namespace patches
+namespace iidx::patches
 {
 	char asio_name[0x2048];
 
@@ -101,4 +101,4 @@ namespace patches
 	};
 }
 
-REGISTER_COMPONENT(patches::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::patches::component, launcher::game::iidx)

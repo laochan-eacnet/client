@@ -1,6 +1,6 @@
 #pragma once
 
-namespace chart_modifier
+namespace iidx::chart_modifier
 {
 	enum modifier_t : uint32_t
 	{

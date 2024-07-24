@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import { launcher } from './modules/launcher';
 import { iidx } from './modules/iidx';
+import { sdvx } from './modules/sdvx';
 
 window.laochan = {
     close() {
@@ -80,6 +81,7 @@ window.laochan = {
 
     launcher.loadConfig();
     iidx.loadConfig();
+    sdvx.loadConfig();
 })();
 
 const app = createApp(App)

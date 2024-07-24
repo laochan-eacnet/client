@@ -5,9 +5,9 @@
 #include <utils/memory.hpp>
 #include <game/game.hpp>
 
-#include "chart_modifier.hpp"
+#include "i_chart_modifier.hpp"
 
-namespace chart_modifier
+namespace iidx::chart_modifier
 {
 	modifier_t modifier_flag = modifier_t::none;
 	int8_t fran_template[7] = { 0, 1, 2, 3, 4, 5, 6 };
@@ -394,4 +394,4 @@ namespace chart_modifier
 };
 }
 
-REGISTER_COMPONENT(chart_modifier::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::chart_modifier::component, launcher::game::iidx)

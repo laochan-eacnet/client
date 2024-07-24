@@ -35,6 +35,10 @@ export class IIDX {
         return this._config;
     }
 
+    installed() {
+        return !!window.laochan.ctx.gamePaths.value[0].length;
+    }
+    
     get installPath() {
         if (!this.installed()) {
             return;
@@ -122,10 +126,6 @@ export class IIDX {
 
     openCustomize() {
         window.laochan.shellExecute('http://laochan.ugreen.sbs/cp');
-    }
-
-    installed() {
-        return !!window.laochan.ctx.gamePaths.value[0].length;
     }
 
     async start() {

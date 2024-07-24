@@ -10,7 +10,7 @@
 #include "component/filesystem.hpp"
 #include "component/steam_proxy.hpp"
 
-#include "chart_modifier.hpp"
+#include "i_chart_modifier.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -24,7 +24,7 @@ using json = nlohmann::json;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace overlay
+namespace iidx::overlay
 {
 	bool is_imgui_inited = false;
 	bool is_destoryed = false;
@@ -559,22 +559,19 @@ namespace overlay
 		ImGui::CreateContext();
 
 		const auto& io = ImGui::GetIO();
-		const auto font_file = avs2::fs_open("/data/font/DF-PopMix-W5.ttc", 1, 420);
-		avs2::stat state{ 0 };
-		avs2::fs_fstat(font_file, &state);
+		const auto font_file = filesystem::file{ "/data/font/DF-PopMix-W5.ttc" };
+		auto font_buffer = font_file.get_buffer();
 
-		font_data = utils::memory::allocate<char>(state.filesize);
-
-		avs2::fs_read(font_file, font_data, state.filesize);
-		avs2::fs_close(font_file);
+		font_data = utils::memory::allocate<char>(font_buffer.size());
+		std::memcpy(font_data, font_buffer.data(), font_buffer.size());
 
 		font_normal = io.Fonts->AddFontFromMemoryTTF(
-			font_data, state.filesize, 16.0f,
+			font_data, static_cast<int>(font_buffer.size()), 16.0f,
 			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
 		font_big = io.Fonts->AddFontFromMemoryTTF(
-			font_data, state.filesize, 24.0f,
+			font_data, static_cast<int>(font_buffer.size()), 24.0f,
 			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
@@ -920,4 +917,4 @@ namespace overlay
 	};
 }
 
-REGISTER_COMPONENT(overlay::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::overlay::component, launcher::game::iidx)

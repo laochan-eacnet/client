@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-namespace omnimix
+namespace iidx::omnimix
 {
 	utils::hook::detour get_name_hook;
 	const char* get_bga_name(iidx::music_t* music, int note_id)
@@ -269,4 +269,4 @@ namespace omnimix
 	};
 }
 
-REGISTER_COMPONENT(omnimix::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::omnimix::component, launcher::game::iidx)

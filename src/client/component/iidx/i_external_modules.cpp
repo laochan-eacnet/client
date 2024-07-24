@@ -4,7 +4,7 @@
 #include <utils/hook.hpp>
 #include <game/game.hpp>
 
-namespace external_modules
+namespace iidx::external_modules
 {
 	class component final : public component_interface
 	{
@@ -19,4 +19,4 @@ namespace external_modules
 	};
 }
 
-REGISTER_COMPONENT(external_modules::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::external_modules::component, launcher::game::iidx)

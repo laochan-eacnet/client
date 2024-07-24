@@ -9,7 +9,7 @@
 
 #define IIDX_TARGET_VERSION "P2D:J:B:A:2024052200"
 
-namespace env
+namespace iidx::env
 {
 	const char* get_cmdline()
 	{
@@ -118,4 +118,4 @@ namespace env
 	};
 }
 
-REGISTER_COMPONENT(env::component, launcher::game::iidx)
+REGISTER_COMPONENT(iidx::env::component, launcher::game::iidx)
