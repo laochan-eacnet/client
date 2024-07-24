@@ -48,5 +48,5 @@ jobs:
         with:
           name: ${{matrix.configuration}} binaries
           path: |
-            build/bin/x64/${{matrix.configuration}}/laochan-bootstrap64.exe
-            build/bin/x64/${{matrix.configuration}}/laochan-bootstrap64.pdb
+            build/bin/x64/${{matrix.configuration}}/laochan_bootstrap64.exe
+            build/bin/x64/${{matrix.configuration}}/laochan_bootstrap64.pdb
