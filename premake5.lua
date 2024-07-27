@@ -135,7 +135,7 @@ dependencies.load()
 workspace "laochan-client"
 startproject "client"
 location "./build"
-objdir "%{wks.location}/obj"
+objdir "%{wks.location}/obj/"
 targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
 
 configurations {"Debug", "Release"}

@@ -5,7 +5,7 @@
 #include <utils/memory.hpp>
 #include <game/game.hpp>
 
-#include "i_chart_modifier.hpp"
+#include "chart_modifier.hpp"
 
 namespace iidx::chart_modifier
 {

@@ -7,4 +7,5 @@ namespace steam_proxy
 	void set_status(const std::string& status);
 	uint64_t get_steam_id();
 	void load_steam();
+	void load_overlay();
 }

@@ -45,32 +45,22 @@ namespace steam_proxy
 
 		void post_load() override
 		{
-			if (game::environment::get_param("LAOCHAN_ENABLE_STEAM_OVERLAY") != "1")
-				return;
+			this->load_steam();
 
-			const std::filesystem::path steam_path = steam::get_steam_install_path();
+			if (game::environment::get_param("LAOCHAN_ENABLE_STEAM_OVERLAY") == "1")
+			{
+				const std::filesystem::path steam_path = steam::get_steam_install_path();
 
-			if (steam_path.empty()) 
-				return;
+				if (steam_path.empty())
+					return;
 
-			this->steam_overlay_module_ = utils::nt::library::load(steam_path / "gameoverlayrenderer64.dll");
+				this->steam_overlay_module_ = utils::nt::library::load(steam_path / "gameoverlayrenderer64.dll");
+			}
 		}
 
 		void pre_destroy() override
 		{
-			if (this->steam_client_module_)
-			{
-				if (this->steam_pipe_)
-				{
-					if (this->global_user_)
-					{
-						this->steam_client_module_.invoke<void>("Steam_ReleaseUser", this->steam_pipe_,
-							this->global_user_);
-					}
-
-					this->steam_client_module_.invoke<bool>("Steam_BReleaseSteamPipe", this->steam_pipe_);
-				}
-			}
+			this->unload_client();
 		}
 
 		const utils::nt::library& get_overlay_module() const
@@ -136,6 +126,20 @@ namespace steam_proxy
 					.invoke<void*>("CreateInterface", name.data(), nullptr);
 				if (client_engine) return client_engine;
 			}
+		}
+
+		void unload_client()
+		{
+			if (!steam_client_module_)
+				return;
+
+			if (!this->steam_pipe_)
+				return;
+
+			if (!this->global_user_)
+				return;
+
+			this->steam_client_module_.invoke<void>("Steam_ReleaseUser", this->steam_pipe_, this->global_user_);
 		}
 
 		void load_client()
@@ -234,7 +238,7 @@ namespace steam_proxy
 		if (!comp)
 			return;
 
-		return comp->start_mod(status, 980610);
+		return comp->start_mod(status, 480);
 	}
 
 	uint64_t get_steam_id()
@@ -253,7 +257,7 @@ namespace steam_proxy
 
 		if (!comp)
 			return;
-		
+
 		return comp->load_steam();
 	}
 }

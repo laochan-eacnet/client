@@ -78,7 +78,7 @@ export class Launcher {
         await window.laochan.setParam('LAOCHAN_TOKEN', this._config.value.token);
         await window.laochan.setParam('LAOCHAN_SERVER_URL', this._config.value.serverUrl);
         await window.laochan.setParam('LAOCHAN_ENABLE_CONSOLE', JSON.stringify(+this._config.value.enableConsole));
-        await window.laochan.setParam('LAOCHAN_ENABLE_STEAM_OVERLAY', JSON.stringify(+this._config.value.enableConsole));
+        await window.laochan.setParam('LAOCHAN_ENABLE_STEAM_OVERLAY', JSON.stringify(+this._config.value.enableSteamOverlay));
     }
 }
 

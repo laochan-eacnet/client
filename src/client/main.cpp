@@ -156,8 +156,6 @@ int main()
 				component_loader::pre_destroy();
 			});
 
-		steam_proxy::load_steam();
-
 		try
 		{
 			const launcher launcher;
@@ -179,6 +177,8 @@ int main()
 
 			if (!component_loader::post_load())
 				return 0;
+
+			steam_proxy::set_status(game::environment::get_string());
 		}
 		catch (std::exception& e)
 		{

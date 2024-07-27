@@ -10,7 +10,7 @@
 #include "component/filesystem.hpp"
 #include "component/steam_proxy.hpp"
 
-#include "i_chart_modifier.hpp"
+#include "chart_modifier.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
