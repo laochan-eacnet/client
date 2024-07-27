@@ -851,7 +851,7 @@ namespace iidx::overlay
 
 		// HACK: this game uses fixed 1080p backbuffer
 		auto& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(1920, 1080);
+		// io.DisplaySize = ImVec2(1920, 1080);
 		io.MouseDrawCursor = false;
 
 		ImGui::NewFrame();

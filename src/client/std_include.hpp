@@ -107,8 +107,7 @@
 #pragma comment(lib, "winhttp.lib")
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "dwmapi.lib")
-// prevent loading old client
-#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "d3d9.lib")
 
 #include "resource.hpp"
 
