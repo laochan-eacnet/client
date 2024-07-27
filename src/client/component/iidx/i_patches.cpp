@@ -60,13 +60,13 @@ namespace iidx::patches
 			*(reinterpret_cast<uint32_t*>(hConnect) + 2) = 0xDDDDDDDD;
 
 			// ignore cert error
-			DWORD dwFlags =
+			DWORD flags =
 				SECURITY_FLAG_IGNORE_UNKNOWN_CA |
 				SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE |
 				SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
 				SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
 
-			WinHttpSetOption(request, WINHTTP_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(dwFlags));
+			WinHttpSetOption(request, WINHTTP_OPTION_SECURITY_FLAGS, &flags, sizeof(flags));
 
 			// overwrite host
 			WinHttpAddRequestHeaders(request,
