@@ -9,7 +9,7 @@
 #include <utils/string.hpp>
 
 // from ifs_layeredfs
-extern "C" int init(void);
+extern "C" int init(const char* data_dir);
 
 namespace filesystem
 {
@@ -73,8 +73,32 @@ namespace filesystem
 	public:
 		void post_avs_init() override
 		{
-			if (!utils::flags::has_flag("disable_ifs_hook"))
-				init();
+			if (utils::flags::has_flag("disable_ifs_hook"))
+				return;
+
+			utils::nt::library self{ };
+
+			auto g = game::environment::get_game();
+			std::filesystem::path data_dir = self.get_folder();
+			data_dir /= "assets";
+			
+			if (g == launcher::game::iidx)
+				data_dir /= "iidx";
+			else if (g == launcher::game::sdvx)
+				data_dir /= "iidx";
+			else if (g == launcher::game::gitadora)
+				data_dir /= "gitadora";
+
+			static auto abs_data_path = std::filesystem::absolute(data_dir).generic_string();
+
+			if (!std::filesystem::exists(data_dir))
+			{
+				printf("warning: data dir %s not exists\n", abs_data_path.data());
+				init(nullptr);
+				return;
+			}
+			
+			init(abs_data_path.data());
 		}
 	};
 }
