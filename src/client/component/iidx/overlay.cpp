@@ -114,19 +114,19 @@ namespace iidx::overlay
 
 		void init()
 		{
-			textures::background = load_texture("/data/notes_radar/nradar_waku02.png");
-			textures::star = load_texture("/data/notes_radar/radar_star.png");
-			textures::labels[4] = load_texture("/data/notes_radar/nradar_notes.png");
-			textures::labels[5] = load_texture("/data/notes_radar/nradar_peak.png");
-			textures::labels[0] = load_texture("/data/notes_radar/nradar_scratch.png");
-			textures::labels[1] = load_texture("/data/notes_radar/nradar_sof_lan.png");
-			textures::labels[2] = load_texture("/data/notes_radar/nradar_charge.png");
-			textures::labels[3] = load_texture("/data/notes_radar/nradar_chord.png");
-			textures::no_data = load_texture("/data/notes_radar/nradar_nodata.png");
+			textures::background = load_texture("/laochan/notes_radar/nradar_waku02.png");
+			textures::star = load_texture("/laochan/notes_radar/radar_star.png");
+			textures::labels[4] = load_texture("/laochan/notes_radar/nradar_notes.png");
+			textures::labels[5] = load_texture("/laochan/notes_radar/nradar_peak.png");
+			textures::labels[0] = load_texture("/laochan/notes_radar/nradar_scratch.png");
+			textures::labels[1] = load_texture("/laochan/notes_radar/nradar_sof_lan.png");
+			textures::labels[2] = load_texture("/laochan/notes_radar/nradar_charge.png");
+			textures::labels[3] = load_texture("/laochan/notes_radar/nradar_chord.png");
+			textures::no_data = load_texture("/laochan/notes_radar/nradar_nodata.png");
 
-			filesystem::file radar_file{ "/data/radar_data.json" };
+			filesystem::file radar_file{ "/laochan/radar_data.json" };
 			if (!radar_file.exists()) {
-				printf("E:overlay: can not load /data/radar_data.json\n");
+				printf("E:overlay: can not load /laochan/radar_data.json\n");
 				return;
 			}
 
@@ -286,9 +286,9 @@ namespace iidx::overlay
 
 		void init()
 		{
-			filesystem::file diff_file{ "/data/difficulty_data.json" };
+			filesystem::file diff_file{ "/laochan/difficulty_data.json" };
 			if (!diff_file.exists()) {
-				printf("E:overlay: can not load /data/difficulty_data.json\n");
+				printf("E:overlay: can not load /laochan/difficulty_data.json\n");
 				return;
 			}
 
