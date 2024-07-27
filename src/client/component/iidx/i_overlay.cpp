@@ -36,7 +36,7 @@ namespace iidx::overlay
 	ImFont* font_normal;
 	ImFont* font_big;
 
-	int show_information = 0;
+	int show_information = 1;
 	bool show_clock = false;
 	bool show_extra_music_info = true;
 

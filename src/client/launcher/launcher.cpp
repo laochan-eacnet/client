@@ -17,7 +17,9 @@
 
 #include "component/steam_proxy.hpp"
 
-#ifndef _DEBUG
+#define USE_EMBEDDED 1
+
+#if !_DEBUG || USE_EMBEDDED
 #include "resources/all.hpp"
 #endif
 
@@ -259,7 +261,7 @@ void launcher::create_main_menu()
 		}
 	);
 
-#ifdef _DEBUG
+#if _DEBUG && !USE_EMBEDDED
 	smartview_->set_url("http://localhost:5173/");
 	smartview_->set_dev_tools(true);
 #else

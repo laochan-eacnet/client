@@ -24,7 +24,7 @@ namespace iidx
 	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAD3F8 };
 	WEAK symbol<IDirect3DDevice9*>  d3d9_device{ 0x142AAD3F8 };
 	WEAK symbol<HWND*> main_hwnd{ 0x142AAD3E8 };
-	WEAK symbol<const char> infinitas_id{ 0x142AAD388 };
+	WEAK symbol<const char> infinitas_id{ 0x141AC5494 };
 	WEAK symbol<const char> game_version{ 0x141AC54E3 };
 
 	WEAK symbol<bool> show_options{ 0x141ACE104 };
