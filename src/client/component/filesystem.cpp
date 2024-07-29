@@ -9,7 +9,7 @@
 #include <utils/string.hpp>
 
 // from ifs_layeredfs
-extern "C" int init(void);
+extern "C" int init(const char* data_dir);
 
 namespace filesystem
 {
@@ -33,7 +33,7 @@ namespace filesystem
 		auto _ = gsl::finally([=] {
 			utils::memory::free(buffer);
 			avs2::fs_close(file);
-		});
+			});
 
 		if (size >= 0)
 		{
@@ -73,8 +73,28 @@ namespace filesystem
 	public:
 		void post_avs_init() override
 		{
-			if (!utils::flags::has_flag("disable_ifs_hook"))
-				init();
+			utils::nt::library self{ };
+
+			auto g = game::environment::get_game();
+			std::filesystem::path data_dir = self.get_folder();
+			data_dir /= "assets";
+
+			if (g == launcher::game::iidx)
+				data_dir /= "iidx";
+			else if (g == launcher::game::sdvx)
+				data_dir /= "iidx";
+			else if (g == launcher::game::gitadora)
+				data_dir /= "gitadora";
+
+			static auto abs_data_path = std::filesystem::absolute(data_dir).generic_string();
+
+			if (!std::filesystem::exists(data_dir))
+				printf("warning: data dir %s not exists\n", abs_data_path.data());
+
+			if (utils::flags::has_flag("disable_ifs_hook"))
+				init(std::filesystem::exists(data_dir) ? nullptr : abs_data_path.data());
+
+			avs2::fs_mount("/laochan", abs_data_path.data(), "fs", const_cast<char*>("vf=1,posix=1"));
 		}
 	};
 }

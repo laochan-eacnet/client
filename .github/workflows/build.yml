@@ -43,10 +43,16 @@ jobs:
       - name: Build ${{matrix.configuration}} binaries
         run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=x64 build/laochan-client.sln
 
+      - name: copy build result
+        run: |
+          copy build\bin\x64\${{matrix.configuration}}\laochan_bootstrap64.exe data\laochan_bootstrap64.exe
+          copy build\bin\x64\${{matrix.configuration}}\laochan_bootstrap64.pdb data\laochan_bootstrap64.pdb
+
       - name: Upload ${{matrix.configuration}} binaries
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.configuration}} binaries
           path: |
-            build/bin/x64/${{matrix.configuration}}/laochan_bootstrap64.exe
-            build/bin/x64/${{matrix.configuration}}/laochan_bootstrap64.pdb
+            data/laochan_bootstrap64.exe
+            data/laochan_bootstrap64.pdb
+            data/assets

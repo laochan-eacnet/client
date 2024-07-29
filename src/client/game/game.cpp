@@ -7,7 +7,7 @@ namespace game
 	{
 		launcher::game game = launcher::game::invalid;
 		utils::nt::library game_module;
-		bool inited = false;;
+		bool inited = false;
 
 		launcher::game get_game()
 		{

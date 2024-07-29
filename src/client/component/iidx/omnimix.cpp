@@ -33,7 +33,7 @@ namespace iidx::omnimix
 
 	std::vector<json> get_additional_mdatas()
 	{
-		auto dir = avs2::fs_opendir("./music_datas");
+		auto dir = avs2::fs_opendir("/laochan/music_datas");
 
 		std::vector<json> result;
 
@@ -42,7 +42,7 @@ namespace iidx::omnimix
 
 		for (auto file = avs2::fs_readdir(dir); file; file = avs2::fs_readdir(dir))
 		{
-			filesystem::file mdata_file { utils::string::va("./music_datas/%s", file) };
+			filesystem::file mdata_file { utils::string::va("/laochan/music_datas/%s", file) };
 			if (!mdata_file.exists())
 				continue;
 
