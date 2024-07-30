@@ -1,9 +1,41 @@
 #include <std_include.hpp>
 #include "interface_ex.hpp"
 
+#include "component/iidx/custom_resolution.hpp"
+
+namespace
+{
+	bool has120hz;
+	bool has119hz;
+	bool has60hz;
+	bool has59hz;
+}
+
 d3d9ex_proxy::d3d9ex_proxy(IDirect3D9Ex* orig)
 {
 	this->m_d3d = orig;
+
+	DEVMODE dm{
+			.dmSize = sizeof(DEVMODE),
+			.dmDriverExtra = 0,
+			.dmFields = DM_DISPLAYFREQUENCY,
+	};
+
+	dm.dmDisplayFrequency = 120;
+	if (!ChangeDisplaySettingsA(&dm, CDS_TEST))
+		has120hz = true;
+
+	dm.dmDisplayFrequency = 119;
+	if (!ChangeDisplaySettingsA(&dm, CDS_TEST))
+		has119hz = true;
+
+	dm.dmDisplayFrequency = 60;
+	if (!ChangeDisplaySettingsA(&dm, CDS_TEST))
+		has60hz = true;
+
+	dm.dmDisplayFrequency = 59;
+	if (!ChangeDisplaySettingsA(&dm, CDS_TEST))
+		has59hz = true;
 }
 
 HRESULT __stdcall d3d9ex_proxy::QueryInterface(REFIID riid, void** ppvObj)
@@ -46,12 +78,39 @@ HRESULT __stdcall d3d9ex_proxy::GetAdapterIdentifier(UINT Adapter, DWORD Flags, 
 }
 
 UINT __stdcall d3d9ex_proxy::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
-{ 
+{
+	if (iidx::custom_resolution::mode() != 0 && (has120hz || has119hz || has60hz || has59hz))
+		return 1;
+
 	return m_d3d->GetAdapterModeCount(Adapter, Format);
 }
 
 HRESULT __stdcall d3d9ex_proxy::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
 {
+	if (iidx::custom_resolution::mode() != 0 && (has120hz || has119hz || has60hz || has59hz))
+	{
+		pMode->Format = Format;
+		pMode->Width = 1920;
+		pMode->Height = 1080;
+
+		if (Mode)
+			return D3DERR_INVALIDCALL;
+
+		if (has120hz)
+			pMode->RefreshRate = 120;
+
+		if (has119hz)
+			pMode->RefreshRate = 119;
+
+		if (has60hz)
+			pMode->RefreshRate = 60;
+
+		if (has59hz)
+			pMode->RefreshRate = 59;
+
+		return D3D_OK;
+	}
+
 	return m_d3d->EnumAdapterModes(Adapter, Format, Mode, pMode);
 }
 
@@ -97,14 +156,7 @@ HMONITOR __stdcall d3d9ex_proxy::GetAdapterMonitor(UINT Adapter)
 
 HRESULT __stdcall d3d9ex_proxy::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
 {
-	IDirect3DDevice9* device = nullptr;
-
-	auto hr = m_d3d->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters,  &device);
-	if (!SUCCEEDED(hr)) return hr;
-
-	*ppReturnedDeviceInterface = new d3d9ex_device_proxy(reinterpret_cast<IDirect3DDevice9Ex*>(device));
-
-	return hr;
+	return m_d3d->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
 }
 
 UINT __stdcall d3d9ex_proxy::GetAdapterModeCountEx(UINT Adapter, const D3DDISPLAYMODEFILTER* pFilter)
@@ -126,15 +178,60 @@ HRESULT __stdcall d3d9ex_proxy::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceTy
 {
 	IDirect3DDevice9Ex* device = nullptr;
 
-	pPresentationParameters->BackBufferWidth = 2560;
-	pPresentationParameters->BackBufferHeight = 1440;
+	pPresentationParameters->BackBufferWidth = iidx::custom_resolution::width();
+	pPresentationParameters->BackBufferHeight = iidx::custom_resolution::height();
 
-	auto hr = m_d3d->CreateDeviceEx(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, nullptr, &device);
+	if (iidx::custom_resolution::mode() != 0)
+	{
+		pPresentationParameters->Windowed = true;
+		pPresentationParameters->FullScreen_RefreshRateInHz = 0;
+
+		pFullscreenDisplayMode = nullptr;
+
+		// try set refresh rate to 120hz or 60hz
+		DEVMODE dm{
+			.dmSize = sizeof(DEVMODE),
+			.dmDriverExtra = 0,
+			.dmFields = DM_DISPLAYFREQUENCY,
+		};
+
+		if (has120hz)
+		{
+			dm.dmDisplayFrequency = 120;
+			ChangeDisplaySettingsA(&dm, 0);
+		}
+		else if (has119hz)
+		{
+			dm.dmDisplayFrequency = 119;
+			ChangeDisplaySettingsA(&dm, 0);
+		}
+		else if (has60hz)
+		{
+			dm.dmDisplayFrequency = 60;
+			ChangeDisplaySettingsA(&dm, 0);
+		}
+		else if (has59hz)
+		{
+			dm.dmDisplayFrequency = 59;
+			ChangeDisplaySettingsA(&dm, 0);
+		}
+		else
+		{
+			printf("interface ex: failed to set propper refresh rate in windowed mode, game may desync!!\n");
+		}
+	}
+	else
+	{
+		pFullscreenDisplayMode->Width = iidx::custom_resolution::width();
+		pFullscreenDisplayMode->Height = iidx::custom_resolution::height();
+	}
+
+	auto hr = m_d3d->CreateDeviceEx(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, &device);
 	if (!SUCCEEDED(hr)) return hr;
 
-	*ppReturnedDeviceInterface = new d3d9ex_device_proxy(device);
+	*ppReturnedDeviceInterface = new d3d9ex_device_proxy(device, pPresentationParameters->BackBufferWidth, pPresentationParameters->BackBufferHeight);
 
-	// log("interface ex: created device ex\n");
+	printf("interface ex: created device ex\n");
 
 	return hr;
 }

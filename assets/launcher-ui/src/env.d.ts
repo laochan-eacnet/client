@@ -3,6 +3,12 @@ interface Ref<T = any> {
     value: T;
 }
 
+interface DisplayMode {
+    width: number;
+    height: number;
+    hz: number;
+}
+
 interface Window {
     saucer: {
         _idc: number;
@@ -38,6 +44,8 @@ interface Window {
         /// -2 = failed to get default audio device
         /// -3 = failed to active wasapi audio client
         checkWasapiDevice: () => Promise<number>;
+        queryDisplayModes: () => Promise<DisplayMode[]>;
+        selfPath: () => Promise<string>;
         num: () => void;
         alert: {
             show: (message: string, color: string, timeout: number) => void;

@@ -58,6 +58,16 @@ window.laochan = {
     checkWasapiDevice() {
         return window.saucer.call<number>('checkWasapiDeviceStatus', []);
     },
+    queryDisplayModes() {
+        return window.saucer.call<string[]>('queryDisplayModes', [])
+            .then(modes => modes.map(v => {
+                const [width, height, hz] = JSON.parse(v);
+                return { width, height, hz };
+            }));
+    },
+    selfPath: () => {
+        return window.saucer.call<string>('selfPath', []);
+    },
     num: () => {},
     ctx: {
         gamePaths: ref<string[][]>([[], [], []]),

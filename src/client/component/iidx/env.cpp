@@ -21,15 +21,6 @@ namespace iidx::env
 				if (game::environment::get_param("IIDX_SOUND_MODE") == "1")
 					args += " --asio ";
 
-				auto display_mode = game::environment::get_param("IIDX_DISPLAY_MODE");
-
-				if (display_mode == "1")
-					args += " --miniW ";
-				else if (display_mode == "2")
-					args += " -w ";
-				else if (display_mode == "3")
-					args += " --fitW ";
-
 				printf("Starting game with cmdline: %s\n", args.data());
 				return args;
 			}

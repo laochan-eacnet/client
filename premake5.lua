@@ -108,10 +108,6 @@ newaction {
 		proc:close()
 		local version = 'r' .. gitDescribeOutput
 
-		if oldVersion == version then
-			return
-		end
-
 		proc = assert(io.popen(gitCurrentBranchCommand, "r"))
 		local gitCurrentBranchOutput = assert(proc:read('*a')):gsub("%s+", "")
 		local gitCurrentBranchSuccess = proc:close()
@@ -120,6 +116,10 @@ newaction {
 			if gitCurrentBranchOutput ~= "master" then
 				version = version .. " - " .. gitCurrentBranchOutput
 			end
+		end
+		
+		if oldVersion == version then
+			return
 		end
 
 		-- write version header

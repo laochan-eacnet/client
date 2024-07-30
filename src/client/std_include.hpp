@@ -107,6 +107,7 @@
 #pragma comment(lib, "winhttp.lib")
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d9.lib")
 
 #include "resource.hpp"

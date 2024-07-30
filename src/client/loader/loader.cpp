@@ -100,7 +100,7 @@ IMAGE_TLS_DIRECTORY* find_ldrp_tls()
 
 	auto heap_size = mbi.RegionSize;
 	
-	for (auto p = heap; p < heap + heap_size; p += sizeof(size_t))
+	for (auto p = heap; p < heap + heap_size; p++)
 	{
 		if (memcmp(p, main_tls, sizeof(IMAGE_TLS_DIRECTORY)))
 			continue;

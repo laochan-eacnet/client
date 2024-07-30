@@ -11,3 +11,5 @@
 #define ID_ASSET_7 357
 #define ID_ASSET_8 358
 #define ID_ASSET_9 359
+#define ID_ASSET_10 360
+#define ID_ASSET_11 361

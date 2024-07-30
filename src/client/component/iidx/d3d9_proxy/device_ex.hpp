@@ -3,10 +3,12 @@
 class d3d9ex_device_proxy : public IDirect3DDevice9Ex
 {
 public:
-	d3d9ex_device_proxy(IDirect3DDevice9Ex* orig);
+	d3d9ex_device_proxy(IDirect3DDevice9Ex* orig, int width, int height);
 
 private:
-	IDirect3DDevice9Ex* m_device;
+	IDirect3DDevice9Ex* device_;
+	int width_;
+	int height_;
 public:
 	virtual HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObj) override;
 	virtual ULONG __stdcall AddRef(void) override;

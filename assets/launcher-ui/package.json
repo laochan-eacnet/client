@@ -18,6 +18,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@vueuse/sound": "^2.0.1",
+    "dedent": "^1.5.3",
     "saucer-app": "^4.2.3",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^20.14.5",
+    "@types/wicg-file-system-access": "^2023.10.5",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vitejs/plugin-vue-jsx": "^4.0.0",
     "@vue/tsconfig": "^0.5.1",

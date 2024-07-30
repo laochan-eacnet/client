@@ -36,6 +36,8 @@ import { sdvx } from '@/modules/sdvx';
         <div class="opt" @click="iidx.settings">游戏设置</div>
         <div class="opt" @click="iidx.updater">更新器</div>
         <div class="opt" @click="iidx.openCustomize">自定义选项</div>
+        <div class="gap"></div> 
+        <div class="opt small" @click="iidx.generateBat">生成快速启动 BAT</div>
       </div>
     </div>
     <div class="game gitadora disable">
@@ -78,8 +80,9 @@ main>div {
   left: 0;
   width: 100%;
   height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   background-position: center;
-  backdrop-filter: brightness(50%);
+  filter: brightness(0.5);
   transition: 0.1s ease;
   z-index: -1;
 }
@@ -87,16 +90,12 @@ main>div {
 .game>.text {
   text-align: center;
   margin: auto;
-  margin-top: 250px;
-  font-size: 24px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 225px;
+  font-size: 22px;
   font-weight: 100;
   transition: 0.1s ease;
-}
-
-.game:not(.disable):hover>.text {
-  font-weight: normal;
-  text-shadow: 0 0 10px black;
+  color: #ccc;
+  mix-blend-mode: screen;
 }
 
 .game:not(.disable):hover {
@@ -140,6 +139,15 @@ main>div {
   color: #fff;
 }
 
+.game>.options>.gap {
+  height: 2em;
+}
+
+.game>.options>.opt.small {
+  padding: 0.5em;
+  font-size: 10px;
+}
+
 @for $i from 1 through 10 {
   .game>.options>.opt:nth-child(#{$i}) {
     margin-right: calc($i * 9px);
@@ -157,10 +165,9 @@ main>div {
 
 .sdvx>.background {
   background-image: url(@/assets/sdvx.jpg);
-  filter: brightness(0.4);
 }
 
-.sdvx:hover>.background {
-  filter: brightness(0.5);
+.game:hover>.background {
+  filter: brightness(0.65);
 }
 </style>
