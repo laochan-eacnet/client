@@ -15,9 +15,11 @@
 #include "mmdeviceapi.h"
 #include "audioclient.h"
 
+#include "dxgi.h"
+
 #include "component/steam_proxy.hpp"
 
-#define USE_EMBEDDED 1
+#define USE_EMBEDDED 0
 
 #if !_DEBUG || USE_EMBEDDED
 #include "resources/all.hpp"
@@ -34,10 +36,9 @@ launcher::launcher()
 		new borderless_smartview(
 			saucer::options
 			{
+				.storage_path = ".\\user",
 				.chrome_flags =
 				{
-					"--disable-gpu-vsync",
-					"--disable-frame-rate-limit",
 				}
 			}
 		), [](borderless_smartview* smartview)
@@ -261,6 +262,53 @@ void launcher::create_main_menu()
 		}
 	);
 
+	smartview_->expose("queryDisplayModes", []() -> std::vector<std::string>
+		{
+			static std::vector<std::string> result;
+			if (result.size())
+				return result;
+
+			IDXGIFactory* factory = nullptr;
+			CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+
+			IDXGIAdapter* adapter = nullptr;
+			factory->EnumAdapters(0, &adapter);
+
+			IDXGIOutput* output = nullptr;
+			adapter->EnumOutputs(0, &output);
+
+			UINT mode_count = 0;
+			output->GetDisplayModeList(DXGI_FORMAT_B8G8R8A8_UNORM, 0, &mode_count, nullptr);
+
+			auto modes = utils::memory::allocate_array<DXGI_MODE_DESC>(mode_count);
+			output->GetDisplayModeList(DXGI_FORMAT_B8G8R8A8_UNORM, 0, &mode_count, modes);
+
+			for (UINT i = 0; i < mode_count; i++)
+			{
+				auto mode = modes[i];
+				auto mode_formatted = utils::string::va("[%d,%d,%.2f]", mode.Width, mode.Height, mode.RefreshRate.Numerator / static_cast<float>(mode.RefreshRate.Denominator));
+
+				if (std::find(result.begin(), result.end(), mode_formatted) == result.end())
+					result.push_back(mode_formatted);
+			}
+
+			utils::memory::free(modes);
+
+			output->Release();
+			adapter->Release();
+			factory->Release();
+
+			return result;
+		}
+	);
+
+	smartview_->expose("selfPath", []() -> std::string
+		{
+			utils::nt::library self{};
+			return self.get_path();
+		}
+	);
+
 #if _DEBUG && !USE_EMBEDDED
 	smartview_->set_url("http://localhost:5173/");
 	smartview_->set_dev_tools(true);
@@ -268,7 +316,7 @@ void launcher::create_main_menu()
 	smartview_->embed(laochan::embedded::all());
 	smartview_->serve("");
 #endif
-}
+		}
 
 launcher::game launcher::run() const
 {

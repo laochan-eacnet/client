@@ -10,6 +10,7 @@
 #include "component/filesystem.hpp"
 #include "component/steam_proxy.hpp"
 
+#include "custom_resolution.hpp"
 #include "chart_modifier.hpp"
 
 #include <imgui.h>
@@ -29,6 +30,7 @@ namespace iidx::overlay
 	bool is_imgui_inited = false;
 	bool is_destoryed = false;
 	bool shutting_down = false;
+	bool is_block_input = false;
 	char* font_data;
 	std::chrono::steady_clock::time_point last_frame;
 	std::vector<float> frametimes;
@@ -44,6 +46,25 @@ namespace iidx::overlay
 
 	iidx::CMusicSelectScene_s* music_select_scene;
 	void* dan_select_flow;
+
+	ImVec2 scale(ImVec2 input)
+	{
+		static auto x_scale = custom_resolution::width() / 1920.f;
+		static auto y_scale = custom_resolution::height() / 1080.f;
+
+		input.x = input.x * x_scale;
+		input.y = input.y * y_scale;
+
+		return input;
+	}
+
+	void show_cursor(bool show)
+	{
+		static bool last = false;
+
+		if (last != show) ShowCursor(show);
+		last = show;
+	}
 
 	ImTextureID load_texture(const std::string& path)
 	{
@@ -159,7 +180,7 @@ namespace iidx::overlay
 
 		void add_image_center(ImDrawList* const draw_list, ImTextureID image, ImVec2 pos, int width, int height)
 		{
-			draw_list->AddImage(image, ImVec2(pos.x - (width / 2), pos.y - (height / 2)), ImVec2(pos.x + (width / 2), pos.y + (height / 2)));
+			draw_list->AddImage(image, scale(ImVec2(pos.x - (width / 2), pos.y - (height / 2))), scale(ImVec2(pos.x + (width / 2), pos.y + (height / 2))));
 		}
 
 		ImVec2 center = ImVec2(1080, 360);
@@ -226,9 +247,9 @@ namespace iidx::overlay
 				auto y2 = draw_sizes[idx] * size * std::sin(angles[idx]);
 
 
-				draw_list->PathLineTo(ImVec2(center.x + x1, center.y + y1));
-				draw_list->PathLineTo(ImVec2(center.x + x2, center.y + y2));
-				draw_list->PathLineTo(center);
+				draw_list->PathLineTo(scale(ImVec2(center.x + x1, center.y + y1)));
+				draw_list->PathLineTo(scale(ImVec2(center.x + x2, center.y + y2)));
+				draw_list->PathLineTo(scale(center));
 
 				draw_list->PathFillConcave(draw_color);
 				draw_list->PathClear();
@@ -257,8 +278,8 @@ namespace iidx::overlay
 					auto y = label_dist[i] * std::sin(angles[i]) + (i < 3 ? 8 : -(8 + text_size.y));
 
 
-					draw_list->AddText(ImVec2(center.x + x, center.y + y + 2), colors[i], disp_value);
-					draw_list->AddText(ImVec2(center.x + x, center.y + y), 0xFFFFFFFF, disp_value);
+					draw_list->AddText(scale(ImVec2(center.x + x, center.y + y + 2)), colors[i], disp_value);
+					draw_list->AddText(scale(ImVec2(center.x + x, center.y + y)), 0xFFFFFFFF, disp_value);
 				}
 
 			}
@@ -386,8 +407,8 @@ namespace iidx::overlay
 
 			auto note = note_iter->second;
 
-			ImGui::SetNextWindowPos(ImVec2(980, 500));
-			ImGui::SetNextWindowSize(ImVec2(200, 145));
+			ImGui::SetNextWindowPos(scale(ImVec2(980, 500)));
+			ImGui::SetNextWindowSize(scale(ImVec2(200, 145)));
 
 			if (ImGui::Begin("DIFFICULTY", nullptr,
 				ImGuiWindowFlags_NoDecoration |
@@ -428,16 +449,15 @@ namespace iidx::overlay
 			if (!*iidx::show_options)
 				return;
 
-			auto& io = ImGui::GetIO();
-			io.MouseDrawCursor = true;
+			show_cursor(true);
 
 			uint32_t modifier = chart_modifier::get();
 			static bool open_random_window = false;
 
 			if (iidx::state->p1_active)
-				ImGui::SetNextWindowPos(ImVec2(460, 975));
+				ImGui::SetNextWindowPos(scale(ImVec2(460, 975)));
 			else
-				ImGui::SetNextWindowPos(ImVec2(840, 975));
+				ImGui::SetNextWindowPos(scale(ImVec2(840, 975)));
 
 			if (ImGui::Begin("MODIFIER", nullptr,
 				ImGuiWindowFlags_NoDecoration |
@@ -464,89 +484,91 @@ namespace iidx::overlay
 
 			chart_modifier::set(static_cast<chart_modifier::modifier_t>(modifier));
 
+			is_block_input = open_random_window;
+
 			if (!open_random_window)
 				return;
 
 			ImGui::PushFont(font_big);
 
-			ImGui::SetNextWindowSize(ImVec2(500, 300));
-			ImGui::SetNextWindowPos(ImVec2(710, 390));
+			ImGui::SetNextWindowSize(scale(ImVec2(500, 300)));
+			ImGui::SetNextWindowPos(scale(ImVec2(710, 390)));
 
-			if (ImGui::Begin("F-RAN Option", nullptr, 
-				ImGuiWindowFlags_NoSavedSettings | 
-				ImGuiWindowFlags_NoMove | 
+			if (ImGui::Begin("F-RAN Option", nullptr,
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoMove |
 				ImGuiWindowFlags_NoResize |
 				ImGuiWindowFlags_NoCollapse))
 			{
-				static auto _ = []() -> bool 
-				{
-					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
-
-					do
+				static auto _ = []() -> bool
 					{
-						uint64_t t = 0;
+						std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
 
-						for (size_t i = 0; i < 7; i++)
-							t |= static_cast<uint64_t>(v[i]) << i * 8;
-
-						random_template.push_back(t);
-					} while (std::next_permutation(v.begin(), v.end()));
-
-					return true;
-				}();
-
-				ImGui::Text("SEARCH:");
-				if (ImGui::InputText("##", random_template_search_text, 8))
-				{
-					random_template.clear();
-					random_template_item = 0;
-
-					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
-
-					do
-					{
-						bool is_target = true;
-						uint64_t t = 0;
-
-						for (size_t i = 0; i < 7; i++)
+						do
 						{
-							if (random_template_search_text[i] == 0)
-								break;
+							uint64_t t = 0;
 
-							if (v[i] != random_template_search_text[i])
+							for (size_t i = 0; i < 7; i++)
+								t |= static_cast<uint64_t>(v[i]) << i * 8;
+
+							random_template.push_back(t);
+						} while (std::next_permutation(v.begin(), v.end()));
+
+						return true;
+					}();
+
+					ImGui::Text("SEARCH:");
+					if (ImGui::InputText("##", random_template_search_text, 8))
+					{
+						random_template.clear();
+						random_template_item = 0;
+
+						std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
+
+						do
+						{
+							bool is_target = true;
+							uint64_t t = 0;
+
+							for (size_t i = 0; i < 7; i++)
 							{
-								is_target = false;
-								break;
-							}
-						}
+								if (random_template_search_text[i] == 0)
+									break;
 
-						if (!is_target)
-							continue;
+								if (v[i] != random_template_search_text[i])
+								{
+									is_target = false;
+									break;
+								}
+							}
+
+							if (!is_target)
+								continue;
+
+							for (size_t i = 0; i < 7; i++)
+								t |= static_cast<uint64_t>(v[i]) << i * 8;
+
+							random_template.push_back(t);
+						} while (std::next_permutation(v.begin(), v.end()));
+					}
+
+					ImGui::ListBox("##", &random_template_item, [](void*, int index) -> const char* {
+						return reinterpret_cast<const char*>(random_template.data() + index);
+						}, nullptr, static_cast<int>(random_template.size()), 5);
+
+					if (ImGui::Button("USE SELECTED"))
+					{
+						auto t = reinterpret_cast<int8_t*>(random_template.data() + random_template_item);
+						int8_t new_template[7];
 
 						for (size_t i = 0; i < 7; i++)
-							t |= static_cast<uint64_t>(v[i]) << i * 8;
-						
-						random_template.push_back(t);
-					} while (std::next_permutation(v.begin(), v.end()));
-				}
+							new_template[i] = t[i] - '1';
 
-				ImGui::ListBox("##", &random_template_item, [](void*, int index) -> const char * {
-					return reinterpret_cast<const char*>(random_template.data() + index);
-				}, nullptr, static_cast<int>(random_template.size()), 5);
+						chart_modifier::set_fran(new_template);
+						open_random_window = false;
+					}
 
-				if (ImGui::Button("USE SELECTED"))
-				{
-					auto t = reinterpret_cast<int8_t*>(random_template.data() + random_template_item);
-					int8_t new_template[7];
-
-					for (size_t i = 0; i < 7; i++)
-						new_template[i] = t[i] - '1';
-
-					chart_modifier::set_fran(new_template);
-					open_random_window = false;
-				}
-
-				ImGui::End();
+					ImGui::End();
 			}
 			ImGui::PopFont();
 		}
@@ -565,17 +587,21 @@ namespace iidx::overlay
 		font_data = utils::memory::allocate<char>(font_buffer.size());
 		std::memcpy(font_data, font_buffer.data(), font_buffer.size());
 
+		auto scale_factor = custom_resolution::height() / 1080.f;
+
 		font_normal = io.Fonts->AddFontFromMemoryTTF(
-			font_data, static_cast<int>(font_buffer.size()), 16.0f,
+			font_data, static_cast<int>(font_buffer.size()), 16.0f * scale_factor,
 			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
 		font_big = io.Fonts->AddFontFromMemoryTTF(
-			font_data, static_cast<int>(font_buffer.size()), 24.0f,
+			font_data, static_cast<int>(font_buffer.size()), 24.0f * scale_factor,
 			nullptr, io.Fonts->GetGlyphRangesJapanese()
 		);
 
 		ImGui::StyleColorsDark();
+		auto& style = ImGui::GetStyle();
+		style.ScaleAllSizes(scale_factor);
 
 		ImGui_ImplWin32_Init(*iidx::main_hwnd);
 		ImGui_ImplDX9_Init(*iidx::d3d9_device);
@@ -731,6 +757,9 @@ namespace iidx::overlay
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, w_param, l_param))
 			return true;
 
+		if (is_block_input && msg == WM_INPUT)
+			return true;
+
 		return iidx::main_wndproc(hwnd, msg, w_param, l_param);
 	}
 
@@ -849,10 +878,7 @@ namespace iidx::overlay
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 
-		// HACK: this game uses fixed 1080p backbuffer
 		auto& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(1920, 1080);
-		io.MouseDrawCursor = false;
 
 		ImGui::NewFrame();
 
@@ -861,6 +887,7 @@ namespace iidx::overlay
 		if (frametimes.size() > 60)
 			frametimes.erase(frametimes.begin());
 
+		show_cursor(false);
 		draw_gui();
 
 		ImGui::EndFrame();

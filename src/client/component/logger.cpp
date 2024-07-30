@@ -103,7 +103,7 @@ namespace logger
 				return;
 
 			utils::nt::library avs2core{ "avs2-core.dll" };
-			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
+			// utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 		}
 	};
 }

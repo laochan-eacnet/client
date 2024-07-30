@@ -53,7 +53,7 @@ HMODULE WINAPI get_module_handle_w(LPCWSTR lpModuleName)
 	return GetModuleHandleW(lpModuleName);
 }
 
-DWORD WINAPI get_module_file_name_a(HMODULE hModule,LPSTR lpFilename,DWORD nSize)
+DWORD WINAPI get_module_file_name_a(HMODULE hModule, LPSTR lpFilename, DWORD nSize)
 {
 	if (!hModule)
 		hModule = game::environment::get_module();
@@ -139,6 +139,26 @@ bool try_set_game_environment(launcher::game game)
 	return false;
 }
 
+launcher::game detect_game_from_arguments()
+{
+	if (utils::flags::has_flag("iidx"))
+	{
+		return launcher::game::iidx;
+	}
+
+	if (utils::flags::has_flag("sdvx"))
+	{
+		return launcher::game::sdvx;
+	}
+
+	if (utils::flags::has_flag("gitadora"))
+	{
+		return launcher::game::gitadora;
+	}
+
+	return launcher::game::invalid;
+}
+
 int main()
 {
 	FARPROC entry_point;
@@ -158,10 +178,18 @@ int main()
 
 		try
 		{
-			const launcher launcher;
-			auto game = launcher.run();
+			auto game = detect_game_from_arguments();
+
 			if (game == launcher::game::invalid)
+			{
+				const launcher launcher;
+				game = launcher.run();
+			}
+
+			if (game == launcher::game::invalid)
+			{
 				return 0;
+			}
 
 			try_set_game_environment(game);
 

@@ -21,7 +21,7 @@ function num() {
     z-index: 30;
     left: 2em;
     bottom: 1em;
-    opacity: 60%;
-    font-family: 'Courier New', Courier, monospace;
+    color: #555;
+  mix-blend-mode: screen;
 }
 </style>

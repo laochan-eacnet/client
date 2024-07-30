@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { ref } from "vue";
 
 export interface LauncherConfig {
@@ -79,6 +80,19 @@ export class Launcher {
         await window.laochan.setParam('LAOCHAN_SERVER_URL', this._config.value.serverUrl);
         await window.laochan.setParam('LAOCHAN_ENABLE_CONSOLE', JSON.stringify(+this._config.value.enableConsole));
         await window.laochan.setParam('LAOCHAN_ENABLE_STEAM_OVERLAY', JSON.stringify(+this._config.value.enableSteamOverlay));
+    }
+
+    async exportBatParams() {
+        if (!this._config.value)
+            return;
+
+        return dedent`
+            REM Laochan Launcher Params
+            SET LAOCHAN_TOKEN="${this._config.value.token}"
+            SET LAOCHAN_SERVER_URL="${this._config.value.serverUrl}"
+            SET LAOCHAN_ENABLE_CONSOLE=${+this._config.value.enableConsole}
+            SET LAOCHAN_ENABLE_STEAM_OVERLAY=${+this._config.value.enableSteamOverlay}
+        `
     }
 }
 

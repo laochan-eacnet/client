@@ -5,15 +5,16 @@ const message = ref('');
 const color = ref('');
 const element: Ref<HTMLElement | undefined> = ref(undefined);
 
+const queue: { msg: string, colour: string, timeout: number }[] = [];
 let timer: number | undefined = undefined;
 
-window.laochan.alert.__cb = (msg, colour, timeout) => {
+function show(data: { msg: string, colour: string, timeout: number }) {
     if (!element.value) return;
 
     clearTimeout(timer);
 
-    color.value = colour;
-    message.value = msg;
+    color.value = data.colour;
+    message.value = data.msg;
     element.value.classList.remove('out');
     element.value.classList.add('in');
 
@@ -24,8 +25,22 @@ window.laochan.alert.__cb = (msg, colour, timeout) => {
         element.value.classList.add('out');
 
         clearTimeout(timer);
-        timer = undefined;
-    }, timeout);
+        
+        // wait for out animation
+        setTimeout(() => {
+            timer = undefined;
+
+            const next = queue.shift();
+            if (next) show(next);
+        }, 250);
+    }, data.timeout);
+};
+
+window.laochan.alert.__cb = (msg, colour, timeout) => {
+    if (timer === undefined)
+        show({ msg, colour, timeout });
+    else
+        queue.push({ msg, colour, timeout });
 };
 </script>
 
@@ -76,7 +91,7 @@ window.laochan.alert.__cb = (msg, colour, timeout) => {
 
 .in {
     animation-name: in;
-    animation-duration: 0.5s;
+    animation-duration: 0.25s;
     animation-direction: normal;
     animation-fill-mode: both;
     animation-timing-function: ease;
@@ -84,7 +99,7 @@ window.laochan.alert.__cb = (msg, colour, timeout) => {
 
 .out {
     animation-name: out;
-    animation-duration: 0.5s;
+    animation-duration: 0.25s;
     animation-direction: normal;
     animation-fill-mode: both;
     animation-timing-function: ease;
