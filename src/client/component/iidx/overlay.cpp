@@ -837,21 +837,21 @@ namespace iidx::overlay
 		steam_proxy::set_status(status);
 	}
 
-	bool dan_select_flow_attach(void* scene)
+	bool dan_select_scene_attach(void* scene)
 	{
 		printf("D:overlay: CDanSelectFlow::OnAttach\n");
 
 		dan_select_flow = scene;
-		return iidx::dan_select_flow_attach(scene);
+		return iidx::dan_select_scene_attach(scene);
 	}
 
 
-	void dan_select_flow_detach(void* scene)
+	void dan_select_scene_detach(void* scene)
 	{
 		printf("D:overlay: CDanSelectFlow::OnDetach\n");
 
 		dan_select_flow = nullptr;
-		return iidx::dan_select_flow_detach(scene);
+		return iidx::dan_select_scene_detach(scene);
 	}
 
 	void draw()
@@ -919,19 +919,19 @@ namespace iidx::overlay
 	public:
 		void post_load() override
 		{
-			present.create(0x1401F7710, present_stub);
+			present.create(0x1401F78C0, present_stub);
 
 			// hook wndproc
-			utils::hook::inject(0x1402023D2, wndproc);
+			utils::hook::inject(0x140202582, wndproc);
 
 			utils::hook::set(iidx::music_select_scene_attach.get_entry_ptr(), music_select_scene_attach);
 			utils::hook::set(iidx::music_select_scene_detach.get_entry_ptr(), music_select_scene_detach);
 
-			utils::hook::set(iidx::dan_select_flow_attach.get_entry_ptr(), dan_select_flow_attach);
-			utils::hook::set(iidx::dan_select_flow_detach.get_entry_ptr(), dan_select_flow_detach);
+			utils::hook::set(iidx::dan_select_scene_attach.get_entry_ptr(), dan_select_scene_attach);
+			utils::hook::set(iidx::dan_select_scene_detach.get_entry_ptr(), dan_select_scene_detach);
 
 			utils::hook::set(iidx::stage_result_draw_frame_init.get_entry_ptr(), stage_result_draw_frame_init);
-			base_stage_attach.create(0x140184E30, base_stage_attach_hook);
+			base_stage_attach.create(0x140184FD0, base_stage_attach_hook);
 		}
 
 		void pre_destroy() override

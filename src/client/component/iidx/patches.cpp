@@ -85,14 +85,14 @@ namespace iidx::patches
 		void post_load() override
 		{
 			// disable signature check
-			utils::hook::jump(0x140312B60, is_signature_valid);
+			utils::hook::jump(0x140312D10, is_signature_valid);
 
 			// disable music list checksum check
-			utils::hook::nop(0x1403017E2, 2);
-			utils::hook::nop(0x1403017EE, 2);
+			utils::hook::nop(0x140301992, 2);
+			utils::hook::nop(0x14030199E, 2);
 
-			//// change server url
-			utils::hook::jump(0x1402F88B0, get_service_url);
+			// change server url
+			utils::hook::jump(0x1402F8A60, get_service_url);
 			printf("Using bootstrap url: %s\n", get_service_url(nullptr, false, false));
 
 			// override asio device name
@@ -104,12 +104,12 @@ namespace iidx::patches
 
 				std::memcpy(asio_name, device_name.data(), device_name.size());
 
-				utils::hook::inject(0x140253B24, asio_name);
+				utils::hook::inject(0x140253CD4, asio_name);
 				printf("I:launcher: using asio device: %s\n", asio_name);
 
 				// enable retry logic for asio
-				utils::hook::nop(0x1401DC897, 6);
-				init_superstep_sound_hook.create(0x140253840, init_superstep_sound_stub);
+				utils::hook::nop(0x1401DCA47, 6);
+				init_superstep_sound_hook.create(0x1402539F0, init_superstep_sound_stub);
 			}
 
 			utils::nt::library winhttp{ "winhttp.dll" };

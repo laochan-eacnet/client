@@ -380,16 +380,16 @@ namespace iidx::chart_modifier
 		void post_load() override
 		{
 #ifdef DEBUG
-			utils::hook::jump(0x14016DD30, test_fps);
+			utils::hook::jump(0x14016DED0, test_fps);
 #endif
 
-			post_load_chart_hook.create(0x14011B990, post_load_chart);
-			get_option_str_hook.create(0x140131890, get_option_str);
+			post_load_chart_hook.create(0x14011B9E0, post_load_chart);
+			get_option_str_hook.create(0x140131980, get_option_str);
 
 			utils::hook::set(0x140423778, report_result_export_request_property);
 
 			// allow negtive bpm (movzx -> movsx)
-			utils::hook::set<uint8_t>(0x14011C517, 0xBF);
+			utils::hook::set<uint8_t>(0x14011C567, 0xBF);
 	}
 };
 }

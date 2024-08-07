@@ -7,7 +7,7 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
-#define IIDX_TARGET_VERSION "P2D:J:B:A:2024052200"
+#define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
 
 namespace iidx::env
 {
@@ -56,7 +56,7 @@ namespace iidx::env
 			}
 		)();
 
-		utils::hook::set<uint32_t>(0x1405F0CD4, language);
+		utils::hook::set<uint32_t>(0x1405F0D24, language);
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
@@ -76,7 +76,7 @@ namespace iidx::env
 				throw std::runtime_error(utils::string::va("Unsupported version %s\nSupported version is " IIDX_TARGET_VERSION ".", version.data()));
 			}
 
-			load_ifs.create(0x1402240E0, load_ifs_hook);
+			load_ifs.create(0x140224290, load_ifs_hook);
 			// init_thread_footer.create(0x14035EFA4, init_thread_footer_hook);
 			
 			CONTEXT ctx{ 0 };
@@ -84,7 +84,7 @@ namespace iidx::env
 			auto thread = GetCurrentThread();
 			if (GetThreadContext(thread, &ctx))
 			{
-				ctx.Dr0 = 0x1405F0CD0;
+				ctx.Dr0 = 0x1405F0D20;
 				ctx.Dr7 = 1 | 1 << 16;
 
 				SetThreadContext(thread, &ctx);
