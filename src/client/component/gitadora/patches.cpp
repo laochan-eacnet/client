@@ -3,11 +3,10 @@
 
 #include <utils/hook.hpp>
 #include <utils/string.hpp>
-#include <game/game.hpp>
-#include <launcher/launcher.hpp>
-#include <DbgHelp.h>
 
-namespace sdvx::patches
+#include <launcher/launcher.hpp>
+
+namespace gitadora::patches
 {
 	bool is_signature_valid()
 	{
@@ -19,6 +18,17 @@ namespace sdvx::patches
 		return false;
 	}
 
+	const char* __fastcall get_service_url()
+	{
+		static auto service_url = ([]
+			{
+				return game::environment::get_param("LAOCHAN_SERVER_URL");
+			}
+		)();
+
+		return service_url.data();
+	}
+
 	class component final : public component_interface
 	{
 	public:
@@ -27,7 +37,13 @@ namespace sdvx::patches
 			utils::nt::library libeacnet{ "libeacnet.dll" };
 
 			// disable signature check
-			utils::hook::jump(libeacnet.get_ptr() + 0xF9F0, is_signature_valid, true);
+			utils::hook::jump(libeacnet.get_ptr() + 0xF9E0, is_signature_valid, true);
+
+			// change service url
+			utils::hook::jump(libeacnet.get_ptr() + 0x11EC0, get_service_url, true);
+
+			// disable anticheat thread
+			utils::hook::nop(0x140003AC2, 5);
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override
@@ -43,4 +59,4 @@ namespace sdvx::patches
 	};
 }
 
-REGISTER_COMPONENT(sdvx::patches::component, launcher::game::sdvx)
+REGISTER_COMPONENT(gitadora::patches::component, launcher::game::gitadora)
