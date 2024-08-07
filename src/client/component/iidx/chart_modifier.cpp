@@ -370,7 +370,7 @@ namespace iidx::chart_modifier
 
 	bool report_result_export_request_property(iidx::eacnet_request_post_s* _this, void* a1, void* a2)
 	{
-		iidx::property_node_create(_this->eacnet_property.property, nullptr, iidx::NODE_TYPE_u32, "/p2d/params/modifier", static_cast<uint32_t>(modifier_flag & ~modifier_t::fixed_random));
+		avs2::property_node_create(_this->eacnet_property.property, nullptr, avs2::NODE_TYPE_u32, "/p2d/params/modifier", static_cast<uint32_t>(modifier_flag & ~modifier_t::fixed_random));
 		return iidx::EacnetRequestPost::OnRequestPropertyExported(_this, a1, a2);
 	}
 

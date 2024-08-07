@@ -78,7 +78,7 @@ namespace iidx::omnimix
 			const size_t id = item["id"].get<size_t>();
 			const auto index = music_data->index_table[id];
 
-			if ((id >= CUR_STYLE_ENTRIES && index == 0) || index == 0xffff)
+			if (index <= 0)
 				continue;
 
 			auto* const music = music_data->musics + index;
@@ -150,6 +150,11 @@ namespace iidx::omnimix
 	music.##field = item##path.get<uint8_t>();
 
 			LOAD_INT(song_id, ["id"]);
+
+			// skip existing song
+			if (backup->index_table[music.song_id] > 0) {
+				continue;
+			}
 
 			LOAD_STRING(title, ["title"]);
 			LOAD_STRING(title_ascii, ["englishTitle"]);

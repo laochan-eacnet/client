@@ -587,7 +587,11 @@ namespace iidx::overlay
 		font_data = utils::memory::allocate<char>(font_buffer.size());
 		std::memcpy(font_data, font_buffer.data(), font_buffer.size());
 
+		auto ratio = (custom_resolution::width() * 1.f) / custom_resolution::height();
 		auto scale_factor = custom_resolution::height() / 1080.f;
+
+		if (ratio < (16.f / 9.f))
+			scale_factor = custom_resolution::width() / 1920.f;
 
 		font_normal = io.Fonts->AddFontFromMemoryTTF(
 			font_data, static_cast<int>(font_buffer.size()), 16.0f * scale_factor,

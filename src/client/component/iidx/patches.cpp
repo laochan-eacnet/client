@@ -79,6 +79,36 @@ namespace iidx::patches
 		return request;
 	}
 
+	bool generate_music_list(avs2::property_ptr dst_prop, avs2::node_ptr /* dst_node */, avs2::node_ptr /*src_node*/, bool /*deep*/)
+	{
+		auto music_data = iidx::get_music_data();
+		auto root = avs2::property_node_create(dst_prop, nullptr, avs2::NODE_TYPE_s32, "/music_list", music_data->music_count);
+
+		avs2::property_node_create(dst_prop, root, avs2::NODE_TYPE_s32, "music_num", music_data->music_count);
+
+		for (size_t i = 0; i < music_data->music_count; i++)
+		{
+			auto& music = music_data->musics[i];
+			auto notebit = 0;
+
+			for (size_t j = 0; j < 10; j++)
+			{
+				if (music.level[j])
+					notebit |= 1 << j;
+			}
+
+			static const uint8_t zero_buffer[64]{};
+			auto* node = avs2::property_node_create(dst_prop, root, avs2::NODE_TYPE_node, "music", zero_buffer);
+
+			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_s32, "music_id", music.song_id);
+			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_s32, "kind", 1);
+			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_s32, "note_bit", notebit);
+			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_str, "music_pack_item_id", "");
+		}
+
+		return true;
+	}
+
 	class component final : public component_interface
 	{
 	public:
@@ -90,6 +120,10 @@ namespace iidx::patches
 			// disable music list checksum check
 			utils::hook::nop(0x140301992, 2);
 			utils::hook::nop(0x14030199E, 2);
+
+			// generate music list from client
+			utils::hook::nop(0x14030189F, 6);
+			utils::hook::call(0x14030189F, generate_music_list);
 
 			// change server url
 			utils::hook::jump(0x1402F8A60, get_service_url);

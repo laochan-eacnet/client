@@ -21,8 +21,8 @@ namespace iidx
 		WEAK symbol<bool(eacnet_request_post_s*, void*, void*)> OnRequestPropertyExported{ 0x140302FE0 };
 	}
 
-	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAD408 };
-	WEAK symbol<IDirect3DDevice9*> d3d9_device{ 0x142AAD408 };
+	WEAK symbol<IDirect3DDevice9Ex*> d3d9ex_device{ 0x142AAD410 };
+	WEAK symbol<IDirect3DDevice9*> d3d9_device{ 0x142AAD410 };
 	WEAK symbol<HWND*> main_hwnd{ 0x142AAD400 };
 	WEAK symbol<const char> infinitas_id{ 0x141AC5494 };
 	WEAK symbol<const char> game_version{ 0x141AC54E3 };
