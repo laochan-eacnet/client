@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { iidx } from '@/modules/iidx';
 import { sdvx } from '@/modules/sdvx';
+import { gitadora } from '@/modules/gitadora';
 </script>
 
 <template>
@@ -40,11 +41,23 @@ import { sdvx } from '@/modules/sdvx';
         <div class="opt small" @click="iidx.generateBat">生成快速启动 BAT</div>
       </div>
     </div>
-    <div class="game gitadora disable">
-      <div class="background"></div>
+    <div class="game gitadora">
+      <div class="background">
+        <video loop autoplay muted src="../assets/gitadora.webm"></video>
+      </div>
       <div class="text">
-        GITDORA
-        <div class="tip"><small>COMING S∞N</small></div>
+        GITADORA <br><br>
+        <div v-if="!gitadora.installed()" class="tip">
+          未安装
+        </div>
+        <div v-else class="tip">
+          <small>请注意: 服务器暂不支持</small>
+        </div>
+      </div>
+      <div v-if="gitadora.installed()" class="options">
+        <div class="opt" @click="gitadora.start">启动</div>
+        <div class="opt" @click="gitadora.settings">游戏设置</div>
+        <div class="opt" @click="gitadora.updater">更新器</div>
       </div>
     </div>
     <div></div>
@@ -169,5 +182,14 @@ main>div {
 
 .game:hover>.background {
   filter: brightness(0.65);
+}
+
+.gitadora>.background {
+  opacity: 0.8;
+}
+
+.gitadora>.background>video {
+  position: absolute;
+  right: -25%;
 }
 </style>

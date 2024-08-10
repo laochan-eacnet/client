@@ -1,11 +1,11 @@
 import { ref, type Ref } from "vue";
 import { launcher } from "./launcher";
 
-export interface SDVXConfig {
+export interface GITADORAConfig {
 }
 
-export class SDVX {
-    private _config: Ref<SDVXConfig | undefined> = ref(undefined);
+export class GITADORA {
+    private _config: Ref<GITADORAConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
 
     get config() {
@@ -13,7 +13,7 @@ export class SDVX {
     }
 
     installed() {
-        return !!window.laochan.ctx.gamePaths.value[1].length;
+        return !!window.laochan.ctx.gamePaths.value[2].length;
     }
     
     get installPath() {
@@ -21,7 +21,7 @@ export class SDVX {
             return;
         }
 
-        const [installPath] = window.laochan.ctx.gamePaths.value[1];
+        const [installPath] = window.laochan.ctx.gamePaths.value[2];
         return installPath;
     }
 
@@ -80,7 +80,7 @@ export class SDVX {
 
     async start() {
         await this.loadConfig();
-        await window.laochan.setGame(1);
+        await window.laochan.setGame(2);
 
         await this.applyConfig();
         await launcher.applyConfig();
@@ -107,4 +107,4 @@ export class SDVX {
     }
 };
 
-export const sdvx = new SDVX();
+export const gitadora = new GITADORA();

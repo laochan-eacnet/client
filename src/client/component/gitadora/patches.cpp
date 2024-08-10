@@ -18,6 +18,26 @@ namespace gitadora::patches
 		return false;
 	}
 
+	// force exit anti debug thread
+	void check_remote_debugger_preset(HANDLE, PBOOL preset)
+	{
+		ExitThread(0);
+	}
+
+	void* get_proc_address(HMODULE module, const char* name)
+	{
+		if (name == "IsDebuggerPresent"s)
+			return is_debugger_present;
+
+		if (name == "CheckRemoteDebuggerPresent"s)
+			return check_remote_debugger_preset;
+
+		if (name == "ExitProcess"s)
+			return exit;
+
+		return GetProcAddress(module, name);
+	}
+
 	const char* __fastcall get_service_url()
 	{
 		static auto service_url = ([]
@@ -41,9 +61,6 @@ namespace gitadora::patches
 
 			// change service url
 			utils::hook::jump(libeacnet.get_ptr() + 0x11EC0, get_service_url, true);
-
-			// disable anticheat thread
-			utils::hook::nop(0x140003AC2, 5);
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override
@@ -52,6 +69,10 @@ namespace gitadora::patches
 			if (function == "IsDebuggerPresent")
 			{
 				return is_debugger_present;
+			}
+			else if (function == "GetProcAddress")
+			{
+				return get_proc_address;
 			}
 
 			return nullptr;

@@ -15,7 +15,7 @@ namespace iidx::env
 	{
 		static auto cmdline = ([]
 			{
-				auto args = "bm2dx.exe --ex -t "s;
+				auto args = "bm2dx.exe -t "s;
 				args += game::environment::get_param("LAOCHAN_TOKEN");
 
 				if (game::environment::get_param("IIDX_SOUND_MODE") == "1")

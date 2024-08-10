@@ -19,7 +19,7 @@
 
 #include "component/steam_proxy.hpp"
 
-#define USE_EMBEDDED 1
+#define USE_EMBEDDED 0
 
 #if !_DEBUG || USE_EMBEDDED
 #include "resources/all.hpp"

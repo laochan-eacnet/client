@@ -81,8 +81,10 @@ namespace iidx::patches
 
 	bool generate_music_list(avs2::property_ptr dst_prop, avs2::node_ptr /* dst_node */, avs2::node_ptr /*src_node*/, bool /*deep*/)
 	{
+		static const uint8_t zero_buffer[64]{};
+
 		auto music_data = iidx::get_music_data();
-		auto root = avs2::property_node_create(dst_prop, nullptr, avs2::NODE_TYPE_s32, "/music_list", music_data->music_count);
+		auto root = avs2::property_node_create(dst_prop, nullptr, avs2::NODE_TYPE_node, "/music_list", zero_buffer);
 
 		avs2::property_node_create(dst_prop, root, avs2::NODE_TYPE_s32, "music_num", music_data->music_count);
 
@@ -97,7 +99,6 @@ namespace iidx::patches
 					notebit |= 1 << j;
 			}
 
-			static const uint8_t zero_buffer[64]{};
 			auto* node = avs2::property_node_create(dst_prop, root, avs2::NODE_TYPE_node, "music", zero_buffer);
 
 			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_s32, "music_id", music.song_id);
