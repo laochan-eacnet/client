@@ -31,5 +31,5 @@ namespace iidx
 	WEAK symbol<bool> show_consume_window{ 0x1405EFAA0 };
 	WEAK symbol<int> selected_gauge_type{ 0x141ACE128 };
 
-	WEAK symbol<state_t> state{ 0x1426A15D4 };
+	WEAK symbol<state_t> state{ 0x1426A15C4 };
 }
