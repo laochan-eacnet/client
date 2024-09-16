@@ -309,9 +309,12 @@ void launcher::create_main_menu()
 		}
 	);
 
-#if _DEBUG && !USE_EMBEDDED
-	smartview_->set_url("http://localhost:5173/");
+#if _DEBUG
 	smartview_->set_dev_tools(true);
+#endif
+	
+#if !USE_EMBEDDED
+	smartview_->set_url("http://localhost:5173/");	
 #else
 	smartview_->embed(laochan::embedded::all());
 	smartview_->serve("");
