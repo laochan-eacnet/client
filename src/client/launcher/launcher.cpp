@@ -100,7 +100,9 @@ void launcher::create_main_menu()
 				}
 				auto install = gamemeta.get_install_path();
 				auto resource = gamemeta.get_resource_path();
-				return { install, resource};
+				auto installu8 = utils::string::wide_to_utf8(install);
+				auto resourceu8 = utils::string::wide_to_utf8(resource);
+				return { installu8, resourceu8};
 			}
 			catch (std::exception)
 			{
@@ -116,6 +118,7 @@ void launcher::create_main_menu()
 			{
 				if (game_index >= static_cast<int>(launcher::game::count) || game_index <= static_cast<int>(launcher::game::invalid))
 				{
+					MessageBoxA(nullptr, "game index out of range", "ERROR", MB_ICONERROR);
 					return {};
 				}
 				auto gamemeta = ::game::environment::gamemeta::get_gamemeta(static_cast<launcher::game>(game_index));
@@ -125,19 +128,19 @@ void launcher::create_main_menu()
 				j1["installed"] = gamemeta.get_install_state();
 				if (gamemeta.get_install_state())
 				{
-					j1["install_path"] = gamemeta.get_install_path();
-					j1["resource_path"] = gamemeta.get_resource_path();
-					j1["game_module_path"] = gamemeta.get_game_module_path();
-					j1["settings_module_path"] = gamemeta.get_settings_module_path();
-					j1["updater_module_path"] = gamemeta.get_updater_module_path();
-					j1["game_module_version"] = gamemeta.get_game_module_version();
-					j1["game_module_target_version"] = gamemeta.get_game_module_target_version();
+					j1["install_path"] = utils::string::wide_to_utf8(gamemeta.get_install_path());
+					j1["resource_path"] = utils::string::wide_to_utf8(gamemeta.get_resource_path());
+					j1["game_module_path"] = utils::string::wide_to_utf8(gamemeta.get_game_module_path());
+					j1["settings_module_path"] = utils::string::wide_to_utf8(gamemeta.get_settings_module_path());
+					j1["updater_module_path"] = utils::string::wide_to_utf8(gamemeta.get_updater_module_path());
+					j1["game_module_version"] = utils::string::wide_to_utf8(gamemeta.get_game_module_version());
+					j1["game_module_target_version"] = utils::string::wide_to_utf8(gamemeta.get_game_module_target_version());
 				}
 				auto json = j1.dump();
 
 				return json;
 			}
-			catch (std::exception)
+			catch (std::exception&)
 			{
 			}
 
@@ -149,20 +152,17 @@ void launcher::create_main_menu()
 		{
 			if (!std::filesystem::exists(path))
 				return "<NOT EXIST>";
-
-			FILE* file = nullptr;
-			fopen_s(&file, path.data(), "r");
-			fseek(file, 0, SEEK_END);
-			auto size = ftell(file);
-			fseek(file, 0, SEEK_SET);
-
+			auto pathw = utils::string::utf8_to_wide(path);
+			std::ifstream file_stream;
+			file_stream.open(pathw, std::ifstream::in);
+			file_stream.seekg(0, std::ios::end);
+			auto size = file_stream.tellg();
+			file_stream.seekg(0, std::ios::beg);
 			std::string buffer;
-			buffer.resize(size + 1);
-			fread(buffer.data(), 1, size, file);
+			buffer.resize(static_cast<int>(size) + 1);
+			file_stream.read(buffer.data(), size);
 			buffer.resize(size);
-
-			fclose(file);
-
+			file_stream.close();
 			return buffer;
 		}, true
 	);
@@ -171,11 +171,11 @@ void launcher::create_main_menu()
 		{
 			if (std::filesystem::exists(path))
 				std::filesystem::remove(path);
-
-			FILE* file = nullptr;
-			fopen_s(&file, path.data(), "w");
-			fwrite(content.data(), 1, content.size(), file);
-			fclose(file);
+			auto pathw = utils::string::utf8_to_wide(path);
+			std::ofstream file_stream;
+			file_stream.open(pathw, std::ifstream::out);
+			file_stream.write(content.data(), content.size());
+			file_stream.close();
 		}
 	);
 

@@ -99,8 +99,8 @@ HRESULT __stdcall d3d9ex_proxy::EnumAdapterModes(UINT Adapter, D3DFORMAT Format,
 	if (iidx::custom_resolution::mode() != 0 || (has120hz || has119hz || has60hz || has59hz))
 	{
 		pMode->Format = Format;
-		pMode->Width = iidx::custom_resolution::width();
-		pMode->Height = iidx::custom_resolution::height();
+		pMode->Width = 1920;
+		pMode->Height = 1080;
 
 		if (Mode)
 			return D3DERR_INVALIDCALL;
@@ -187,8 +187,8 @@ HRESULT __stdcall d3d9ex_proxy::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceTy
 {
 	IDirect3DDevice9Ex* device = nullptr;
 
-	pPresentationParameters->BackBufferWidth = 1920;
-	pPresentationParameters->BackBufferHeight = 1080;
+	pPresentationParameters->BackBufferWidth = iidx::custom_resolution::width();
+	pPresentationParameters->BackBufferHeight = iidx::custom_resolution::height();
 
 	if (iidx::custom_resolution::mode() != 0)
 	{

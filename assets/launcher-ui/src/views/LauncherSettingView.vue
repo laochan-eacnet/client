@@ -135,7 +135,9 @@ async function save() {
                             }}</a></h3>
                     <h3>资源路径: <a class="path link" @click="openPath(pathes()[i].resource_path)">{{ pathes()[i].resource_path
                             }}</a></h3>
-                    <h3>游戏版本: <a class="path link" @click="openPath(pathes()[i].game_module_version)">{{ pathes()[i].game_module_version
+                    <h3>游戏版本: <a class="path link">{{ pathes()[i].game_module_version
+                            }}</a></h3>
+                    <h3>支持版本: <a class="path link">{{ pathes()[i].game_module_target_version
                             }}</a></h3>
                 </div>
                 <div v-else>

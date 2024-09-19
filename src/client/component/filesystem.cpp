@@ -91,7 +91,7 @@ namespace filesystem
 			if (!std::filesystem::exists(data_dir))
 				printf("warning: data dir %s not exists\n", abs_data_path.data());
 
-			if (utils::flags::has_flag("disable_ifs_hook"))
+			if (!utils::flags::has_flag("disable_ifs_hook"))
 				init(std::filesystem::exists(data_dir) ? nullptr : abs_data_path.data());
 
 			avs2::fs_mount("/laochan", abs_data_path.data(), "fs", const_cast<char*>("vf=1,posix=1"));

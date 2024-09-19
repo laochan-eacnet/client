@@ -1,5 +1,5 @@
 import { ref, type Ref } from "vue";
-import { launcher } from "./launcher";
+import { launcher, VersionState } from "./launcher";
 
 export interface GITADORAConfig {
 }
@@ -15,7 +15,7 @@ export class GITADORA {
     installed() {
         return !!window.laochan.ctx.gameInfos.value[2].installed;
     }
-    
+
     get installPath() {
         if (!this.installed()) {
             return;
@@ -32,6 +32,25 @@ export class GITADORA {
         }
 
         return installPath + 'laochan-config.json';
+    }
+
+    checkVersion(): VersionState {
+        if (!this.installed()) {
+            return VersionState.Unknown;
+        }
+        const installVersion = window.laochan.ctx.gameInfos.value[2].game_module_version;
+        const targetVersion = window.laochan.ctx.gameInfos.value[2].game_module_target_version;
+        const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
+        const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
+        if (installVersionNum > targetVersionNum) {
+            return VersionState.Need2UpdateLauncher;
+        }
+        else if (installVersionNum < targetVersionNum) {
+            return VersionState.Need2UpdateGame;
+        }
+        else {
+            return VersionState.Normal
+        }
     }
 
     async resetConfig() {

@@ -182,7 +182,8 @@ namespace utils::string
 		std::wstring buffer;
 
 		auto size = MultiByteToWideChar(932, 0, str.data(), -1, nullptr, 0);
-		buffer.resize(size + 1);
+		size--;
+		buffer.resize(size);
 
 		MultiByteToWideChar(932, 0, str.data(), -1, buffer.data(), size);
 
@@ -194,7 +195,8 @@ namespace utils::string
 		std::wstring buffer;
 
 		auto size = MultiByteToWideChar(65001, 0, str.data(), -1, nullptr, 0);
-		buffer.resize(size + 1);
+		size--;
+		buffer.resize(size);
 
 		MultiByteToWideChar(65001, 0, str.data(), -1, buffer.data(), size);
 
@@ -206,7 +208,8 @@ namespace utils::string
 		std::string buffer;
 
 		auto size = WideCharToMultiByte(932, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);
-		buffer.resize(size + 1);
+		size--;
+		buffer.resize(size);
 
 		WideCharToMultiByte(932, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);
 
@@ -217,10 +220,11 @@ namespace utils::string
 	{
 		std::string buffer;
 
-		auto size = WideCharToMultiByte(65001, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);
-		buffer.resize(size + 1);
+		auto size = WideCharToMultiByte(65001, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);//这里返回的大小包含null
+		size--;
+		buffer.resize(size);
 
-		WideCharToMultiByte(65001, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);
+		WideCharToMultiByte(65001, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);//如果显式指定大小则可以不包含null
 
 		return buffer;
 	}

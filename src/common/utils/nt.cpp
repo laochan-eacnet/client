@@ -176,17 +176,17 @@ namespace utils::nt
 		return result;
 	}
 
-	std::string library::get_version(const std::string& path)
+	std::wstring library::get_version(const std::wstring& path)
 	{
 		DWORD handle;
 
-		auto size = GetFileVersionInfoSizeA(path.data(), &handle);
+		auto size = GetFileVersionInfoSizeW(path.data(), &handle);
 
 		if (!size) return {};
 
 		auto buffer = memory::allocate(size);
 
-		if (!GetFileVersionInfoA(path.data(), handle, size, buffer))
+		if (!GetFileVersionInfoW(path.data(), handle, size, buffer))
 		{
 			memory::free(buffer);
 			return {};
@@ -195,13 +195,13 @@ namespace utils::nt
 		LPVOID out_buffer;
 		UINT out_size;
 
-		if (!VerQueryValueA(buffer, "\\StringFileInfo\\041104b0\\ProductVersion", &out_buffer, &out_size))
+		if (!VerQueryValueW(buffer, L"\\StringFileInfo\\041104b0\\ProductVersion", &out_buffer, &out_size))
 		{
 			memory::free(buffer);
 			return {};
 		}
 
-		auto result = std::string{ reinterpret_cast<const char*>(out_buffer) };
+		auto result = std::wstring{ reinterpret_cast<const wchar_t*>(out_buffer) };
 
 		memory::free(buffer);
 		return result;

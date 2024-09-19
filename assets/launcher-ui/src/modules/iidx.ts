@@ -1,14 +1,7 @@
 import { ref, type Ref } from "vue";
-import { launcher } from "./launcher";
+import { launcher, VersionState } from "./launcher";
 import dedent from "dedent";
 import type { TupleType } from "typescript";
-
-export enum VersionState {
-    Unknown = -1,
-    Normal = 0,
-    Need2UpdateLauncher = 1,
-    Need2UpdateGame = 2,
-}
 
 export enum IIDXDisplayMode {
     Fullscreen = 0,
@@ -77,16 +70,13 @@ export class IIDX {
         const targetVersion = window.laochan.ctx.gameInfos.value[0].game_module_target_version;
         const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
         const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
-        if (installVersionNum > targetVersionNum)
-        {
+        if (installVersionNum > targetVersionNum) {
             return VersionState.Need2UpdateLauncher;
-        } 
-        else if (installVersionNum < targetVersionNum)
-        {
+        }
+        else if (installVersionNum < targetVersionNum) {
             return VersionState.Need2UpdateGame;
         }
-        else 
-        {
+        else {
             return VersionState.Normal
         }
     }

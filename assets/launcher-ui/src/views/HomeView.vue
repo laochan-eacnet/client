@@ -17,7 +17,13 @@ import { gitadora } from '@/modules/gitadora';
         </div>
       </div>
       <div v-if="sdvx.installed()" class="options">
-        <div class="opt" @click="sdvx.start">启动</div>
+        <div v-if="sdvx.checkVersion() == 0" class="opt" @click="sdvx.start">启动</div>
+        <div v-if="sdvx.checkVersion() == 1" class="tip opt">
+          请升级启动器
+        </div>
+        <div v-if="sdvx.checkVersion() == 2" class="tip opt">
+          请升级游戏
+        </div>
         <div class="opt" @click="sdvx.settings">游戏设置</div>
         <div class="opt" @click="sdvx.updater">更新器</div>
       </div>
@@ -36,7 +42,7 @@ import { gitadora } from '@/modules/gitadora';
         <div v-if="iidx.checkVersion() == 1" class="tip opt">
           请升级启动器
         </div>
-        <div v-if="iidx.checkVersion() == 2" class="tip opt disable">
+        <div v-if="iidx.checkVersion() == 2" class="tip opt">
           请升级游戏
         </div>
         <RouterLink class="opt" to="/iidx/settings">额外设置</RouterLink>
@@ -61,7 +67,13 @@ import { gitadora } from '@/modules/gitadora';
         </div>
       </div>
       <div v-if="gitadora.installed()" class="options">
-        <div class="opt" @click="gitadora.start">启动</div>
+        <div v-if="gitadora.checkVersion() == 0" class="opt" @click="gitadora.start">启动</div>
+        <div v-if="gitadora.checkVersion() == 1" class="tip opt">
+          请升级启动器
+        </div>
+        <div v-if="gitadora.checkVersion() == 2" class="tip opt">
+          请升级游戏
+        </div>
         <div class="opt" @click="gitadora.settings">游戏设置</div>
         <div class="opt" @click="gitadora.updater">更新器</div>
       </div>

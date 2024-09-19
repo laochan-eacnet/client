@@ -8,6 +8,13 @@ export interface LauncherConfig {
     enableSteamOverlay: boolean;
 }
 
+export enum VersionState {
+    Unknown = -1,
+    Normal = 0,
+    Need2UpdateLauncher = 1,
+    Need2UpdateGame = 2,
+}
+
 export class Launcher {
     private _config: Ref<LauncherConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
