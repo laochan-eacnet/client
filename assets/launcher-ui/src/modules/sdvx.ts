@@ -13,7 +13,7 @@ export class SDVX {
     }
 
     installed() {
-        return !!window.laochan.ctx.gamePaths.value[1].length;
+        return !!window.laochan.ctx.gameInfos.value[1].installed;
     }
     
     get installPath() {
@@ -21,7 +21,7 @@ export class SDVX {
             return;
         }
 
-        const [installPath] = window.laochan.ctx.gamePaths.value[1];
+        const [installPath] = window.laochan.ctx.gameInfos.value[1].install_path;
         return installPath;
     }
 

@@ -15,6 +15,15 @@ d3d9ex_proxy::d3d9ex_proxy(IDirect3D9Ex* orig)
 {
 	this->m_d3d = orig;
 
+	D3DDISPLAYMODE _D3DDISPLAYMODE{};
+
+	orig->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &_D3DDISPLAYMODE);
+
+	if (_D3DDISPLAYMODE.RefreshRate>=120)
+	{
+		has120hz = true;
+	}
+
 	DEVMODE dm{
 			.dmSize = sizeof(DEVMODE),
 			.dmDriverExtra = 0,
@@ -87,26 +96,26 @@ UINT __stdcall d3d9ex_proxy::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 
 HRESULT __stdcall d3d9ex_proxy::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
 {
-	if (iidx::custom_resolution::mode() != 0 && (has120hz || has119hz || has60hz || has59hz))
+	if (iidx::custom_resolution::mode() != 0 || (has120hz || has119hz || has60hz || has59hz))
 	{
 		pMode->Format = Format;
-		pMode->Width = 1920;
-		pMode->Height = 1080;
+		pMode->Width = iidx::custom_resolution::width();
+		pMode->Height = iidx::custom_resolution::height();
 
 		if (Mode)
 			return D3DERR_INVALIDCALL;
 
-		if (has120hz)
-			pMode->RefreshRate = 120;
-
-		if (has119hz)
-			pMode->RefreshRate = 119;
+		if (has59hz)
+			pMode->RefreshRate = 59;
 
 		if (has60hz)
 			pMode->RefreshRate = 60;
 
-		if (has59hz)
-			pMode->RefreshRate = 59;
+		if (has119hz)
+			pMode->RefreshRate = 119;
+
+		if (has120hz)
+			pMode->RefreshRate = 120;		
 
 		return D3D_OK;
 	}

@@ -159,11 +159,54 @@ launcher::game detect_game_from_arguments()
 	return launcher::game::invalid;
 }
 
+
+void enableEcoQoS() {
+	auto sharedUserData = (BYTE*)0x7FFE0000;
+	auto major = *(ULONG*)(sharedUserData + 0x26c);
+	auto minor = *(ULONG*)(sharedUserData + 0x270);
+	auto build = *(ULONG*)(sharedUserData + 0x260);
+	auto CurrentProcessHandle = GetCurrentProcess();
+	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
+	_MEMORY_PRIORITY_INFORMATION.MemoryPriority = 3;
+	PROCESS_POWER_THROTTLING_STATE _PROCESS_POWER_THROTTLING_STATE{};
+	_PROCESS_POWER_THROTTLING_STATE.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+	_PROCESS_POWER_THROTTLING_STATE.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+	_PROCESS_POWER_THROTTLING_STATE.StateMask = 1;
+	//if (major >= 10 && build >= 22000)//Windows 11 EcoQoS
+	if (major >= 10 && build >= 16299)//Windows 1709 LowQoS
+	{
+		auto test1 = SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
+		auto test2 = SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
+		auto test3 = SetPriorityClass(CurrentProcessHandle, IDLE_PRIORITY_CLASS);
+	}
+}
+
+void disableEcoQoS() {
+	auto sharedUserData = (BYTE*)0x7FFE0000;
+	auto major = *(ULONG*)(sharedUserData + 0x26c);
+	auto minor = *(ULONG*)(sharedUserData + 0x270);
+	auto build = *(ULONG*)(sharedUserData + 0x260);
+	auto CurrentProcessHandle = GetCurrentProcess();
+	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
+	_MEMORY_PRIORITY_INFORMATION.MemoryPriority = 5;
+	PROCESS_POWER_THROTTLING_STATE _PROCESS_POWER_THROTTLING_STATE{};
+	_PROCESS_POWER_THROTTLING_STATE.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+	_PROCESS_POWER_THROTTLING_STATE.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+	_PROCESS_POWER_THROTTLING_STATE.StateMask = 0;
+	//if (major >= 10 && build >= 22000)//Windows 11 EcoQoS
+	if (major >= 10 && build >= 16299)//Windows 1709 LowQoS
+	{
+		SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
+		SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
+		SetPriorityClass(CurrentProcessHandle, HIGH_PRIORITY_CLASS);
+	}
+}
+
 int main()
 {
 	FARPROC entry_point;
 	enable_dpi_awareness();
-
+	enableEcoQoS();
 	// pin system dinput8 here to prevent old client from loading
 	LoadLibraryA("dinput8.dll");
 
@@ -191,6 +234,7 @@ int main()
 				return 0;
 			}
 
+			disableEcoQoS();
 			try_set_game_environment(game);
 
 			component_loader::create_components(game::environment::get_game());
@@ -214,7 +258,6 @@ int main()
 			return 1;
 		}
 	}
-
 	return static_cast<int>(entry_point());
 }
 

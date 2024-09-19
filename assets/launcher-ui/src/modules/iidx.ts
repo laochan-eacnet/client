@@ -1,6 +1,14 @@
 import { ref, type Ref } from "vue";
 import { launcher } from "./launcher";
 import dedent from "dedent";
+import type { TupleType } from "typescript";
+
+export enum VersionState {
+    Unknown = -1,
+    Normal = 0,
+    Need2UpdateLauncher = 1,
+    Need2UpdateGame = 2,
+}
 
 export enum IIDXDisplayMode {
     Fullscreen = 0,
@@ -40,7 +48,7 @@ export class IIDX {
     }
 
     installed() {
-        return !!window.laochan.ctx.gamePaths.value[0].length;
+        return !!window.laochan.ctx.gameInfos.value[0].installed;
     }
 
     get installPath() {
@@ -48,7 +56,7 @@ export class IIDX {
             return;
         }
 
-        const [installPath] = window.laochan.ctx.gamePaths.value[0];
+        const installPath = window.laochan.ctx.gameInfos.value[0].install_path;
         return installPath;
     }
 
@@ -59,6 +67,28 @@ export class IIDX {
         }
 
         return installPath + 'laochan-config.json';
+    }
+
+    checkVersion(): VersionState {
+        if (!this.installed()) {
+            return VersionState.Unknown;
+        }
+        const installVersion = window.laochan.ctx.gameInfos.value[0].game_module_version;
+        const targetVersion = window.laochan.ctx.gameInfos.value[0].game_module_target_version;
+        const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
+        const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
+        if (installVersionNum > targetVersionNum)
+        {
+            return VersionState.Need2UpdateLauncher;
+        } 
+        else if (installVersionNum < targetVersionNum)
+        {
+            return VersionState.Need2UpdateGame;
+        }
+        else 
+        {
+            return VersionState.Normal
+        }
     }
 
     async resetConfig() {

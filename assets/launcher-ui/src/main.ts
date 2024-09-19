@@ -6,6 +6,7 @@ import router from './router'
 import { launcher } from './modules/launcher';
 import { iidx } from './modules/iidx';
 import { sdvx } from './modules/sdvx';
+import { parseJsonText } from 'typescript';
 
 window.laochan = {
     close() {
@@ -25,6 +26,9 @@ window.laochan = {
     },
     async detectGameInstall(game: number) {
         return await window.saucer.call<string[]>('detectGameInstall', [game]);
+    },
+    async detectGameInstall1(game: number) {
+        return JSON.parse(await window.saucer.call<string>('detectGameInstall1', [game]));
     },
     async readFile(path: string) {
         const result = await window.saucer.call<string>('readFile', [path]);
@@ -70,7 +74,40 @@ window.laochan = {
     },
     num: () => {},
     ctx: {
-        gamePaths: ref<string[][]>([[], [], []]),
+        gameInfos: ref<GameMeta[]>([{
+            game_type: 0,
+            game_name: '',
+            installed: false,
+            install_path: '',
+            resource_path: '',
+            game_module_path: '',
+            settings_module_path: '',
+            updater_module_path: '',
+            game_module_version: '',
+            game_module_target_version: ''
+        },{
+            game_type: 0,
+            game_name: '',
+            installed: false,
+            install_path: '',
+            resource_path: '',
+            game_module_path: '',
+            settings_module_path: '',
+            updater_module_path: '',
+            game_module_version: '',
+            game_module_target_version: ''
+        },{
+            game_type: 0,
+            game_name: '',
+            installed: false,
+            install_path: '',
+            resource_path: '',
+            game_module_path: '',
+            settings_module_path: '',
+            updater_module_path: '',
+            game_module_version: '',
+            game_module_target_version: ''
+        }]),
     },
     alert: {
         __cb: undefined,
@@ -86,9 +123,9 @@ window.laochan = {
 
 (async () => {
     for (let i = 0; i < 3; i++) {
-        window.laochan.ctx.gamePaths.value[i] = await window.laochan.detectGameInstall(i);
+        // window.laochan.ctx.gameInfos.value[i] = await window.laochan.detectGameInstall(i);
+        window.laochan.ctx.gameInfos.value[i] = await window.laochan.detectGameInstall1(i);
     }
-
     launcher.loadConfig();
     iidx.loadConfig();
     sdvx.loadConfig();

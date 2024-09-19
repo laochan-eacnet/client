@@ -120,7 +120,6 @@ function updateResoltion(e: Event) {
     if (!iidx.config.value) {
         return;
     }
-
     resIndex.value = parseInt((e.target as HTMLInputElement).value);
     const resolution = displayModes.value[resIndex.value];
 

@@ -7,8 +7,6 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
-#define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
-
 namespace iidx::env
 {
 	const char* get_cmdline()

@@ -24,6 +24,7 @@ namespace utils::nt
 		static library load(const std::string& name);
 		static library load(const std::filesystem::path& path);
 		static library get_by_address(void* address);
+		static std::string get_version(const std::string& name);
 
 		library();
 		explicit library(const std::string& name);

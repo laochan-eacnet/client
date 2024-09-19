@@ -9,6 +9,19 @@ interface DisplayMode {
     hz: number;
 }
 
+interface GameMeta {
+    game_type: number;
+    game_name: string;
+    installed: boolean;
+    install_path: string;
+    resource_path: string; 
+    game_module_path: string;
+    settings_module_path: string;
+    updater_module_path: string;
+    game_module_version: string;
+    game_module_target_version: string;
+}
+
 interface Window {
     saucer: {
         _idc: number;
@@ -32,6 +45,7 @@ interface Window {
         mounted: () => void;
         shellExecute: (file: string, args?: string) => void;
         detectGameInstall: (gameIndex: number) => Promise<string[]>;
+        detectGameInstall1: (gameIndex: number) => Promise<GameMeta>;
         readFile: (path: string) => Promise<string | undefined>;
         writeFile: (path: string, content: string) => Promise<void>;
         uuid: () => Promise<string>;
@@ -52,7 +66,7 @@ interface Window {
             __cb: ((message: string, color: string, timeout: number) => void) | undefined;
         },
         ctx: {
-            gamePaths: Ref<string[][]>;
+            gameInfos: Ref<GameMeta[]>;
         },
     },
     chrome: any;

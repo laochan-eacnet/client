@@ -16,7 +16,7 @@ function openPath(path: string) {
 }
 
 function pathes() {
-    return window.laochan.ctx.gamePaths.value;
+    return window.laochan.ctx.gameInfos.value;
 }
 
 function revealToken(e: FocusEvent) {
@@ -130,10 +130,12 @@ async function save() {
             </h2>
             <div v-for="name, i in gameNames" class="item">
                 <h2>{{ name }}</h2>
-                <div v-if="pathes()[i].length">
-                    <h3>安装路径: <a class="path link" @click="openPath(pathes()[i][0])">{{ pathes()[i][0]
+                <div v-if="pathes()[i].installed">
+                    <h3>安装路径: <a class="path link" @click="openPath(pathes()[i].install_path)">{{ pathes()[i].install_path
                             }}</a></h3>
-                    <h3>资源路径: <a class="path link" @click="openPath(pathes()[i][1])">{{ pathes()[i][1]
+                    <h3>资源路径: <a class="path link" @click="openPath(pathes()[i].resource_path)">{{ pathes()[i].resource_path
+                            }}</a></h3>
+                    <h3>游戏版本: <a class="path link" @click="openPath(pathes()[i].game_module_version)">{{ pathes()[i].game_module_version
                             }}</a></h3>
                 </div>
                 <div v-else>

@@ -32,7 +32,13 @@ import { gitadora } from '@/modules/gitadora';
         </div>
       </div>
       <div v-if="iidx.installed()" class="options">
-        <div class="opt" @click="iidx.start">启动</div>
+        <div v-if="iidx.checkVersion() == 0" class="opt" @click="iidx.start">启动</div>
+        <div v-if="iidx.checkVersion() == 1" class="tip opt">
+          请升级启动器
+        </div>
+        <div v-if="iidx.checkVersion() == 2" class="tip opt disable">
+          请升级游戏
+        </div>
         <RouterLink class="opt" to="/iidx/settings">额外设置</RouterLink>
         <div class="opt" @click="iidx.settings">游戏设置</div>
         <div class="opt" @click="iidx.updater">更新器</div>

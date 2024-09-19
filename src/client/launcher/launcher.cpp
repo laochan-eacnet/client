@@ -88,21 +88,61 @@ void launcher::create_main_menu()
 	smartview_->expose("detectGameInstall", [](int game_index) -> std::vector<std::string>
 		{
 			::game::environment::set_game(static_cast<game>(game_index));
-
 			try
 			{
-				auto install = ::game::environment::get_install_path().string();
-				auto resource = ::game::environment::get_resource_path().string();
-
-				return { install, resource };
+				if (game_index >= (int)launcher::game::count || game_index <= (int)launcher::game::invalid)
+				{
+					return {};
+				}
+				auto gamemeta = ::game::environment::gamemeta::get_gamemeta((launcher::game)game_index);
+				if (!gamemeta.get_install_state()) {
+					return {};
+				}
+				auto install = gamemeta.get_install_path();
+				auto resource = gamemeta.get_resource_path();
+				return { install, resource};
 			}
 			catch (std::exception)
 			{
-
 			}
 
 			return {};
-		}
+		}, true
+	);
+
+	smartview_->expose("detectGameInstall1", [](int game_index) -> std::string
+		{
+			try
+			{
+				if (game_index >= (int)launcher::game::count || game_index <= (int)launcher::game::invalid)
+				{
+					return {};
+				}
+				auto gamemeta = ::game::environment::gamemeta::get_gamemeta((launcher::game)game_index);
+				nlohmann::json j1;
+				j1["game_type"] = game_index;
+				j1["game_name"] = ::game::environment::get_string((launcher::game)game_index);
+				j1["installed"] = gamemeta.get_install_state();
+				if (gamemeta.get_install_state())
+				{
+					j1["install_path"] = gamemeta.get_install_path();
+					j1["resource_path"] = gamemeta.get_resource_path();
+					j1["game_module_path"] = gamemeta.get_game_module_path();
+					j1["settings_module_path"] = gamemeta.get_settings_module_path();
+					j1["updater_module_path"] = gamemeta.get_updater_module_path();
+					j1["game_module_version"] = gamemeta.get_game_module_version();
+					j1["game_module_target_version"] = gamemeta.get_game_module_target_version();
+				}
+				auto json = j1.dump();
+
+				return json;
+			}
+			catch (std::exception)
+			{
+			}
+
+			return {};
+		}, true
 	);
 
 	smartview_->expose("readFile", [](std::string path) -> std::string
@@ -312,14 +352,14 @@ void launcher::create_main_menu()
 #if _DEBUG
 	smartview_->set_dev_tools(true);
 #endif
-	
+
 #if !USE_EMBEDDED
-	smartview_->set_url("http://localhost:5173/");	
+	smartview_->set_url("http://localhost:5173/");
 #else
 	smartview_->embed(laochan::embedded::all());
 	smartview_->serve("");
 #endif
-		}
+}
 
 launcher::game launcher::run() const
 {

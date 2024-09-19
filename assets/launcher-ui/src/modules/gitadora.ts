@@ -13,7 +13,7 @@ export class GITADORA {
     }
 
     installed() {
-        return !!window.laochan.ctx.gamePaths.value[2].length;
+        return !!window.laochan.ctx.gameInfos.value[2].installed;
     }
     
     get installPath() {
@@ -21,7 +21,7 @@ export class GITADORA {
             return;
         }
 
-        const [installPath] = window.laochan.ctx.gamePaths.value[2];
+        const [installPath] = window.laochan.ctx.gameInfos.value[2].install_path;
         return installPath;
     }
 

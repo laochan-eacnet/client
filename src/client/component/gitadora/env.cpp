@@ -7,8 +7,6 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
-#define GITADORA_TARGET_VERSION "U32:J:A:A:2024021300"
-
 namespace gitadora::env
 {
 	const char* get_cmdline()

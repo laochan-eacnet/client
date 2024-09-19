@@ -5,6 +5,11 @@
 #include <utils/nt.hpp>
 #include <utils/string.hpp>
 
+#define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
+#define SDVX_TARGET_VERSION "QCV:J:B:A:2024080700"
+#define GITADORA_TARGET_VERSION "U32:J:A:A:2024021300"
+
+
 namespace game
 {
 	namespace environment
@@ -18,6 +23,7 @@ namespace game
 		void set_game(launcher::game mode);
 
 		std::string get_string();
+		std::string get_string(launcher::game);
 		std::string get_version();
 		utils::nt::library& get_module();
 		void set_module(utils::nt::library&);
@@ -27,6 +33,37 @@ namespace game
 
 		std::filesystem::path get_install_path();
 		std::filesystem::path get_resource_path();
+		std::filesystem::path get_install_path(launcher::game);
+		std::filesystem::path get_resource_path(launcher::game);
+
+
+		class gamemeta
+		{
+		public:
+			bool get_install_state();
+			std::string get_install_path();
+			std::string get_resource_path();
+			std::string get_game_module_path();
+			std::string get_settings_module_path();
+			std::string get_updater_module_path();
+			std::string get_game_module_version();
+			std::string get_game_module_target_version();
+			static gamemeta get_gamemeta(launcher::game);
+		private:
+			launcher::game game_type = launcher::game::invalid;
+			bool installed = false;
+			bool inited = false;
+			std::filesystem::path install_path;
+			std::filesystem::path resource_path;
+			std::filesystem::path game_module_path;
+			std::filesystem::path settings_module_path;
+			std::filesystem::path updater_module_path;
+			std::string game_module_version;
+			std::string game_module_target_version;
+			void ensure_created(launcher::game);
+		};
+
+
 	}
 
 	template <typename T>
