@@ -114,14 +114,14 @@ void launcher::create_main_menu()
 		{
 			try
 			{
-				if (game_index >= (int)launcher::game::count || game_index <= (int)launcher::game::invalid)
+				if (game_index >= static_cast<int>(launcher::game::count) || game_index <= static_cast<int>(launcher::game::invalid))
 				{
 					return {};
 				}
-				auto gamemeta = ::game::environment::gamemeta::get_gamemeta((launcher::game)game_index);
+				auto gamemeta = ::game::environment::gamemeta::get_gamemeta(static_cast<launcher::game>(game_index));
 				nlohmann::json j1;
 				j1["game_type"] = game_index;
-				j1["game_name"] = ::game::environment::get_string((launcher::game)game_index);
+				j1["game_name"] = ::game::environment::get_string(static_cast<launcher::game>(game_index));
 				j1["installed"] = gamemeta.get_install_state();
 				if (gamemeta.get_install_state())
 				{

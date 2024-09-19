@@ -15,23 +15,17 @@ namespace iidx::custom_resolution
 	{
 		static auto w = mode() == 1 ?
 			GetSystemMetrics(SM_CXSCREEN) : std::stoi(game::environment::get_param("IIDX_RESOLTION_W"));
-		if (w == 0)//不知道为什么本机分辨率的时候参数会为0 总之在这处理一下
-		{
-			return GetSystemMetrics(SM_CXSCREEN);
-		}
-		return 1920;
+		w = w ? w : GetSystemMetrics(SM_CXSCREEN);
+		return w;
 	}
 
 	int height()
 	{
 		static auto h = mode() == 1 ?
 			GetSystemMetrics(SM_CYSCREEN) : std::stoi(game::environment::get_param("IIDX_RESOLTION_H"));
-		if (h == 0)
-		{
-			return GetSystemMetrics(SM_CYSCREEN);
-		}
+		h = h ? h : GetSystemMetrics(SM_CXSCREEN);
 
-		return 1200;
+		return h;
 	}
 
 	namespace

@@ -187,8 +187,8 @@ HRESULT __stdcall d3d9ex_proxy::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceTy
 {
 	IDirect3DDevice9Ex* device = nullptr;
 
-	pPresentationParameters->BackBufferWidth = iidx::custom_resolution::width();
-	pPresentationParameters->BackBufferHeight = iidx::custom_resolution::height();
+	pPresentationParameters->BackBufferWidth = 1920;
+	pPresentationParameters->BackBufferHeight = 1080;
 
 	if (iidx::custom_resolution::mode() != 0)
 	{

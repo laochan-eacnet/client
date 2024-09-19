@@ -160,7 +160,7 @@ launcher::game detect_game_from_arguments()
 }
 
 
-void enableEcoQoS() {
+void enable_eco_qos() {
 	auto sharedUserData = (BYTE*)0x7FFE0000;
 	auto major = *(ULONG*)(sharedUserData + 0x26c);
 	//auto minor = *(ULONG*)(sharedUserData + 0x270);
@@ -181,7 +181,7 @@ void enableEcoQoS() {
 	}
 }
 
-void disableEcoQoS() {
+void enable_high_qos() {
 	auto sharedUserData = (BYTE*)0x7FFE0000;
 	auto major = *(ULONG*)(sharedUserData + 0x26c);
 	//auto minor = *(ULONG*)(sharedUserData + 0x270);
@@ -206,7 +206,7 @@ int main()
 {
 	FARPROC entry_point;
 	enable_dpi_awareness();
-	enableEcoQoS();
+	enable_eco_qos();
 	// pin system dinput8 here to prevent old client from loading
 	LoadLibraryA("dinput8.dll");
 
@@ -234,7 +234,7 @@ int main()
 				return 0;
 			}
 
-			disableEcoQoS();
+			enable_high_qos();
 			try_set_game_environment(game);
 
 			component_loader::create_components(game::environment::get_game());
