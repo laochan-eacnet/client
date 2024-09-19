@@ -148,29 +148,29 @@ namespace game
 			return get_reg_value("ResourceDir");
 		}
 
-		static std::filesystem::path get_install_path(launcher::game game_type)
+		std::filesystem::path get_install_path(launcher::game game_type)
 		{
 			return get_reg_value(game_type, "InstallDir");
 		}
 
-		static std::filesystem::path get_resource_path(launcher::game game_type)
+		std::filesystem::path get_resource_path(launcher::game game_type)
 		{
 			return get_reg_value(game_type, "ResourceDir");
 		}
 
 
-		void gamemeta::ensure_created(launcher::game game_type)
+		void gamemeta::ensure_created(launcher::game gametype)
 		{
 			if (inited)
 			{
 				return;
 			}
-			this->game_type = game_type;
+			this->game_type = gametype;
 			try
 			{
-				install_path = game::environment::get_install_path(game_type);
-				resource_path = game::environment::get_resource_path(game_type);
-				switch (game_type)
+				install_path = game::environment::get_install_path(gametype);
+				resource_path = game::environment::get_resource_path(gametype);
+				switch (gametype)
 				{
 				case launcher::game::iidx:
 				{

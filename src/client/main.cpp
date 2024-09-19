@@ -163,7 +163,7 @@ launcher::game detect_game_from_arguments()
 void enableEcoQoS() {
 	auto sharedUserData = (BYTE*)0x7FFE0000;
 	auto major = *(ULONG*)(sharedUserData + 0x26c);
-	auto minor = *(ULONG*)(sharedUserData + 0x270);
+	//auto minor = *(ULONG*)(sharedUserData + 0x270);
 	auto build = *(ULONG*)(sharedUserData + 0x260);
 	auto CurrentProcessHandle = GetCurrentProcess();
 	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
@@ -175,16 +175,16 @@ void enableEcoQoS() {
 	//if (major >= 10 && build >= 22000)//Windows 11 EcoQoS
 	if (major >= 10 && build >= 16299)//Windows 1709 LowQoS
 	{
-		auto test1 = SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
-		auto test2 = SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
-		auto test3 = SetPriorityClass(CurrentProcessHandle, IDLE_PRIORITY_CLASS);
+		SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
+		SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
+		SetPriorityClass(CurrentProcessHandle, IDLE_PRIORITY_CLASS);
 	}
 }
 
 void disableEcoQoS() {
 	auto sharedUserData = (BYTE*)0x7FFE0000;
 	auto major = *(ULONG*)(sharedUserData + 0x26c);
-	auto minor = *(ULONG*)(sharedUserData + 0x270);
+	//auto minor = *(ULONG*)(sharedUserData + 0x270);
 	auto build = *(ULONG*)(sharedUserData + 0x260);
 	auto CurrentProcessHandle = GetCurrentProcess();
 	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
