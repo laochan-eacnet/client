@@ -220,11 +220,11 @@ namespace utils::string
 	{
 		std::string buffer;
 
-		auto size = WideCharToMultiByte(65001, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);//这里返回的大小包含null
+		auto size = WideCharToMultiByte(65001, 0, str.data(), -1, nullptr, 0, nullptr, nullptr);//杩欓噷杩斿洖鐨勫ぇ灏忓寘鍚玭ull
 		size--;
 		buffer.resize(size);
 
-		WideCharToMultiByte(65001, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);//如果显式指定大小则可以不包含null
+		WideCharToMultiByte(65001, 0, str.data(), -1, buffer.data(), size, nullptr, nullptr);//濡傛灉鏄惧紡鎸囧畾澶у皬鍒欏彲浠ヤ笉鍖呭惈null
 
 		return buffer;
 	}
