@@ -1,5 +1,7 @@
 import { ref, type Ref } from "vue";
 import { launcher, VersionState } from "./launcher";
+import type { RefSymbol } from "@vue/reactivity";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 
 export interface GITADORAConfig {
 }
@@ -7,22 +9,27 @@ export interface GITADORAConfig {
 export class GITADORA {
     private _config: Ref<GITADORAConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
+    public GameMeta: Ref<GameMeta | undefined> = ref(undefined);
+    public GameVersionState: Ref<VersionState> = ref(VersionState.Unknown);
 
     get config() {
         return this._config;
     }
 
     installed() {
-        return !!window.laochan.ctx.gameInfos.value[2].installed;
+        return this.GameMeta.value?.installed ?? false;
+    }
+
+    async UpdateMeta() {
+        this.GameMeta.value = await window.laochan.detectGameInstall(2);
+        this.GameVersionState.value = this.checkVersion();
     }
 
     get installPath() {
         if (!this.installed()) {
             return;
         }
-
-        const [installPath] = window.laochan.ctx.gameInfos.value[2].install_path;
-        return installPath;
+        return this.GameMeta.value!.install_path;
     }
 
     get configPath() {
@@ -38,8 +45,8 @@ export class GITADORA {
         if (!this.installed()) {
             return VersionState.Unknown;
         }
-        const installVersion = window.laochan.ctx.gameInfos.value[2].game_module_version;
-        const targetVersion = window.laochan.ctx.gameInfos.value[2].game_module_target_version;
+        const installVersion = this.GameMeta.value!.game_module_version;
+        const targetVersion = this.GameMeta.value!.game_module_target_version;
         const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
         const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
         if (installVersionNum > targetVersionNum) {

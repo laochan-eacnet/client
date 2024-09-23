@@ -44,8 +44,7 @@ interface Window {
         minimize: () => void;
         mounted: () => void;
         shellExecute: (file: string, args?: string) => void;
-        detectGameInstall: (gameIndex: number) => Promise<string[]>;
-        detectGameInstall1: (gameIndex: number) => Promise<GameMeta>;
+        detectGameInstall: (gameIndex: number) => Promise<GameMeta>;
         readFile: (path: string) => Promise<string | undefined>;
         writeFile: (path: string, content: string) => Promise<void>;
         uuid: () => Promise<string>;
@@ -66,7 +65,7 @@ interface Window {
             __cb: ((message: string, color: string, timeout: number) => void) | undefined;
         },
         ctx: {
-            gameInfos: Ref<GameMeta[]>;
+            // gameInfos: Ref<GameMeta[]>;
         },
     },
     chrome: any;

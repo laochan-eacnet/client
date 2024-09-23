@@ -85,34 +85,7 @@ void launcher::create_main_menu()
 		}, false
 	);
 
-	smartview_->expose("detectGameInstall", [](int game_index) -> std::vector<std::string>
-		{
-			::game::environment::set_game(static_cast<game>(game_index));
-			try
-			{
-				if (game_index >= (int)launcher::game::count || game_index <= (int)launcher::game::invalid)
-				{
-					return {};
-				}
-				auto gamemeta = ::game::environment::gamemeta::get_gamemeta((launcher::game)game_index);
-				if (!gamemeta.get_install_state()) {
-					return {};
-				}
-				auto install = gamemeta.get_install_path();
-				auto resource = gamemeta.get_resource_path();
-				auto installu8 = utils::string::wide_to_utf8(install);
-				auto resourceu8 = utils::string::wide_to_utf8(resource);
-				return { installu8, resourceu8};
-			}
-			catch (std::exception)
-			{
-			}
-
-			return {};
-		}, true
-	);
-
-	smartview_->expose("detectGameInstall1", [](int game_index) -> std::string
+	smartview_->expose("detectGameInstall", [](int game_index) -> std::string
 		{
 			try
 			{

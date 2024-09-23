@@ -7,6 +7,7 @@ import { launcher } from './modules/launcher';
 import { iidx } from './modules/iidx';
 import { sdvx } from './modules/sdvx';
 import { parseJsonText } from 'typescript';
+import { gitadora } from './modules/gitadora';
 
 window.laochan = {
     close() {
@@ -25,10 +26,7 @@ window.laochan = {
         window.saucer.call('shellExecute', [file, args]);
     },
     async detectGameInstall(game: number) {
-        return await window.saucer.call<string[]>('detectGameInstall', [game]);
-    },
-    async detectGameInstall1(game: number) {
-        return JSON.parse(await window.saucer.call<string>('detectGameInstall1', [game]));
+        return JSON.parse(await window.saucer.call<string>('detectGameInstall', [game]));
     },
     async readFile(path: string) {
         const result = await window.saucer.call<string>('readFile', [path]);
@@ -74,40 +72,7 @@ window.laochan = {
     },
     num: () => {},
     ctx: {
-        gameInfos: ref<GameMeta[]>([{
-            game_type: 0,
-            game_name: '',
-            installed: false,
-            install_path: '',
-            resource_path: '',
-            game_module_path: '',
-            settings_module_path: '',
-            updater_module_path: '',
-            game_module_version: '',
-            game_module_target_version: ''
-        },{
-            game_type: 0,
-            game_name: '',
-            installed: false,
-            install_path: '',
-            resource_path: '',
-            game_module_path: '',
-            settings_module_path: '',
-            updater_module_path: '',
-            game_module_version: '',
-            game_module_target_version: ''
-        },{
-            game_type: 0,
-            game_name: '',
-            installed: false,
-            install_path: '',
-            resource_path: '',
-            game_module_path: '',
-            settings_module_path: '',
-            updater_module_path: '',
-            game_module_version: '',
-            game_module_target_version: ''
-        }]),
+        gameInfos: ref<GameMeta[]>(new Array<GameMeta>(3)),
     },
     alert: {
         __cb: undefined,
@@ -122,13 +87,13 @@ window.laochan = {
 };
 
 (async () => {
-    for (let i = 0; i < 3; i++) {
-        // window.laochan.ctx.gameInfos.value[i] = await window.laochan.detectGameInstall(i);
-        window.laochan.ctx.gameInfos.value[i] = await window.laochan.detectGameInstall1(i);
-    }
-    launcher.loadConfig();
-    iidx.loadConfig();
-    sdvx.loadConfig();
+
+    await launcher.loadConfig();
+    await iidx.loadConfig();
+    await sdvx.loadConfig();
+    await iidx.UpdateMeta();
+    await sdvx.UpdateMeta();
+    await gitadora.UpdateMeta();
 })();
 
 const app = createApp(App)

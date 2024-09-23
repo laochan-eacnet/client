@@ -7,22 +7,27 @@ export interface SDVXConfig {
 export class SDVX {
     private _config: Ref<SDVXConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
+    public GameMeta: Ref<GameMeta | undefined> = ref(undefined);
+    public GameVersionState: Ref<VersionState> = ref(VersionState.Unknown);
 
     get config() {
         return this._config;
     }
 
     installed() {
-        return !!window.laochan.ctx.gameInfos.value[1].installed;
+        return this.GameMeta.value?.installed??false;
+    }
+
+    async UpdateMeta() {
+        this.GameMeta.value = await window.laochan.detectGameInstall(1);
+        this.GameVersionState.value = this.checkVersion();
     }
 
     get installPath() {
         if (!this.installed()) {
             return;
         }
-
-        const [installPath] = window.laochan.ctx.gameInfos.value[1].install_path;
-        return installPath;
+        return this.GameMeta.value!.install_path;
     }
 
     get configPath() {
@@ -38,8 +43,8 @@ export class SDVX {
         if (!this.installed()) {
             return VersionState.Unknown;
         }
-        const installVersion = window.laochan.ctx.gameInfos.value[1].game_module_version;
-        const targetVersion = window.laochan.ctx.gameInfos.value[1].game_module_target_version;
+        const installVersion = this.GameMeta.value!.game_module_version;
+        const targetVersion = this.GameMeta.value!.game_module_target_version;
         const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
         const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
         if (installVersionNum > targetVersionNum) {

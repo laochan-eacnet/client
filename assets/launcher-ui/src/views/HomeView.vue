@@ -2,80 +2,87 @@
 import { iidx } from '@/modules/iidx';
 import { sdvx } from '@/modules/sdvx';
 import { gitadora } from '@/modules/gitadora';
+import { VersionState } from "@/modules/launcher";
 </script>
 
 <template>
   <main>
     <div></div>
-    <div class="game sdvx">
+    <div class="game sdvx" :class="{'disable': sdvx.GameMeta.value == undefined}">
       <div class="background"></div>
       <div class="text">
         SOUND VOLTEX<br>
         EXCEED GEAR
-        <div v-if="!sdvx.installed()" class="tip">
+        <div v-if="sdvx.GameMeta.value != undefined && !sdvx.installed()" class="tip">
           未安装
         </div>
       </div>
-      <div v-if="sdvx.installed()" class="options">
-        <div v-if="sdvx.checkVersion() == 0" class="opt" @click="sdvx.start">启动</div>
-        <div v-if="sdvx.checkVersion() == 1" class="tip opt">
+      <div v-if="sdvx.GameMeta.value != undefined && sdvx.installed()" class="options">
+        <div v-if="sdvx.GameVersionState.value == VersionState.Normal" class="opt" @click="sdvx.start">启动</div>
+        <div v-if="sdvx.GameVersionState.value == VersionState.Need2UpdateLauncher" class="tip opt">
           请升级启动器
         </div>
-        <div v-if="sdvx.checkVersion() == 2" class="tip opt">
+        <div v-if="sdvx.GameVersionState.value == VersionState.Need2UpdateGame" class="tip opt">
           请升级游戏
         </div>
         <div class="opt" @click="sdvx.settings">游戏设置</div>
-        <div class="opt" @click="sdvx.updater">更新器</div>
+        <div v-if="sdvx.GameVersionState.value != VersionState.Need2UpdateGame" class="opt" @click="sdvx.updater">更新器
+        </div>
+        <div v-else class="blink opt" @click="sdvx.updater">更新器</div>
       </div>
     </div>
-    <div class="game iidx">
+    <div class="game iidx" :class="{'disable': iidx.GameMeta.value == undefined}">
       <div class="background"></div>
       <div class="text">
         beatmania IIDX<br>
         INFINITAS
-        <div v-if="!iidx.installed()" class="tip">
+        <div v-if="iidx.GameMeta.value != undefined && !iidx.installed()" class="tip">
           未安装
         </div>
       </div>
-      <div v-if="iidx.installed()" class="options">
-        <div v-if="iidx.checkVersion() == 0" class="opt" @click="iidx.start">启动</div>
-        <div v-if="iidx.checkVersion() == 1" class="tip opt">
+      <div v-if="iidx.GameMeta.value != undefined && iidx.installed()" class="options">
+        <div v-if="iidx.GameVersionState.value == VersionState.Normal" class="opt" @click="iidx.start">启动</div>
+        <div v-if="iidx.GameVersionState.value == VersionState.Need2UpdateLauncher" class="tip opt">
           请升级启动器
         </div>
-        <div v-if="iidx.checkVersion() == 2" class="tip opt">
+        <div v-if="iidx.GameVersionState.value == VersionState.Need2UpdateGame" class="tip opt">
           请升级游戏
         </div>
         <RouterLink class="opt" to="/iidx/settings">额外设置</RouterLink>
         <div class="opt" @click="iidx.settings">游戏设置</div>
-        <div class="opt" @click="iidx.updater">更新器</div>
+        <div v-if="iidx.GameVersionState.value != VersionState.Need2UpdateGame" class="opt" @click="iidx.updater">更新器
+        </div>
+        <div v-else class="blink opt" @click="iidx.updater">更新器</div>
         <div class="opt" @click="iidx.openCustomize">自定义选项</div>
-        <div class="gap"></div> 
+        <div class="gap"></div>
         <div class="opt small" @click="iidx.generateBat">生成快速启动 BAT</div>
       </div>
     </div>
-    <div class="game gitadora">
+    <div class="game gitadora" :class="{'disable': gitadora.GameMeta.value == undefined}">
       <div class="background">
         <video loop autoplay muted src="../assets/gitadora.webm"></video>
       </div>
       <div class="text">
         GITADORA <br><br>
-        <div v-if="!gitadora.installed()" class="tip">
+        <div v-if="gitadora.GameMeta.value != undefined && !gitadora.installed()" class="tip">
           未安装
         </div>
-        <div v-else class="tip">
+        <div v-if="gitadora.GameMeta.value != undefined && gitadora.installed()" class="tip">
           <small>请注意: 服务器暂不支持</small>
         </div>
       </div>
-      <div v-if="gitadora.installed()" class="options">
-        <div v-if="gitadora.checkVersion() == 0" class="opt" @click="gitadora.start">启动</div>
-        <div v-if="gitadora.checkVersion() == 1" class="tip opt">
+      <div v-if="gitadora.GameMeta.value != undefined && gitadora.installed()" class="options">
+        <div v-if="gitadora.GameVersionState.value == VersionState.Normal" class="opt" @click="gitadora.start">启动</div>
+        <div v-if="gitadora.GameVersionState.value == VersionState.Need2UpdateLauncher" class="tip opt">
           请升级启动器
         </div>
-        <div v-if="gitadora.checkVersion() == 2" class="tip opt">
+        <div v-if="gitadora.GameVersionState.value == VersionState.Need2UpdateGame" class="tip opt">
           请升级游戏
         </div>
         <div class="opt" @click="gitadora.settings">游戏设置</div>
-        <div class="opt" @click="gitadora.updater">更新器</div>
+        <div v-if="gitadora.GameVersionState.value != VersionState.Need2UpdateGame" class="opt"
+          @click="gitadora.updater">更新器</div>
+        <div v-else class="blink opt" @click="gitadora.updater">更新器</div>
       </div>
     </div>
     <div></div>
@@ -103,6 +110,12 @@ main>div {
   will-change: width;
   position: relative;
   clip-path: polygon(100px 0%, 100% 0%, calc(100% - 100px) 100%, 0% 100%);
+  top: 0%;
+}
+
+.game.disable {
+  width: 100px;
+  top: 100%;
 }
 
 .game>.background {
@@ -131,10 +144,6 @@ main>div {
 
 .game:not(.disable):hover {
   width: 250%;
-}
-
-.game.disable:hover {
-  width: 120%;
 }
 
 .game>.text>.tip {
@@ -209,5 +218,36 @@ main>div {
 .gitadora>.background>video {
   position: absolute;
   right: -25%;
+}
+
+@keyframes blinkAnimation {
+  0% {
+    background-color: #00000000;
+    color: #fff;
+  }
+
+  10% {
+    background-color: #fff;
+    color: #000;
+  }
+
+  20% {
+    background-color: #00000000;
+    color: #fff;
+  }
+
+  30% {
+    background-color: #fff;
+    color: #000;
+  }
+
+  40% {
+    background-color: #00000000;
+    color: #fff;
+  }
+}
+
+.game>.options>.blink {
+  animation: blinkAnimation 2s infinite;
 }
 </style>
