@@ -7,7 +7,7 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
-#define SDVX_TARGET_VERSION "QCV:J:B:A:2024080700"
+#define SDVX_TARGET_VERSION "QCV:J:B:A:2024092500"
 
 namespace sdvx::env
 {
