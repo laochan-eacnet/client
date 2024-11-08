@@ -28,14 +28,56 @@ namespace iidx::custom_resolution
 		return h;
 	}
 
+	int graphicsAPI() {
+		static auto api = std::stoi(game::environment::get_param("IIDX_GRAPHICS_API"));
+		return api;
+	}
+
 	namespace
 	{
 		HRESULT WINAPI create_d3d9ex(UINT SDKVersion, IDirect3D9Ex** ppD3D9Ex)
 		{
 			IDirect3D9Ex* d3d9ex = nullptr;
-
-			auto hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
-
+			HRESULT hr = 0;
+			switch (graphicsAPI())
+			{
+			case 0:
+			{
+				hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
+				break;
+			}
+			case 1:
+			{
+				ID3D12Device* device = nullptr;
+				auto d3d12hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_1, __uuidof(ID3D12Device), (void**)&device);
+				if (!SUCCEEDED(d3d12hr))
+				{
+					return d3d12hr;
+				}
+				_D3D9ON12_ARGS arg;
+				arg.Enable9On12 = TRUE;
+				arg.pD3D12Device = device;
+				arg.NumQueues = 0;
+				hr = Direct3DCreate9On12Ex(SDKVersion, &arg, 1, &d3d9ex);
+				break;
+			}
+			case 2:
+			{
+				auto dxvk = LoadLibraryW(L"dxvk.dll");
+				if (!dxvk)
+				{
+					return -1;
+				}
+				auto dxvkDirect3DCreate9Ex = GetProcAddress(dxvk, "Direct3DCreate9Ex");
+				hr = ((HRESULT(*)(UINT SDKVersion, IDirect3D9Ex * *ppD3D9Ex))dxvkDirect3DCreate9Ex)(SDKVersion, &d3d9ex);
+				break;
+			}
+			default:
+			{
+				hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
+				break;
+			}
+			}
 			if (SUCCEEDED(hr))
 			{
 				*ppD3D9Ex = new d3d9ex_proxy(d3d9ex);

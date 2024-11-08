@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faCompactDisc, faDisplay, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
+import { faCompactDisc, faComputer, faDisplay, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref } from 'vue';
 import { iidx, IIDXDisplayMode, IIDXSoundMode } from '@/modules/iidx';
@@ -116,6 +116,14 @@ function updateDisplayMode(e: Event) {
     iidx.config.value.displayMode = parseInt((e.target as HTMLInputElement).value);
 }
 
+function updateGraphicsAPI(e: Event) {
+    if (!iidx.config.value) {
+        return;
+    }
+
+    iidx.config.value.graphicsAPI = parseInt((e.target as HTMLInputElement).value);
+}
+
 function updateResoltion(e: Event) {
     if (!iidx.config.value) {
         return;
@@ -189,6 +197,17 @@ async function save() {
                     <option value="0">独占全屏</option>
                     <option value="1">无边框窗口</option>
                     <option value="2">窗口化</option>
+                </select>
+            </div>
+            <div class="item">
+                <h3>
+                    <FontAwesomeIcon :icon="faComputer"></FontAwesomeIcon>
+                    图形API
+                </h3>
+                <select class="text-input" v-bind:value="iidx.config.value?.graphicsAPI" @change="updateGraphicsAPI">
+                    <option value="0">原生D3D9</option>
+                    <option value="1">D3D9On12</option>
+                    <option value="2">DXVK</option>
                 </select>
             </div>
             <div class="item optional" :class="{ show: iidx.config.value?.displayMode != IIDXDisplayMode.BorderlessWindowed }">

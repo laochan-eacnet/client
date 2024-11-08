@@ -48,6 +48,8 @@
 #include <iphlpapi.h>
 #include <wincrypt.h>
 #include <d3d9.h>
+#include <d3d9on12.h>
+#include <d3d12.h>
 
 // min and max is required by gdi, therefore NOMINMAX won't work
 #ifdef max
@@ -109,6 +111,7 @@
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "d3d12.lib")
 
 #include "resource.hpp"
 

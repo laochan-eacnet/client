@@ -3,6 +3,12 @@ import { launcher, VersionState } from "./launcher";
 import dedent from "dedent";
 import type { TupleType } from "typescript";
 
+export enum GraphicsAPI {
+    Native = 0,
+    D3D9On12 = 1,
+    DXVK = 1,
+}
+
 export enum IIDXDisplayMode {
     Fullscreen = 0,
     BorderlessWindowed = 1,
@@ -30,6 +36,7 @@ export interface IIDXConfig {
     asioDevice: string;
     useGsm: boolean;
     language: IIDXLanguage;
+    graphicsAPI: GraphicsAPI;
 }
 
 export class IIDX {
@@ -43,7 +50,7 @@ export class IIDX {
     }
 
     installed() {
-        return this.GameMeta.value?.installed??false;
+        return this.GameMeta.value?.installed ?? false;
     }
 
     async UpdateMeta() {
@@ -96,6 +103,7 @@ export class IIDX {
             asioDevice: devices[0],
             useGsm: true,
             language: IIDXLanguage.English,
+            graphicsAPI: GraphicsAPI.Native,
         }
 
         this._dirty = true;
@@ -130,7 +138,8 @@ export class IIDX {
             this._config.value.resolution === undefined ||
             this._config.value.soundMode === undefined ||
             this._config.value.useGsm === undefined ||
-            this._config.value.language === undefined
+            this._config.value.language === undefined ||
+            this._config.value.graphicsAPI === undefined
         ) {
             window.laochan.alert.show('IIDX 设置已被重置, 请前往额外设置重新设置', '#B64040', 2000);
             await this.resetConfig();
@@ -156,6 +165,7 @@ export class IIDX {
 
             window.laochan.setParam('IIDX_RESOLTION_W', JSON.stringify(config.resolution.w)),
             window.laochan.setParam('IIDX_RESOLTION_H', JSON.stringify(config.resolution.h)),
+            window.laochan.setParam('IIDX_GRAPHICS_API',JSON.stringify(config.graphicsAPI)),
         ]);
     }
 
