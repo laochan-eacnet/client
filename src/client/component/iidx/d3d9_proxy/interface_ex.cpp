@@ -189,6 +189,10 @@ HRESULT __stdcall d3d9ex_proxy::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceTy
 
 	pPresentationParameters->BackBufferWidth = iidx::custom_resolution::width();
 	pPresentationParameters->BackBufferHeight = iidx::custom_resolution::height();
+	pPresentationParameters->BackBufferCount = 2;
+	pPresentationParameters->PresentationInterval = 0;
+	pPresentationParameters->SwapEffect = D3DSWAPEFFECT_FLIPEX;
+
 
 	if (iidx::custom_resolution::mode() != 0)
 	{

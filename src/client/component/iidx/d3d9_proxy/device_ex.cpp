@@ -105,7 +105,7 @@ HRESULT __stdcall d3d9ex_device_proxy::Reset(D3DPRESENT_PARAMETERS* pPresentatio
 
 HRESULT __stdcall d3d9ex_device_proxy::Present(const RECT* pSourceRect, const RECT* pDestRect, HWND hDestWindowOverride, const RGNDATA* pDirtyRegion)
 {
-	return device_->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+	return device_->PresentEx(pSourceRect, pDestRect, NULL, NULL, D3DPRESENT_FORCEIMMEDIATE);
 }
 
 HRESULT __stdcall d3d9ex_device_proxy::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)

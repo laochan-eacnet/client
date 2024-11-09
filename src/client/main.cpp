@@ -235,6 +235,7 @@ int main()
 			}
 
 			enable_high_qos();
+			DwmEnableMMCSS(TRUE);
 			try_set_game_environment(game);
 
 			component_loader::create_components(game::environment::get_game());
