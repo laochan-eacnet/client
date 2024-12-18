@@ -4,7 +4,7 @@
 class loader final
 {
 public:
-	utils::nt::library load_library(const std::string& filename) const;
+	utils::nt::library load_library(const std::wstring& filename) const;
 
 	void set_import_resolver(const std::function<void* (const std::string&, const std::string&)>& resolver);
 

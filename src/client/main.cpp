@@ -92,21 +92,8 @@ FARPROC load_binary(const launcher::game game)
 		return component_loader::load_import(library, function);
 	});
 
-	std::string binary;
-	switch (game)
-	{
-		case launcher::game::iidx:
-			binary = "bm2dx.exe";
-			break;
-		case launcher::game::sdvx:
-			binary = "sv6c.exe";
-			break;
-		case launcher::game::gitadora:
-			binary = "gitadora.exe";
-			break;
-		default:
-			throw std::runtime_error("Unsupported game!");
-	}
+	std::wstring binary = game::environment::gamemeta::get_gamemeta(game)
+		.get_game_module_path();
 
 	auto mod = loader.load_library(binary);
 	game::environment::set_module(mod);
@@ -126,7 +113,7 @@ bool try_set_game_environment(launcher::game game)
 		auto modules_path = game_path / (game == launcher::game::iidx ? "app" : "modules");
 
 		SetCurrentDirectoryW(game_path.wstring().data());
-		AddDllDirectory(modules_path.wstring().data());
+		SetDllDirectoryW(modules_path.wstring().data());
 
 		return true;
 	}
