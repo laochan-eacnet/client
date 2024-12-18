@@ -1,23 +1,25 @@
 #include "nt.hpp"
 #include "memory.hpp"
 
+#include <gsl/gsl>
+
 namespace utils::nt
 {
 	library library::load(const std::string& name)
 	{
-		return library(LoadLibraryA(name.data()));
+		return library{ name };
 	}
 
 	library library::load(const std::filesystem::path& path)
 	{
-		return library::load(path.generic_string());
+		return library{ path.generic_string() };
 	}
 
 	library library::get_by_address(void* address)
 	{
 		HMODULE handle = nullptr;
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-		                   static_cast<LPCSTR>(address), &handle);
+						   static_cast<LPCSTR>(address), &handle);
 		return library(handle);
 	}
 
@@ -29,6 +31,7 @@ namespace utils::nt
 	library::library(const std::string& name)
 	{
 		this->module_ = GetModuleHandleA(name.data());
+		if (!this->module_) this->module_ = LoadLibraryA(name.data());
 	}
 
 	library::library(const HMODULE handle)
@@ -95,7 +98,7 @@ namespace utils::nt
 
 		DWORD protection;
 		VirtualProtect(this->get_ptr(), this->get_optional_header()->SizeOfImage, PAGE_EXECUTE_READWRITE,
-		               &protection);
+					   &protection);
 	}
 
 	size_t library::get_relative_entry_point() const
@@ -119,19 +122,19 @@ namespace utils::nt
 	{
 		if (!this->is_valid()) return "";
 
-		auto path = this->get_path();
+		auto path = this->get_path().generic_string();
 		const auto pos = path.find_last_of("/\\");
 		if (pos == std::string::npos) return path;
 
 		return path.substr(pos + 1);
 	}
 
-	std::string library::get_path() const
+	std::filesystem::path library::get_path() const
 	{
 		if (!this->is_valid()) return "";
 
-		char name[MAX_PATH] = {0};
-		GetModuleFileNameA(this->module_, name, sizeof name);
+		wchar_t name[MAX_PATH] = { 0 };
+		GetModuleFileNameW(this->module_, name, sizeof name);
 
 		return name;
 	}
@@ -144,20 +147,22 @@ namespace utils::nt
 		return path.parent_path().generic_string();
 	}
 
-	std::string library::get_version() const
+	std::string library::get_version(const std::filesystem::path& path)
 	{
 		DWORD handle;
 
-		auto path = this->get_path();
-		auto size = GetFileVersionInfoSizeA(path.data(), &handle);
+		auto p = path.generic_wstring();
+		auto size = GetFileVersionInfoSizeW(p.data(), &handle);
 
-		if (!size) return {};
+		if (!size || !handle) return {};
 
 		auto buffer = memory::allocate(size);
-		
-		if (!GetFileVersionInfoA(path.data(), handle, size, buffer))
-		{
+		auto _ = gsl::finally([=] {
 			memory::free(buffer);
+		});
+
+		if (!GetFileVersionInfoW(p.data(), handle, size, buffer))
+		{
 			return {};
 		}
 
@@ -166,45 +171,15 @@ namespace utils::nt
 
 		if (!VerQueryValueA(buffer, "\\StringFileInfo\\041104b0\\ProductVersion", &out_buffer, &out_size))
 		{
-			memory::free(buffer);
 			return {};
 		}
-		
-		auto result = std::string{reinterpret_cast<const char *>(out_buffer)};
 
-		memory::free(buffer);
-		return result;
+		return std::string{ reinterpret_cast<const char*>(out_buffer) };
 	}
 
-	std::wstring library::get_version(const std::wstring& path)
+	std::string library::get_version() const
 	{
-		DWORD handle;
-
-		auto size = GetFileVersionInfoSizeW(path.data(), &handle);
-
-		if (!size) return {};
-
-		auto buffer = memory::allocate(size);
-
-		if (!GetFileVersionInfoW(path.data(), handle, size, buffer))
-		{
-			memory::free(buffer);
-			return {};
-		}
-
-		LPVOID out_buffer;
-		UINT out_size;
-
-		if (!VerQueryValueW(buffer, L"\\StringFileInfo\\041104b0\\ProductVersion", &out_buffer, &out_size))
-		{
-			memory::free(buffer);
-			return {};
-		}
-
-		auto result = std::wstring{ reinterpret_cast<const wchar_t*>(out_buffer) };
-
-		memory::free(buffer);
-		return result;
+		return library::get_version(get_path());
 	}
 
 	void library::free()
@@ -240,16 +215,16 @@ namespace utils::nt
 		if (!header) return nullptr;
 
 		auto* import_descriptor = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>(this->get_ptr() + header->DataDirectory
-			[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+																			 [IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
 
 		while (import_descriptor->Name)
 		{
 			if (!_stricmp(reinterpret_cast<char*>(this->get_ptr() + import_descriptor->Name), module_name.data()))
 			{
 				auto* original_thunk_data = reinterpret_cast<PIMAGE_THUNK_DATA>(import_descriptor->
-					OriginalFirstThunk + this->get_ptr());
+																				OriginalFirstThunk + this->get_ptr());
 				auto* thunk_data = reinterpret_cast<PIMAGE_THUNK_DATA>(import_descriptor->FirstThunk + this->
-					get_ptr());
+																	   get_ptr());
 
 				while (original_thunk_data->u1.AddressOfData)
 				{
@@ -316,8 +291,8 @@ namespace utils::nt
 		GetCurrentDirectoryA(sizeof(current_dir), current_dir);
 		auto* const command_line = GetCommandLineA();
 
-		CreateProcessA(self.get_path().data(), command_line, nullptr, nullptr, false, NULL, nullptr, current_dir,
-		               &startup_info, &process_info);
+		CreateProcessA(self.get_path().generic_string().data(), command_line, nullptr, nullptr, false, NULL, nullptr, current_dir,
+					   &startup_info, &process_info);
 
 		if (process_info.hThread && process_info.hThread != INVALID_HANDLE_VALUE) CloseHandle(process_info.hThread);
 		if (process_info.hProcess && process_info.hProcess != INVALID_HANDLE_VALUE) CloseHandle(process_info.hProcess);

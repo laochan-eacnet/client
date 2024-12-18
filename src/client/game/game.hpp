@@ -6,12 +6,8 @@
 #include <utils/string.hpp>
 
 #define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
-#define SDVX_TARGET_VERSION "QCV:J:B:A:2024080700"
+#define SDVX_TARGET_VERSION "ANY"
 #define GITADORA_TARGET_VERSION "U32:J:A:A:2024021300"
-#define IIDX_TARGET_VERSIONW L"P2D:J:B:A:2024080500"
-#define SDVX_TARGET_VERSIONW L"QCV:J:B:A:2024080700"
-#define GITADORA_TARGET_VERSIONW L"U32:J:A:A:2024021300"
-
 
 namespace game
 {
@@ -46,13 +42,16 @@ namespace game
 		{
 		public:
 			bool get_install_state();
+
 			std::wstring get_install_path();
 			std::wstring get_resource_path();
 			std::wstring get_game_module_path();
 			std::wstring get_settings_module_path();
 			std::wstring get_updater_module_path();
-			std::wstring get_game_module_version();
-			std::wstring get_game_module_target_version();
+
+			std::string get_game_module_version();
+			std::string get_game_module_target_version();
+
 			static gamemeta get_gamemeta(launcher::game);
 		private:
 			launcher::game game_type = launcher::game::invalid;
@@ -63,12 +62,10 @@ namespace game
 			std::filesystem::path game_module_path;
 			std::filesystem::path settings_module_path;
 			std::filesystem::path updater_module_path;
-			std::wstring game_module_version;
-			std::wstring game_module_target_version;
+			std::string game_module_version;
+			std::string game_module_target_version;
 			void ensure_created(launcher::game);
 		};
-
-
 	}
 
 	template <typename T>

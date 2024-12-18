@@ -66,47 +66,46 @@ FARPROC load_binary(const launcher::game game)
 	loader loader;
 	utils::nt::library self;
 
-	loader.set_import_resolver([self](const std::string& library, const std::string& function) -> void*
+	loader.set_import_resolver([self](const std::string& library, const std::string& function) -> void* {
+		// dump mount point
+		if (library == "avs2-core.dll" && function == "#105")
 		{
-			// dump mount point
-			if (library == "avs2-core.dll" && function == "#105")
-			{
-				return dump_mount_point;
-			}
-			else if (function == "ExitProcess")
-			{
-				return exit_hook;
-			}
-			else if (function == "GetModuleHandleA")
-			{
-				return get_module_handle_a;
-			}
-			else if (function == "GetModuleHandleW")
-			{
-				return get_module_handle_w;
-			}
-			else if (function == "GetModuleFileNameA")
-			{
-				return get_module_file_name_a;
-			}
+			return dump_mount_point;
+		}
+		else if (function == "ExitProcess")
+		{
+			return exit_hook;
+		}
+		else if (function == "GetModuleHandleA")
+		{
+			return get_module_handle_a;
+		}
+		else if (function == "GetModuleHandleW")
+		{
+			return get_module_handle_w;
+		}
+		else if (function == "GetModuleFileNameA")
+		{
+			return get_module_file_name_a;
+		}
 
-			return component_loader::load_import(library, function);
-		});
+		return component_loader::load_import(library, function);
+	});
 
 	std::string binary;
 	switch (game)
 	{
-	case launcher::game::iidx:
-		binary = "bm2dx.exe";
-		break;
-	case launcher::game::sdvx:
-		binary = "sv6c.exe";
-		break;
-	case launcher::game::gitadora:
-		binary = "gitadora.exe";
-		break;
-	default:
-		throw std::runtime_error("Unsupported game!");
+		case launcher::game::iidx:
+			binary = "bm2dx.exe";
+			break;
+		case launcher::game::sdvx:
+			binary = "sv6c.exe";
+			break;
+		case launcher::game::gitadora:
+			binary = "gitadora.exe";
+			break;
+		default:
+			throw std::runtime_error("Unsupported game!");
 	}
 
 	auto mod = loader.load_library(binary);
@@ -127,7 +126,7 @@ bool try_set_game_environment(launcher::game game)
 		auto modules_path = game_path / (game == launcher::game::iidx ? "app" : "modules");
 
 		SetCurrentDirectoryW(game_path.wstring().data());
-		SetDllDirectoryW(modules_path.wstring().data());
+		AddDllDirectory(modules_path.wstring().data());
 
 		return true;
 	}
@@ -160,53 +159,43 @@ launcher::game detect_game_from_arguments()
 }
 
 
-void enable_eco_qos() {
-	auto sharedUserData = (BYTE*)0x7FFE0000;
-	auto major = *(ULONG*)(sharedUserData + 0x26c);
-	//auto minor = *(ULONG*)(sharedUserData + 0x270);
-	auto build = *(ULONG*)(sharedUserData + 0x260);
-	auto CurrentProcessHandle = GetCurrentProcess();
-	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
-	_MEMORY_PRIORITY_INFORMATION.MemoryPriority = 3;
-	PROCESS_POWER_THROTTLING_STATE _PROCESS_POWER_THROTTLING_STATE{};
-	_PROCESS_POWER_THROTTLING_STATE.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-	_PROCESS_POWER_THROTTLING_STATE.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-	_PROCESS_POWER_THROTTLING_STATE.StateMask = 1;
-	//if (major >= 10 && build >= 22000)//Windows 11 EcoQoS
-	if (major >= 10 && build >= 16299)//Windows 1709 LowQoS
-	{
-		SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
-		SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
-		SetPriorityClass(CurrentProcessHandle, IDLE_PRIORITY_CLASS);
-	}
-}
+static void set_qos_mode(bool high)
+{
+	static const bool can_set_qos_mode = [] {
+		utils::nt::library ntdll{ "ntdll.dll" };
 
-void enable_high_qos() {
-	auto sharedUserData = (BYTE*)0x7FFE0000;
-	auto major = *(ULONG*)(sharedUserData + 0x26c);
-	//auto minor = *(ULONG*)(sharedUserData + 0x270);
-	auto build = *(ULONG*)(sharedUserData + 0x260);
-	auto CurrentProcessHandle = GetCurrentProcess();
-	MEMORY_PRIORITY_INFORMATION _MEMORY_PRIORITY_INFORMATION{};
-	_MEMORY_PRIORITY_INFORMATION.MemoryPriority = 5;
-	PROCESS_POWER_THROTTLING_STATE _PROCESS_POWER_THROTTLING_STATE{};
-	_PROCESS_POWER_THROTTLING_STATE.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-	_PROCESS_POWER_THROTTLING_STATE.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-	_PROCESS_POWER_THROTTLING_STATE.StateMask = 0;
-	//if (major >= 10 && build >= 22000)//Windows 11 EcoQoS
-	if (major >= 10 && build >= 16299)//Windows 1709 LowQoS
-	{
-		SetProcessInformation(CurrentProcessHandle, ProcessPowerThrottling, &_PROCESS_POWER_THROTTLING_STATE, sizeof(PROCESS_POWER_THROTTLING_STATE));
-		SetProcessInformation(CurrentProcessHandle, ProcessMemoryPriority, &_MEMORY_PRIORITY_INFORMATION, sizeof(MEMORY_PRIORITY_INFORMATION));
-		SetPriorityClass(CurrentProcessHandle, HIGH_PRIORITY_CLASS);
-	}
+		OSVERSIONINFOEXW info;
+		ntdll.invoke_pascal<NTSTATUS>("RtlGetVersion", &info);
+
+		return info.dwMajorVersion >= 10 && info.dwBuildNumber >= 16299;
+	}();
+
+	if (!can_set_qos_mode)
+		return;
+
+	auto self = GetCurrentProcess();
+
+	MEMORY_PRIORITY_INFORMATION priority_info{
+		.MemoryPriority = high ? 5U : 3U,
+	};
+
+	PROCESS_POWER_THROTTLING_STATE power_state{
+		.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+		.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+		.StateMask = high,
+	};
+
+	SetProcessInformation(self, ProcessPowerThrottling, &priority_info, sizeof(PROCESS_POWER_THROTTLING_STATE));
+	SetProcessInformation(self, ProcessMemoryPriority, &power_state, sizeof(MEMORY_PRIORITY_INFORMATION));
+	SetPriorityClass(self, IDLE_PRIORITY_CLASS);
 }
 
 int main()
 {
 	FARPROC entry_point;
 	enable_dpi_awareness();
-	enable_eco_qos();
+	set_qos_mode(false);
+
 	// pin system dinput8 here to prevent old client from loading
 	LoadLibraryA("dinput8.dll");
 
@@ -214,10 +203,9 @@ int main()
 
 	{
 		auto premature_shutdown = true;
-		const auto _ = gsl::finally([&premature_shutdown]
-			{
-				component_loader::pre_destroy();
-			});
+		const auto _ = gsl::finally([&premature_shutdown] {
+			component_loader::pre_destroy();
+		});
 
 		try
 		{
@@ -234,8 +222,7 @@ int main()
 				return 0;
 			}
 
-			enable_high_qos();
-			DwmEnableMMCSS(TRUE);
+			set_qos_mode(true);
 			try_set_game_environment(game);
 
 			component_loader::create_components(game::environment::get_game());
@@ -255,10 +242,11 @@ int main()
 		}
 		catch (std::exception& e)
 		{
-			MessageBoxA(nullptr, e.what(), "ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, e.what(), "Laochan Bootstrap ERROR", MB_ICONERROR);
 			return 1;
 		}
 	}
+
 	return static_cast<int>(entry_point());
 }
 

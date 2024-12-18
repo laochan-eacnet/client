@@ -24,7 +24,7 @@ namespace utils::nt
 		static library load(const std::string& name);
 		static library load(const std::filesystem::path& path);
 		static library get_by_address(void* address);
-		static std::wstring get_version(const std::wstring& name);
+		static std::string get_version(const std::filesystem::path& path);
 
 		library();
 		explicit library(const std::string& name);
@@ -45,8 +45,8 @@ namespace utils::nt
 		size_t get_relative_entry_point() const;
 
 		bool is_valid() const;
+		std::filesystem::path get_path() const;
 		std::string get_name() const;
-		std::string get_path() const;
 		std::string get_folder() const;
 		std::string get_version() const;
 		std::uint8_t* get_ptr() const;

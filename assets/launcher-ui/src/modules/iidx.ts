@@ -1,7 +1,7 @@
 import { ref, type Ref } from "vue";
-import { launcher, VersionState } from "./launcher";
 import dedent from "dedent";
-import type { TupleType } from "typescript";
+import { GameClass } from "./gameClass";
+import { launcher } from "./launcher";
 
 export enum GraphicsAPI {
     Native = 0,
@@ -39,58 +39,12 @@ export interface IIDXConfig {
     graphicsAPI: GraphicsAPI;
 }
 
-export class IIDX {
+export class IIDX extends GameClass {
     private _config: Ref<IIDXConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
-    public GameMeta: Ref<GameMeta | undefined> = ref(undefined);
-    public GameVersionState: Ref<VersionState> = ref(VersionState.Unknown);
 
     get config() {
         return this._config;
-    }
-
-    installed() {
-        return this.GameMeta.value?.installed ?? false;
-    }
-
-    async UpdateMeta() {
-        this.GameMeta.value = await window.laochan.detectGameInstall(0);
-        this.GameVersionState.value = this.checkVersion();
-    }
-
-    get installPath() {
-        if (!this.installed()) {
-            return;
-        }
-        return this.GameMeta.value!.install_path;
-    }
-
-    get configPath() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        return installPath + 'laochan-config.json';
-    }
-
-    checkVersion(): VersionState {
-        if (!this.installed()) {
-            return VersionState.Unknown;
-        }
-        const installVersion = this.GameMeta.value!.game_module_version;
-        const targetVersion = this.GameMeta.value!.game_module_target_version;
-        const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
-        const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
-        if (installVersionNum > targetVersionNum) {
-            return VersionState.Need2UpdateLauncher;
-        }
-        else if (installVersionNum < targetVersionNum) {
-            return VersionState.Need2UpdateGame;
-        }
-        else {
-            return VersionState.Normal
-        }
     }
 
     async resetConfig() {
@@ -165,7 +119,7 @@ export class IIDX {
 
             window.laochan.setParam('IIDX_RESOLTION_W', JSON.stringify(config.resolution.w)),
             window.laochan.setParam('IIDX_RESOLTION_H', JSON.stringify(config.resolution.h)),
-            window.laochan.setParam('IIDX_GRAPHICS_API',JSON.stringify(config.graphicsAPI)),
+            window.laochan.setParam('IIDX_GRAPHICS_API', JSON.stringify(config.graphicsAPI)),
         ]);
     }
 
@@ -181,24 +135,6 @@ export class IIDX {
         await launcher.applyConfig();
 
         window.laochan.close();
-    }
-
-    async settings() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        window.laochan.shellExecute(installPath + '\\launcher\\modules\\bm2dx_settings.exe');
-    }
-
-    async updater() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        window.laochan.shellExecute(installPath + '\\launcher\\modules\\bm2dx_updater.exe');
     }
 
     async generateBat() {

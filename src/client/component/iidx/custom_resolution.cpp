@@ -5,10 +5,24 @@
 
 namespace iidx::custom_resolution
 {
-	int mode()
+	enum IIDX_DISPLAY_MODE_
+	{
+		IIDX_DISPLAY_MODE_FULLSCREEN,
+		IIDX_DISPLAY_MODE_FULLSCREEN_WINDOWED,
+		IIDX_DISPLAY_MODE_WINDOWED,
+	};
+
+	enum IIDX_GRAPHICS_API_
+	{
+		IIDX_GRAPHICS_API_DX9,
+		IIDX_GRAPHICS_API_DX9_ON_12,
+		IIDX_GRAPHICS_API_DXVK,
+	};
+
+	IIDX_DISPLAY_MODE_ mode()
 	{
 		static auto mode = std::stoi(game::environment::get_param("IIDX_DISPLAY_MODE"));
-		return mode;
+		return static_cast<IIDX_DISPLAY_MODE_>(mode);
 	}
 
 	int width()
@@ -28,9 +42,10 @@ namespace iidx::custom_resolution
 		return h;
 	}
 
-	int graphicsAPI() {
+	IIDX_GRAPHICS_API_ graphics_api()
+	{
 		static auto api = std::stoi(game::environment::get_param("IIDX_GRAPHICS_API"));
-		return api;
+		return static_cast<IIDX_GRAPHICS_API_>(api);
 	}
 
 	namespace
@@ -38,52 +53,60 @@ namespace iidx::custom_resolution
 		HRESULT WINAPI create_d3d9ex(UINT SDKVersion, IDirect3D9Ex** ppD3D9Ex)
 		{
 			IDirect3D9Ex* d3d9ex = nullptr;
-			HRESULT hr = 0;
-			switch (graphicsAPI())
+			auto hr = E_FAIL;
+			const auto api = graphics_api();
+
+			switch (api)
 			{
-			case 0:
-			{
-				hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
-				break;
-			}
-			case 1:
-			{
-				ID3D12Device* device = nullptr;
-				auto d3d12hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_1, __uuidof(ID3D12Device), (void**)&device);
-				if (!SUCCEEDED(d3d12hr))
+				case IIDX_GRAPHICS_API_DX9:
 				{
-					return d3d12hr;
+					hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
+					break;
 				}
-				_D3D9ON12_ARGS arg;
-				arg.Enable9On12 = TRUE;
-				arg.pD3D12Device = device;
-				arg.NumQueues = 0;
-				hr = Direct3DCreate9On12Ex(SDKVersion, &arg, 1, &d3d9ex);
-				break;
-			}
-			case 2:
-			{
-				auto dxvk = LoadLibraryW(L"dxvk.dll");
-				if (!dxvk)
+				case IIDX_GRAPHICS_API_DX9_ON_12:
 				{
-					return -1;
+					void* device = nullptr;
+					hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_9_3, __uuidof(ID3D12Device), &device);
+					if (!SUCCEEDED(hr))
+						break;
+
+					D3D9ON12_ARGS arg
+					{
+						.Enable9On12 = true,
+						.pD3D12Device = reinterpret_cast<IUnknown*>(device),
+						.NumQueues = 0,
+					};
+
+					hr = Direct3DCreate9On12Ex(SDKVersion, &arg, 1, &d3d9ex);
+					break;
 				}
-				auto dxvkDirect3DCreate9Ex = GetProcAddress(dxvk, "Direct3DCreate9Ex");
-				hr = ((HRESULT(*)(UINT SDKVersion, IDirect3D9Ex * *ppD3D9Ex))dxvkDirect3DCreate9Ex)(SDKVersion, &d3d9ex);
-				break;
+				case IIDX_GRAPHICS_API_DXVK:
+				{
+					auto dxvk = utils::nt::library{ "dxvk.dll" };
+					if (!dxvk)
+						break;
+
+					hr = dxvk.invoke_pascal<HRESULT>("Direct3DCreate9Ex", SDKVersion, &d3d9ex);
+					break;
+				}
 			}
-			default:
+
+			if (FAILED(hr))
 			{
+				printf("W: Failed to initialize graphics api with mode %d, falling back to d3d9, hr = 0x%x.\n", api, hr);
 				hr = Direct3DCreate9Ex(SDKVersion, &d3d9ex);
-				break;
 			}
-			}
+
 			if (SUCCEEDED(hr))
 			{
+				if (mode() == IIDX_DISPLAY_MODE_FULLSCREEN)
+					DwmEnableMMCSS(TRUE);
+
 				*ppD3D9Ex = new d3d9ex_proxy(d3d9ex);
 			}
 			else
 			{
+				printf("E: Failed to initialize graphics api with hr = 0x%x.\n", hr);
 				*ppD3D9Ex = nullptr;
 			}
 
@@ -102,7 +125,7 @@ namespace iidx::custom_resolution
 
 		HWND WINAPI create_window_ex_a(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 		{
-			if (mode() == 2)
+			if (mode() == IIDX_DISPLAY_MODE_WINDOWED)
 			{
 				dwStyle = WS_SYSMENU | WS_CAPTION | WS_VISIBLE;
 				RECT rc;
@@ -123,7 +146,7 @@ namespace iidx::custom_resolution
 
 		BOOL WINAPI set_window_pos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
 		{
-			if (mode() == 2)
+			if (mode() == IIDX_DISPLAY_MODE_WINDOWED)
 			{
 				RECT rc;
 				SetRect(&rc, 0, 0, width(), height());

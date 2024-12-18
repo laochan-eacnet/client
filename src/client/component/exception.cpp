@@ -55,7 +55,7 @@ namespace exception
 			utils::thread::suspend_other_threads();
 			show_mouse_cursor();
 
-			MessageBoxA(nullptr, error_str.data(), "Laochan Eacnet Infinitas ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, error_str.data(), "Laochen Eacnet ERROR", MB_ICONERROR);
 			TerminateProcess(GetCurrentProcess(), exception_data.code);
 		}
 
@@ -83,37 +83,11 @@ namespace exception
 			return timestamp;
 		}
 
-		std::string generate_crash_info(const LPEXCEPTION_POINTERS exceptioninfo)
-		{
-			std::string info{};
-			const auto line = [&info](const std::string& text)
-			{
-				info.append(text);
-				info.append("\r\n");
-			};
-
-			line("Laochen Eacnet Infinitas Crash Dump");
-			line("");
-			line("Timestamp: "s + get_timestamp());
-			line(utils::string::va("Exception: 0x%08X", exceptioninfo->ExceptionRecord->ExceptionCode));
-			line(utils::string::va("Address: 0x%llX", exceptioninfo->ExceptionRecord->ExceptionAddress));
-
-#pragma warning(push)
-#pragma warning(disable: 4996)
-			OSVERSIONINFOEXA version_info;
-			ZeroMemory(&version_info, sizeof(version_info));
-			version_info.dwOSVersionInfoSize = sizeof(version_info);
-			GetVersionExA(reinterpret_cast<LPOSVERSIONINFOA>(&version_info));
-#pragma warning(pop)
-
-			line(utils::string::va("OS Version: %u.%u", version_info.dwMajorVersion, version_info.dwMinorVersion));
-
-			return info;
-		}
-
 		void write_minidump(const LPEXCEPTION_POINTERS exceptioninfo)
 		{
-			const std::string crash_name = utils::string::va("bm2dx-crash-%s.dmp", get_timestamp().data());
+			auto game_name = game::environment::get_string();
+
+			const std::string crash_name = utils::string::va("%s-crash-%s.dmp", game_name.data(), get_timestamp().data());
 			utils::io::write_file(crash_name, create_minidump(exceptioninfo));
 		}
 

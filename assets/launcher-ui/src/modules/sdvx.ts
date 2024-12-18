@@ -1,61 +1,16 @@
 import { ref, type Ref } from "vue";
 import { launcher, VersionState } from "./launcher";
+import { GameClass } from "./gameClass";
 
 export interface SDVXConfig {
 }
 
-export class SDVX {
+export class SDVX extends GameClass {
     private _config: Ref<SDVXConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
-    public GameMeta: Ref<GameMeta | undefined> = ref(undefined);
-    public GameVersionState: Ref<VersionState> = ref(VersionState.Unknown);
-
+   
     get config() {
         return this._config;
-    }
-
-    installed() {
-        return this.GameMeta.value?.installed??false;
-    }
-
-    async UpdateMeta() {
-        this.GameMeta.value = await window.laochan.detectGameInstall(1);
-        this.GameVersionState.value = this.checkVersion();
-    }
-
-    get installPath() {
-        if (!this.installed()) {
-            return;
-        }
-        return this.GameMeta.value!.install_path;
-    }
-
-    get configPath() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        return installPath + 'laochan-config.json';
-    }
-
-    checkVersion(): VersionState {
-        if (!this.installed()) {
-            return VersionState.Unknown;
-        }
-        const installVersion = this.GameMeta.value!.game_module_version;
-        const targetVersion = this.GameMeta.value!.game_module_target_version;
-        const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
-        const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
-        if (installVersionNum > targetVersionNum) {
-            return VersionState.Need2UpdateLauncher;
-        }
-        else if (installVersionNum < targetVersionNum) {
-            return VersionState.Need2UpdateGame;
-        }
-        else {
-            return VersionState.Normal
-        }
     }
 
     async resetConfig() {
@@ -110,24 +65,6 @@ export class SDVX {
         await launcher.applyConfig();
 
         window.laochan.close();
-    }
-
-    async settings() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        window.laochan.shellExecute(installPath + '\\launcher\\modules\\settings.exe');
-    }
-
-    async updater() {
-        const installPath = this.installPath;
-        if (!installPath) {
-            return;
-        }
-
-        window.laochan.shellExecute(installPath + '\\launcher\\modules\\updater.exe', '-t DUMMY');
     }
 };
 
