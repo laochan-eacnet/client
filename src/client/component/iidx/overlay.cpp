@@ -1,4 +1,4 @@
-#include <std_include.hpp>
+ï»¿#include <std_include.hpp>
 #include "loader/component_loader.hpp"
 
 #include <utils/memory.hpp>
@@ -418,7 +418,7 @@ namespace iidx::overlay
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
-				ImGui::Text(reinterpret_cast<const char*>(u8"ÍÆ¶¨ëyÒ×¶È:"));
+				ImGui::Text(reinterpret_cast<const char*>(u8"æ¨å®šé›£æ˜“åº¦:"));
 
 				ImGui::PushFont(font_big);
 				ImGui::Text(note.difficulty.data());
@@ -428,7 +428,7 @@ namespace iidx::overlay
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
-				ImGui::Text(reinterpret_cast<const char*>(u8"îĞÍÇĞ“Q F9"));
+				ImGui::Text(reinterpret_cast<const char*>(u8"é¡å‹åˆ‡æ› F9"));
 
 				ImGui::End();
 			}
