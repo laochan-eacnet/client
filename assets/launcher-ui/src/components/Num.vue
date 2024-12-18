@@ -71,7 +71,7 @@ window.laochan.num = () => {
 }
 
 .num {
-    background-image: url(../assets/num.png);
+    background-image: url(../assets/num.jpg);
     width: 100%;
     height: 100%;
     opacity: 0;

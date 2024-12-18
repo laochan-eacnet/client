@@ -193,8 +193,7 @@ HRESULT __stdcall d3d9ex_proxy::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceTy
 	pPresentationParameters->PresentationInterval = 0;
 	pPresentationParameters->SwapEffect = D3DSWAPEFFECT_FLIPEX;
 
-
-	if (iidx::custom_resolution::mode() != 0)
+	if (iidx::custom_resolution::mode() != iidx::custom_resolution::IIDX_DISPLAY_MODE_FULLSCREEN)
 	{
 		pPresentationParameters->Windowed = true;
 		pPresentationParameters->FullScreen_RefreshRateInHz = 0;

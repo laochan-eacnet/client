@@ -21,13 +21,13 @@ function openPath(path: string) {
 function pathes(index: number) {
     switch (index) {
         case 0:
-            return iidx.GameMeta.value!;
+            return iidx.meta.value!;
         case 1:
-            return sdvx.GameMeta.value!;
+            return sdvx.meta.value!;
         case 2:
-            return gitadora.GameMeta.value!;
+            return gitadora.meta.value!;
         default:
-            return sdvx.GameMeta.value!;
+            return sdvx.meta.value!;
     }
 }
 

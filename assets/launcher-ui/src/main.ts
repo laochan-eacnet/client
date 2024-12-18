@@ -87,13 +87,12 @@ window.laochan = {
 };
 
 (async () => {
-
     await launcher.loadConfig();
     await iidx.loadConfig();
     await sdvx.loadConfig();
-    await iidx.UpdateMeta();
-    await sdvx.UpdateMeta();
-    await gitadora.UpdateMeta();
+    await iidx.updateMeta();
+    await sdvx.updateMeta();
+    await gitadora.updateMeta();
 })();
 
 const app = createApp(App)

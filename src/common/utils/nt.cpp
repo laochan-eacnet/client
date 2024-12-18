@@ -149,12 +149,12 @@ namespace utils::nt
 
 	std::string library::get_version(const std::filesystem::path& path)
 	{
-		DWORD handle;
+		DWORD handle = 0;
 
 		auto p = path.generic_wstring();
 		auto size = GetFileVersionInfoSizeW(p.data(), &handle);
 
-		if (!size || !handle) return {};
+		if (!size || handle) return {};
 
 		auto buffer = memory::allocate(size);
 		auto _ = gsl::finally([=] {

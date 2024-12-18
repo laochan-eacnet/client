@@ -9,6 +9,10 @@ export class SDVX extends GameClass {
     private _config: Ref<SDVXConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
    
+    get gameIndex(): number {
+        return 1;
+    }
+
     get config() {
         return this._config;
     }
@@ -55,16 +59,6 @@ export class SDVX extends GameClass {
         if (!config) {
             return;
         }
-    }
-
-    async start() {
-        await this.loadConfig();
-        await window.laochan.setGame(1);
-
-        await this.applyConfig();
-        await launcher.applyConfig();
-
-        window.laochan.close();
     }
 };
 

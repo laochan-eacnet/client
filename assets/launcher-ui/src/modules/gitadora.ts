@@ -10,7 +10,11 @@ export interface GITADORAConfig {
 export class GITADORA extends GameClass {
     private _config: Ref<GITADORAConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
- 
+
+    get gameIndex(): number {
+        return 2;
+    }
+
     get config() {
         return this._config;
     }
@@ -57,16 +61,6 @@ export class GITADORA extends GameClass {
         if (!config) {
             return;
         }
-    }
-
-    async start() {
-        await this.loadConfig();
-        await window.laochan.setGame(2);
-
-        await this.applyConfig();
-        await launcher.applyConfig();
-
-        window.laochan.close();
     }
 };
 

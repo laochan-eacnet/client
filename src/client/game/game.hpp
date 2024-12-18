@@ -34,9 +34,8 @@ namespace game
 
 		std::filesystem::path get_install_path();
 		std::filesystem::path get_resource_path();
-		std::filesystem::path get_install_path(launcher::game);
-		std::filesystem::path get_resource_path(launcher::game);
-
+		static std::filesystem::path get_install_path(launcher::game);
+		static std::filesystem::path get_resource_path(launcher::game);
 
 		class gamemeta
 		{

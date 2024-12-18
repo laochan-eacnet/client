@@ -1,7 +1,7 @@
 import { ref, type Ref } from "vue";
-import { VersionState } from "./launcher";
+import { launcher, VersionState } from "./launcher";
 
-export class GameClass {
+export abstract class GameClass {
     public meta: Ref<GameMeta | undefined> = ref(undefined);
     public versionState: Ref<VersionState> = ref(VersionState.Unknown);
 
@@ -9,8 +9,10 @@ export class GameClass {
         return this.meta.value?.installed ?? false;
     }
 
+    abstract get gameIndex(): number;
+
     async updateMeta() {
-        this.meta.value = await window.laochan.detectGameInstall(0);
+        this.meta.value = await window.laochan.detectGameInstall(this.gameIndex);
         this.versionState.value = this.checkVersion();
     }
 
@@ -69,5 +71,18 @@ export class GameClass {
         }
 
         window.laochan.shellExecute(this.meta.value!.updater_module_path);
+    }
+
+    abstract loadConfig(): Promise<void>;
+    abstract applyConfig(): Promise<void>;
+
+    async start() {
+        await this.loadConfig();
+        await window.laochan.setGame(this.gameIndex);
+
+        await this.applyConfig();
+        await launcher.applyConfig();
+
+        window.laochan.close();
     }
 }

@@ -124,7 +124,7 @@ namespace game
 		static std::wstring get_reg_value(launcher::game game_type, std::wstring const& query)
 		{
 			HKEY key;
-			auto path = L"SOFTWARE\\KONAMI\\" + get_stringw();
+			auto path = L"SOFTWARE\\KONAMI\\" + get_stringw(game_type);
 
 			if (RegOpenKeyExW(HKEY_CURRENT_USER, path.data(), 0, KEY_READ | KEY_WOW64_64KEY, &key)
 				&& RegOpenKeyExW(HKEY_LOCAL_MACHINE, path.data(), 0, KEY_READ | KEY_WOW64_64KEY, &key))
@@ -145,7 +145,7 @@ namespace game
 			}
 
 			std::wstring value;
-			value.resize(size - 1);
+			value.resize(size / sizeof(wchar_t) - 1);
 
 			if (RegQueryValueExW(key, query.data(), 0, &type, reinterpret_cast<LPBYTE>(value.data()), &size))
 			{
@@ -158,19 +158,14 @@ namespace game
 			return value;
 		}
 
-		std::wstring get_reg_value(std::wstring const& query)
-		{
-			return get_reg_value(get_game(), query);
-		}
-
 		std::filesystem::path get_install_path()
 		{
-			return get_reg_value(L"InstallDir");
+			return get_install_path(get_game());
 		}
 
 		std::filesystem::path get_resource_path()
 		{
-			return get_reg_value(L"ResourceDir");
+			return get_resource_path(get_game());
 		}
 
 		std::filesystem::path get_install_path(launcher::game game_type)
@@ -201,9 +196,10 @@ namespace game
 						if (std::filesystem::exists("bm2dx.exe"))
 							game_module_path = std::filesystem::absolute("bm2dx.exe");
 						else
-							game_module_path = install_path / "game" / "app" / "bm2dx.exe";
+							game_module_path = install_path / L"game" / L"app" / L"bm2dx.exe";
 
-						updater_module_path = install_path / "launcher" / "modules" / "bm2dx_updater.exe";
+						settings_module_path = install_path / L"launcher" / L"modules" / L"bm2dx_settings.exe";
+						updater_module_path = install_path / L"launcher" / L"modules" / L"bm2dx_updater.exe";
 						game_module_target_version = IIDX_TARGET_VERSION;
 						break;
 					}
@@ -212,9 +208,10 @@ namespace game
 						if (std::filesystem::exists("sv6c.exe"))
 							game_module_path = std::filesystem::absolute("sv6c.exe");
 						else
-							game_module_path = install_path / "game" / "modules" / "sv6c.exe";
+							game_module_path = install_path / L"game" / L"modules" / L"sv6c.exe";
 
-						updater_module_path = install_path / "launcher" / "modules" / "updater.exe";
+						settings_module_path = install_path / L"launcher" / L"modules" / L"settings.exe";
+						updater_module_path = install_path / L"launcher" / L"modules" / L"updater.exe";
 						game_module_target_version = SDVX_TARGET_VERSION;
 						break;
 					}
@@ -223,9 +220,10 @@ namespace game
 						if (std::filesystem::exists("gitadora.exe"))
 							game_module_path = std::filesystem::absolute("gitadora.exe");
 						else
-							game_module_path = install_path / "game" / "modules" / "gitadora.exe";
+							game_module_path = install_path / L"game" / L"modules" / L"gitadora.exe";
 
-						updater_module_path = install_path / "launcher" / "modules" / "updater.exe";
+						settings_module_path = install_path / L"launcher" / L"modules" / L"settings.exe";
+						updater_module_path = install_path / L"launcher" / L"modules" / L"updater.exe";
 						game_module_target_version = GITADORA_TARGET_VERSION;
 						break;
 					}

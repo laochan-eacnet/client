@@ -43,6 +43,10 @@ export class IIDX extends GameClass {
     private _config: Ref<IIDXConfig | undefined> = ref(undefined);
     private _dirty: boolean = false;
 
+    get gameIndex(): number {
+        return 0;
+    }
+
     get config() {
         return this._config;
     }
@@ -125,16 +129,6 @@ export class IIDX extends GameClass {
 
     openCustomize() {
         window.laochan.shellExecute('http://laochan.ugreen.sbs/cp');
-    }
-
-    async start() {
-        await this.loadConfig();
-        await window.laochan.setGame(0);
-
-        await this.applyConfig();
-        await launcher.applyConfig();
-
-        window.laochan.close();
     }
 
     async generateBat() {

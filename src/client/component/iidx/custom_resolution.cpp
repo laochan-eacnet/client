@@ -3,22 +3,10 @@
 
 #include "d3d9_proxy/interface_ex.hpp"
 
+#include "custom_resolution.hpp"
+
 namespace iidx::custom_resolution
 {
-	enum IIDX_DISPLAY_MODE_
-	{
-		IIDX_DISPLAY_MODE_FULLSCREEN,
-		IIDX_DISPLAY_MODE_FULLSCREEN_WINDOWED,
-		IIDX_DISPLAY_MODE_WINDOWED,
-	};
-
-	enum IIDX_GRAPHICS_API_
-	{
-		IIDX_GRAPHICS_API_DX9,
-		IIDX_GRAPHICS_API_DX9_ON_12,
-		IIDX_GRAPHICS_API_DXVK,
-	};
-
 	IIDX_DISPLAY_MODE_ mode()
 	{
 		static auto mode = std::stoi(game::environment::get_param("IIDX_DISPLAY_MODE"));

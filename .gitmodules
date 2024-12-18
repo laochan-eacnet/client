@@ -19,3 +19,6 @@
 [submodule "deps/ifs_layeredfs"]
 	path = deps/ifs_layeredfs
 	url = https://github.com/GEEKiDoS/ifs_layeredfs.git
+[submodule "deps/zstd"]
+	path = deps/zstd
+	url = https://github.com/facebook/zstd.git
