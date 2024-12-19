@@ -36,11 +36,6 @@ namespace sdvx::env
 
 		void post_load() override
 		{
-			auto version = game::environment::get_version();
-			if (version != SDVX_TARGET_VERSION)
-			{
-				throw std::runtime_error(utils::string::va("Unsupported version %s\nSupported version is " SDVX_TARGET_VERSION ".", version.data()));
-			}
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override
