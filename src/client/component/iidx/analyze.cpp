@@ -5,32 +5,10 @@
 #include <utils/memory.hpp>
 #include <game/game.hpp>
 
-#include "chart_modifier.hpp"
+#include "analyze.hpp"
 
-namespace notes_radar
+namespace iidx::analyze
 {
-	struct chart_analyze_data_t
-	{
-		size_t note_count;
-		float total_seconds;
-
-		struct
-		{
-			float min;
-			float max;
-		} bpm;
-
-		struct
-		{
-			float notes;
-			float peak;
-			float scratch;
-			float soflan;
-			float charge;
-			float chord;
-		} radar;
-	};
-
 	float notes(const std::vector<iidx::event_t>& chart)
 	{
 		int notes = 0, total_tick = 0;
@@ -325,7 +303,7 @@ namespace notes_radar
 				}
 
 				results[i] = ((radar[i] - last_threshold) / (threshold - last_threshold)) * radar_thresholds[preset][j][6] + radar_thresholds[preset][j][7];
-				results[i] *= 10000.f;
+				results[i] *= 2.f;
 				break;
 			}
 		}
@@ -333,17 +311,28 @@ namespace notes_radar
 		return results;
 	}
 
-	void analyze_chart(const std::vector<iidx::event_t>& chart, chart_analyze_data_t& result)
+	void analyze_chart(const std::vector<iidx::event_t>& chart, chart_analyze_data_t& result, bool calc_radar)
 	{
-		float radar_my_raw[6] = {
-			notes(chart), peak(chart), scratch(chart), soflan(chart), charge(chart), chord(chart),
-		};
+		if (calc_radar)
+		{
+			float radar_my_raw[6] = {
+				notes(chart), peak(chart), scratch(chart), soflan(chart), charge(chart), chord(chart),
+			};
 
-		float radar_my[6];
-		normalize_radar_data(radar_my_raw, radar_my, 0);
+			float radar_my[6];
+			normalize_radar_data(radar_my_raw, radar_my, 0);
+
+			result.radar.notes = radar_my[0];
+			result.radar.peak = radar_my[1];
+			result.radar.scratch = radar_my[2];
+			result.radar.soflan = radar_my[3];
+			result.radar.charge = radar_my[4];
+			result.radar.chord = radar_my[5];
+		}
 
 		result.bpm.min = 100000;
 		result.bpm.max = -100000;
+		result.note_count = 0;
 
 		for (const auto& ev : chart)
 		{
@@ -369,12 +358,5 @@ namespace notes_radar
 
 			result.note_count++;
 		}
-
-		result.radar.notes = radar_my[0];
-		result.radar.peak = radar_my[1];
-		result.radar.scratch = radar_my[2];
-		result.radar.soflan = radar_my[3];
-		result.radar.charge = radar_my[4];
-		result.radar.chord = radar_my[5];
 	}
 }

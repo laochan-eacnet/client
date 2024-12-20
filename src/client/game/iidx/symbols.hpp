@@ -8,6 +8,8 @@ namespace iidx
 	WEAK symbol<music_data_t* ()> get_music_data{ 0x1401C42D0 };
 	WEAK symbol<LRESULT(HWND, UINT, WPARAM, LPARAM)> main_wndproc{ 0x1402022B0 };
 
+	WEAK symbol<csd_t* (csd_t* result, const char* name)> csd_load{ 0x140323180 };
+
 	WEAK vftable_entry<bool(void*)> music_select_scene_attach{ 0x1404D9658, 13, launcher::game::iidx };
 	WEAK vftable_entry<void(void*)> music_select_scene_detach{ 0x1404D9658, 14, launcher::game::iidx };
 

@@ -62,6 +62,7 @@ namespace avs2
 	WEAK function<const char* (file_t dir)> fs_readdir{ "XCgsqzn000005d" };
 	WEAK function<void(file_t dir)> fs_closedir{ "XCgsqzn000005e" };
 	WEAK function<int(const char* mountpoint, const char* fsroot, const char* fstype, void* data)> fs_mount{ "XCgsqzn000004b" };
+	WEAK function<int(const char* mountpoint)> fs_umount{ "XCgsqzn000004c" };
 	WEAK function<int(node_ptr, void*, size_t, void*, void*, HANDLE)> boot{ "XCgsqzn0000129" };
 	WEAK function<int()> fs_dump_mountpoint{ "XCgsqzn0000068" };
 

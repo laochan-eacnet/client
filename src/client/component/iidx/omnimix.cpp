@@ -7,28 +7,136 @@
 #include <game/game.hpp>
 
 #include "component/filesystem.hpp"
+#include "analyze.hpp"
 
 using json = nlohmann::json;
 
 namespace iidx::omnimix
 {
+	struct muisc_32_t
+	{
+		wchar_t title[0x80];
+		char title_ascii[0x40];
+		wchar_t genre[0x40];
+		wchar_t artist[0x80];
+
+		uint8_t gap1[0x100];
+
+		struct
+		{
+			uint32_t title;
+			uint32_t artist;
+			uint32_t genre;
+			uint32_t load;
+			uint32_t list;
+			uint32_t unk;
+		} textures;
+
+		uint32_t font_id;
+		uint16_t version;
+
+		struct
+		{
+			uint16_t other;
+			uint16_t bemani;
+			uint16_t unk0;
+			uint16_t unk1;
+			uint16_t unk2;
+			uint16_t split_table_diff;
+			uint16_t unk3;
+		} folders;
+
+		uint8_t level[10];
+
+		uint8_t gap2[0x286];
+
+		uint32_t id;
+		uint32_t volume;
+
+		uint8_t ident[10];
+		uint16_t bga_delay;
+		char bga_file[0x20];
+		uint32_t afp_flag;
+		struct
+		{
+			uint8_t data[0x20];
+		} afp_data[10];
+		int unk2;
+	};
+
+	struct music_data_32_t
+	{
+		char magic[4];
+		uint32_t data_version;
+		uint32_t count;
+		uint32_t max_entries;
+		uint32_t index[(32 + 1) * 1000];
+		muisc_32_t musics[1];
+	};
+
 	utils::hook::detour get_name_hook;
 	const char* get_bga_name(iidx::music_t* music, int note_id)
 	{
 		const auto music_bga = music->bga_filename;
-		auto path = utils::string::va("/data/movie/%s.mp4", music_bga);
+		auto path = utils::string::va("/ac_mount/movie/%s.mp4", music_bga);
 
-		if (filesystem::exists(path)) {
+		if (filesystem::exists(path))
+		{
 			return utils::string::va("%s.mp4", music_bga);
 		}
 
-		path = utils::string::va("/data/movie/%s.wmv", music_bga);
+		path = utils::string::va("/ac_mount/movie/%s.wmv", music_bga);
 
-		if (filesystem::exists(path)) {
+		if (filesystem::exists(path))
+		{
 			return utils::string::va("%s.wmv", music_bga);
 		}
 
 		return get_name_hook.invoke<const char*, iidx::music_t*, int>(music, note_id);
+	}
+
+	csd_t* csd_load_hook(csd_t* result, const char* name)
+	{
+		result->pad = 0;
+		result->id = 0;
+		snprintf(result->path, 256, "/ac_mount/sound/%s", name);
+
+		if (!filesystem::exists(result->path))
+		{
+			snprintf(result->path, 256, "/data/sound/%s", name);
+		}
+
+		if (!filesystem::exists(result->path))
+		{
+			printf("libutil: CSDLoad::CSDLoad sound file not found: %s\n", name);
+		}
+
+		int folder;
+		sscanf_s(name, "%d/%d.%*s", &folder, &result->id);
+
+		return result;
+	}
+
+	int get_movie_path(char* buffer, size_t buffer_size, const char*, const char* movie_name)
+	{
+		auto c = snprintf(buffer, buffer_size, "/ac_mount/movie/%s", movie_name);
+		if (filesystem::exists(buffer))
+			return c;
+
+		return snprintf(buffer, buffer_size, "/data/movie/%s", movie_name);
+	}
+
+	int get_layer_path(char* buffer, size_t buffer_size, const char*, const char* layer_name)
+	{
+		if ((*layer_name == 'i' && *(layer_name + 1) == '_') ||
+			(*layer_name >= '0' && *layer_name <= '9'))
+		{
+			auto c = snprintf(buffer, buffer_size, "/ac_mount/graphic/%s", layer_name);
+			if (filesystem::exists(buffer))
+				return c;
+		}
+
+		return snprintf(buffer, buffer_size, "/data/graphic/%s", layer_name);
 	}
 
 	std::vector<json> get_additional_mdatas()
@@ -42,7 +150,7 @@ namespace iidx::omnimix
 
 		for (auto file = avs2::fs_readdir(dir); file; file = avs2::fs_readdir(dir))
 		{
-			filesystem::file mdata_file { utils::string::va("/laochan/music_datas/%s", file) };
+			filesystem::file mdata_file{ utils::string::va("/laochan/music_datas/%s", file) };
 			if (!mdata_file.exists())
 				continue;
 
@@ -58,40 +166,42 @@ namespace iidx::omnimix
 		auto result = load_music_info_hook.invoke<uint64_t>();
 		const auto music_data = iidx::get_music_data();
 
-		filesystem::file omni_file{ "/data/omni_data.json" };
-
-		if (!omni_file.exists()) {
-			printf("E:omnimix: can not load /data/omni_data.json\n");
-			return result;
-		}
-
-		json omni_data = json::parse(omni_file.get_buffer());
-		auto mdatas = get_additional_mdatas();
-
-		for (const auto& item : std::ranges::join_view(std::vector{ omni_data, mdatas }))
+		for (size_t i = 0; i < music_data->music_count; i++)
 		{
-			if (!item.is_object()) {
-				printf("W:omnimix: music item is not object!\n");
-				continue;
-			}
+			auto& music = music_data->musics[i];
 
-			const size_t id = item["id"].get<size_t>();
-			const auto index = music_data->index_table[id];
-
-			if (index <= 0)
+			if (music.song_id / 1000 == 80)
 				continue;
 
-			auto* const music = music_data->musics + index;
+			csd_t csd;
+			csd_load(&csd, utils::string::va("%d/%d.1", music.song_id, music.song_id));
 
-			for (size_t i = 0; i < 5; i++)
+			filesystem::file chart_file{ csd.path };
+
+			if (!chart_file.exists())
+				continue;
+
+			auto& data = chart_file.get_buffer();
+
+			for (int j = 0; j < 10; j++)
 			{
-				music->bpm[i].min = item["bpms"]["sp"].at(i)["min"].get<uint32_t>();
-				music->bpm[i].max = item["bpms"]["sp"].at(i)["max"].get<uint32_t>();
-				music->bpm[i + 5].min = item["bpms"]["dp"].at(i)["min"].get<uint32_t>();
-				music->bpm[i + 5].max = item["bpms"]["dp"].at(i)["max"].get<uint32_t>();
+				auto mapped = analyze::map_chart(j);
 
-				music->note_count[i] = item["noteCounts"]["sp"].at(i).get<uint32_t>();
-				music->note_count[i + 5] = item["noteCounts"]["dp"].at(i).get<uint32_t>();
+				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + mapped * 8);
+				auto size = *reinterpret_cast<const uint32_t*>(data.data() + mapped * 8 + 4);
+
+				if (!offset || !size) continue;
+
+				std::vector<event_t> events;
+				events.resize(size / sizeof(event_t));
+				std::memcpy(events.data(), data.data() + offset, size);
+
+				analyze::chart_analyze_data_t analyze_data;
+				analyze::analyze_chart(events, analyze_data, false);
+
+				music.bpm[j].min = static_cast<uint32_t>(analyze_data.bpm.min);
+				music.bpm[j].max = static_cast<uint32_t>(analyze_data.bpm.max);
+				music.note_count[j] = static_cast<uint32_t>(analyze_data.note_count);
 			}
 		}
 
@@ -100,11 +210,18 @@ namespace iidx::omnimix
 
 	void insert_music_datas()
 	{
-		filesystem::file omni_file{ "/data/omni_data.json" };
+		filesystem::file ac_music_data{ "/ac_mount/info/0/music_data.bin" };
 
-		if (!omni_file.exists()) {
-			printf("E:omnimix: can not load /data/omni_data.json\n");
-			return iidx::finalize_music_data();
+		const music_data_32_t* ac_data = nullptr;
+
+		if (!ac_music_data.exists())
+		{
+			printf("E:omnimix: can not load ac music_data.bin\n");
+		}
+		else
+		{
+			auto& buffer = ac_music_data.get_buffer();
+			ac_data = reinterpret_cast<const music_data_32_t*>(buffer.data());
 		}
 
 		const auto music_data = iidx::get_music_data();
@@ -116,19 +233,65 @@ namespace iidx::omnimix
 			utils::memory::free(backup);
 		});
 
-		json omni_data = json::parse(omni_file.get_buffer());
 		auto mdatas = get_additional_mdatas();
 
 		std::vector<iidx::music_t> musics;
 
-		if (!omni_data.is_array()) {
-			printf("E:omnimix: omni_data is not array!\n");
-			return;
+		if (ac_data)
+		{
+			for (size_t i = 0; i < ac_data->count; i++)
+			{
+				iidx::music_t inf_music{};
+				auto& ac_music = ac_data->musics[i];
+
+				auto title = utils::string::wide_to_shiftjis(ac_music.title);
+				std::memcpy(inf_music.title, title.data(), std::min<size_t>(0x40, title.size()));
+
+				std::memcpy(inf_music.title_ascii, ac_music.title_ascii, 0x40);
+
+				auto genre = utils::string::wide_to_shiftjis(ac_music.genre);
+				std::memcpy(inf_music.genre, genre.data(), std::min<size_t>(0x40, genre.size()));
+
+				auto artist = utils::string::wide_to_shiftjis(ac_music.artist);
+				std::memcpy(inf_music.artist, artist.data(), std::min<size_t>(0x40, artist.size()));
+
+				// no textures as mdata.ifs is not handled right now (maybe never)
+				inf_music.texture_title = 0;
+				inf_music.texture_artist = 0;
+				inf_music.texture_genre = 0;
+				inf_music.texture_load = 0;
+				inf_music.texture_title = 0;
+
+				inf_music.font_idx = ac_music.font_id;
+
+				// we have no iidx32 folder in infinitas now
+				inf_music.game_version = ac_music.version == 32 ? 80 : ac_music.version;
+
+				inf_music.other_folder = ac_music.folders.other;
+				inf_music.bemani_folder = ac_music.folders.bemani;
+				inf_music.splittable_diff = ac_music.folders.split_table_diff;
+
+				std::memcpy(inf_music.level, ac_music.level, 10);
+
+				inf_music.song_id = ac_music.id;
+				inf_music.volume = ac_music.volume;
+
+				std::memcpy(inf_music.ident_sp, ac_music.ident, 10);
+
+				inf_music.bga_delay = ac_music.bga_delay;
+				std::memcpy(inf_music.bga_filename, ac_music.bga_file, 0x20);
+
+				inf_music.afp_flag = ac_music.afp_flag;
+				std::memcpy(inf_music.afp_data, ac_music.afp_data, 0x20 * 10);
+
+				musics.push_back(inf_music);
+			}
 		}
 
-		for (const auto& item : std::ranges::join_view(std::vector{ omni_data, mdatas }))
+		for (const auto& item : mdatas)
 		{
-			if (!item.is_object()) {
+			if (!item.is_object())
+			{
 				printf("W:omnimix: music item is not object!\n");
 				continue;
 			}
@@ -152,7 +315,8 @@ namespace iidx::omnimix
 			LOAD_INT(song_id, ["id"]);
 
 			// skip existing song
-			if (backup->index_table[music.song_id] > 0) {
+			if (backup->index_table[music.song_id] > 0)
+			{
 				continue;
 			}
 
@@ -219,7 +383,14 @@ namespace iidx::omnimix
 		printf("I:omnimix: parsed %llu musics\n", musics.size());
 
 		for (size_t i = 0; i < backup->music_count; i++)
-			musics.push_back(backup->musics[i]);
+		{
+			const auto find_result = std::find_if(musics.begin(), musics.end(), [=](const iidx::music_t& v) {
+				return v.song_id == backup->musics[i].song_id;
+			});
+
+			if (find_result == musics.end())
+				musics.push_back(backup->musics[i]);
+		}
 
 		printf("I:omnimix: total music count: %llu\n", musics.size());
 
@@ -233,7 +404,7 @@ namespace iidx::omnimix
 		{
 			const auto find_result = std::find_if(musics.begin(), musics.end(), [i](const iidx::music_t& v) {
 				return v.song_id == i;
-				});
+			});
 
 			if (find_result != musics.end())
 			{
@@ -264,12 +435,26 @@ namespace iidx::omnimix
 
 			// remove music count limit
 			utils::hook::set<uint8_t>(0x1401C336E, 0xEB);
-			
+
 			// add omni songs to music_data.bin
 			utils::hook::call(0x1401C337E, insert_music_datas);
 
 			// load omni song detail
 			load_music_info_hook.create(0x1401C33C0, load_music_info);
+
+			// load ac files if ac file exists
+			utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
+			utils::hook::call(0x14020C870, get_movie_path);
+			utils::hook::call(0x14020CE7D, get_movie_path);
+			utils::hook::call(0x140105A9D, get_layer_path);
+			utils::hook::call(0x140174610, get_layer_path);
+			utils::hook::call(0x140224386, get_layer_path);
+			utils::hook::call(0x140224636, get_layer_path);
+		}
+
+		void post_avs_init() override
+		{
+			avs2::fs_mount("/ac_mount", "E:\\LDJ-012-2023101800\\contents\\data", "fs", const_cast<char*>("vf=1,posix=1"));
 		}
 	};
 }

@@ -104,8 +104,7 @@ namespace utils::hook
 	}
 
 	detour::detour(const size_t place, void* target) : detour(reinterpret_cast<void*>(place), target)
-	{
-	}
+	{}
 
 	detour::detour(void* place, void* target)
 	{
@@ -223,9 +222,14 @@ namespace utils::hook
 			throw std::runtime_error("Too far away to create 32bit relative branch");
 		}
 
+		// call cs:
+		bool append_nop = *reinterpret_cast<uint16_t*>(pointer) == 0x15FF;
+
 		auto* patch_pointer = PBYTE(pointer);
 		set<uint8_t>(patch_pointer, 0xE8);
 		set<int32_t>(patch_pointer + 1, int32_t(size_t(data) - (size_t(pointer) + 5)));
+		if (append_nop)
+			set<uint8_t>(patch_pointer + 5, 0x90);
 	}
 
 	void call(const size_t pointer, void* data)

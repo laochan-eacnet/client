@@ -15,19 +15,18 @@ namespace iidx::custom_resolution
 
 	int width()
 	{
-		static auto w = mode() == 1 ?
+		static auto w = mode() == IIDX_DISPLAY_MODE_FULLSCREEN_WINDOWED ?
 			GetSystemMetrics(SM_CXSCREEN) : std::stoi(game::environment::get_param("IIDX_RESOLTION_W"));
-		w = w ? w : GetSystemMetrics(SM_CXSCREEN);
-		return w;
+
+		return w ? w : GetSystemMetrics(SM_CXSCREEN);
 	}
 
 	int height()
 	{
-		static auto h = mode() == 1 ?
+		static auto h = mode() == IIDX_DISPLAY_MODE_FULLSCREEN_WINDOWED ?
 			GetSystemMetrics(SM_CYSCREEN) : std::stoi(game::environment::get_param("IIDX_RESOLTION_H"));
-		h = h ? h : GetSystemMetrics(SM_CXSCREEN);
 
-		return h;
+		return h ? h : GetSystemMetrics(SM_CYSCREEN);
 	}
 
 	IIDX_GRAPHICS_API_ graphics_api()

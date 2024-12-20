@@ -12,6 +12,7 @@
 
 #include "custom_resolution.hpp"
 #include "chart_modifier.hpp"
+#include "analyze.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -121,17 +122,71 @@ namespace iidx::overlay
 		float label_dist[] = { 110, 95, 110, 110, 95, 110 };
 		ImColor colors[] = { ImColor(255,0,0,200), ImColor(0,150,255,200), ImColor(88,15,247,200), ImColor(127,224,0,200), ImColor(255,64,235,200), ImColor(255,108,0,200) };
 
-		struct radar_data
-		{
-			uint16_t notes;
-			uint16_t peak;
-			uint16_t scratch;
-			uint16_t soflan;
-			uint16_t charge;
-			uint16_t chord;
-		};
+		std::map<int, std::vector<analyze::chart_analyze_data_t>> analyze_datas;
 
-		std::map<int, std::vector<radar_data>> note_radars;
+		analyze::chart_analyze_data_t* get_analyze_data(int id, size_t diff)
+		{
+			auto iter = analyze_datas.find(id);
+			if (iter != analyze_datas.end())
+				return &iter->second[diff];
+
+			std::string target = utils::string::va("/data/sound/%d/%d.1", id, id);
+
+			// mount downloaded data before analyze
+			auto require_mount = id / 1000 == 80 && !filesystem::exists(target.data());
+			if (require_mount)
+			{
+				std::string ifs = utils::string::va("/data/sound/%d.ifs", id);
+
+				if (!filesystem::exists(ifs))
+					ifs = utils::string::va("/ac_mount/sound/%d.ifs", id);
+
+				if (!filesystem::exists(ifs))
+					ifs = utils::string::va("/dl_fs3/sound/%d.ifs", id);
+
+				if (!filesystem::exists(ifs.data()))
+					return nullptr;
+
+				avs2::fs_mount(utils::string::va("/data/sound/%d", id), ifs.data(), "imagefs", nullptr);
+			}
+
+			csd_t csd;
+			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
+
+			filesystem::file chart_file{ csd.path };
+
+			if (!chart_file.exists())
+				return nullptr;
+
+			auto& data = chart_file.get_buffer();
+			std::vector<analyze::chart_analyze_data_t> datas;
+
+			for (int i = 0; i < 10; i++)
+			{
+				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + i * 8);
+				auto size = *reinterpret_cast<const uint32_t*>(data.data() + i * 8 + 4);
+
+				if (!offset || !size) continue;
+
+				std::vector<event_t> events;
+				events.resize(size / sizeof(event_t));
+				std::memcpy(events.data(), data.data() + offset, size);
+
+				analyze::chart_analyze_data_t analyze_data;
+				analyze::analyze_chart(events, analyze_data, true);
+
+				datas.push_back(analyze_data);
+			}
+
+			analyze_datas.emplace(id, datas);
+
+			if (require_mount)
+			{
+				avs2::fs_umount(utils::string::va("/data/sound/%d", id));
+			}
+
+			return &analyze_datas[id][diff];
+		}
 
 		void init()
 		{
@@ -144,38 +199,6 @@ namespace iidx::overlay
 			textures::labels[2] = load_texture("/laochan/notes_radar/nradar_charge.png");
 			textures::labels[3] = load_texture("/laochan/notes_radar/nradar_chord.png");
 			textures::no_data = load_texture("/laochan/notes_radar/nradar_nodata.png");
-
-			filesystem::file radar_file{ "/laochan/radar_data.json" };
-			if (!radar_file.exists()) {
-				printf("E:overlay: can not load /laochan/radar_data.json\n");
-				return;
-			}
-
-			json data = json::parse(radar_file.get_buffer());
-
-			if (!data.is_array()) {
-				printf("E:overlay: radar_data is not array\n");
-				return;
-			}
-
-			for (const auto& music : data) {
-				const auto id = music["id"].get<int>();
-				std::vector<radar_data> radars;
-
-				for (const auto& radar : music["radars"])
-				{
-					radars.push_back({
-						radar["notes"].get<uint16_t>(),
-						radar["peak"].get<uint16_t>(),
-						radar["scratch"].get<uint16_t>(),
-						radar["soflan"].get<uint16_t>(),
-						radar["charge"].get<uint16_t>(),
-						radar["chord"].get<uint16_t>(),
-						});
-				}
-
-				note_radars.emplace(id, radars);
-			}
 		}
 
 		void add_image_center(ImDrawList* const draw_list, ImTextureID image, ImVec2 pos, int width, int height)
@@ -204,16 +227,9 @@ namespace iidx::overlay
 			const auto music_id = music_select_scene->current_music->song_id;
 			auto chart = iidx::state->p1_active ? music_select_scene->selected_chart_p1 : music_select_scene->selected_chart_p2;
 
-			auto iter = note_radars.find(music_id);
-			if (iter == note_radars.end())
-			{
-				add_image_center(draw_list, textures::no_data, center, 116, 21);
-				return;
-			}
+			auto data = get_analyze_data(music_id, chart);
 
-			const auto data = iter->second[chart];
-
-			if (!data.scratch && !data.soflan && !data.charge && !data.chord && !data.notes && !data.peak)
+			if (!data)
 			{
 				add_image_center(draw_list, textures::no_data, center, 116, 21);
 				return;
@@ -221,7 +237,7 @@ namespace iidx::overlay
 
 			float size = 78.f;
 
-			float sizes[] = { data.scratch / 10000.f, data.soflan / 10000.f, data.charge / 10000.f, data.chord / 10000.f, data.notes / 10000.f, data.peak / 10000.f };
+			float sizes[] = { data->radar.scratch, data->radar.soflan, data->radar.charge, data->radar.chord, data->radar.notes, data->radar.peak };
 			size_t star_index = 0;
 
 			for (size_t i = 0; i < 6; i++)
@@ -308,14 +324,16 @@ namespace iidx::overlay
 		void init()
 		{
 			filesystem::file diff_file{ "/laochan/difficulty_data.json" };
-			if (!diff_file.exists()) {
+			if (!diff_file.exists())
+			{
 				printf("E:overlay: can not load /laochan/difficulty_data.json\n");
 				return;
 			}
 
 			json data = json::parse(diff_file.get_buffer());
 
-			if (!data.is_array()) {
+			if (!data.is_array())
+			{
 				printf("E:overlay: difficulty_data is not array\n");
 				return;
 			}
@@ -326,7 +344,8 @@ namespace iidx::overlay
 				t.name = table["name"].get<std::string>();
 				t.musics = std::map<int, std::map<int, note_difficulty_data>>{};
 
-				if (!table["musics"].is_array()) {
+				if (!table["musics"].is_array())
+				{
 					printf("E:overlay: table.musics is not array\n");
 					continue;
 				}
@@ -335,7 +354,8 @@ namespace iidx::overlay
 				{
 					std::map<int, note_difficulty_data> notes;
 
-					if (!music["notes"].is_array()) {
+					if (!music["notes"].is_array())
+					{
 						printf("E:overlay: table.musics.notes is not array\n");
 						continue;
 					}
@@ -411,9 +431,10 @@ namespace iidx::overlay
 			ImGui::SetNextWindowSize(scale(ImVec2(200, 145)));
 
 			if (ImGui::Begin("DIFFICULTY", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoSavedSettings
-			)) {
+							 ImGuiWindowFlags_NoDecoration |
+							 ImGuiWindowFlags_NoSavedSettings
+			))
+			{
 				ImGui::Text(table->name.data());
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
@@ -460,9 +481,9 @@ namespace iidx::overlay
 				ImGui::SetNextWindowPos(scale(ImVec2(840, 975)));
 
 			if (ImGui::Begin("MODIFIER", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoBackground))
+							 ImGuiWindowFlags_NoDecoration |
+							 ImGuiWindowFlags_NoSavedSettings |
+							 ImGuiWindowFlags_NoBackground))
 			{
 				ImGui::CheckboxFlags(" ALL SCRATCH ", &modifier, chart_modifier::all_scratch);
 				ImGui::SameLine();
@@ -495,80 +516,79 @@ namespace iidx::overlay
 			ImGui::SetNextWindowPos(scale(ImVec2(710, 390)));
 
 			if (ImGui::Begin("F-RAN Option", nullptr,
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoMove |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoCollapse))
+							 ImGuiWindowFlags_NoSavedSettings |
+							 ImGuiWindowFlags_NoMove |
+							 ImGuiWindowFlags_NoResize |
+							 ImGuiWindowFlags_NoCollapse))
 			{
-				static auto _ = []() -> bool
+				static auto _ = []() -> bool {
+					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
+
+					do
 					{
-						std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
-
-						do
-						{
-							uint64_t t = 0;
-
-							for (size_t i = 0; i < 7; i++)
-								t |= static_cast<uint64_t>(v[i]) << i * 8;
-
-							random_template.push_back(t);
-						} while (std::next_permutation(v.begin(), v.end()));
-
-						return true;
-					}();
-
-					ImGui::Text("SEARCH:");
-					if (ImGui::InputText("##", random_template_search_text, 8))
-					{
-						random_template.clear();
-						random_template_item = 0;
-
-						std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
-
-						do
-						{
-							bool is_target = true;
-							uint64_t t = 0;
-
-							for (size_t i = 0; i < 7; i++)
-							{
-								if (random_template_search_text[i] == 0)
-									break;
-
-								if (v[i] != random_template_search_text[i])
-								{
-									is_target = false;
-									break;
-								}
-							}
-
-							if (!is_target)
-								continue;
-
-							for (size_t i = 0; i < 7; i++)
-								t |= static_cast<uint64_t>(v[i]) << i * 8;
-
-							random_template.push_back(t);
-						} while (std::next_permutation(v.begin(), v.end()));
-					}
-
-					ImGui::ListBox("##", &random_template_item, [](void*, int index) -> const char* {
-						return reinterpret_cast<const char*>(random_template.data() + index);
-						}, nullptr, static_cast<int>(random_template.size()), 5);
-
-					if (ImGui::Button("USE SELECTED"))
-					{
-						auto t = reinterpret_cast<int8_t*>(random_template.data() + random_template_item);
-						int8_t new_template[7];
+						uint64_t t = 0;
 
 						for (size_t i = 0; i < 7; i++)
-							new_template[i] = t[i] - '1';
+							t |= static_cast<uint64_t>(v[i]) << i * 8;
 
-						chart_modifier::set_fran(new_template);
-						open_random_window = false;
-					}
+						random_template.push_back(t);
+					} while (std::next_permutation(v.begin(), v.end()));
 
-					ImGui::End();
+					return true;
+				}();
+
+				ImGui::Text("SEARCH:");
+				if (ImGui::InputText("##", random_template_search_text, 8))
+				{
+					random_template.clear();
+					random_template_item = 0;
+
+					std::vector<int8_t> v = { '1', '2', '3', '4', '5', '6', '7' };
+
+					do
+					{
+						bool is_target = true;
+						uint64_t t = 0;
+
+						for (size_t i = 0; i < 7; i++)
+						{
+							if (random_template_search_text[i] == 0)
+								break;
+
+							if (v[i] != random_template_search_text[i])
+							{
+								is_target = false;
+								break;
+							}
+						}
+
+						if (!is_target)
+							continue;
+
+						for (size_t i = 0; i < 7; i++)
+							t |= static_cast<uint64_t>(v[i]) << i * 8;
+
+						random_template.push_back(t);
+					} while (std::next_permutation(v.begin(), v.end()));
+				}
+
+				ImGui::ListBox("##", &random_template_item, [](void*, int index) -> const char* {
+					return reinterpret_cast<const char*>(random_template.data() + index);
+				}, nullptr, static_cast<int>(random_template.size()), 5);
+
+				if (ImGui::Button("USE SELECTED"))
+				{
+					auto t = reinterpret_cast<int8_t*>(random_template.data() + random_template_item);
+					int8_t new_template[7];
+
+					for (size_t i = 0; i < 7; i++)
+						new_template[i] = t[i] - '1';
+
+					chart_modifier::set_fran(new_template);
+					open_random_window = false;
+				}
+
+				ImGui::End();
 			}
 			ImGui::PopFont();
 		}
@@ -622,13 +642,14 @@ namespace iidx::overlay
 
 		ImGui::SetNextWindowPos(ImVec2(5, 5));
 		if (ImGui::Begin("INFORMATION", nullptr,
-			ImGuiWindowFlags_NoInputs |
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoBackground |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_AlwaysAutoResize
-		)) {
+						 ImGuiWindowFlags_NoInputs |
+						 ImGuiWindowFlags_NoDecoration |
+						 ImGuiWindowFlags_NoNav |
+						 ImGuiWindowFlags_NoBackground |
+						 ImGuiWindowFlags_NoSavedSettings |
+						 ImGuiWindowFlags_AlwaysAutoResize
+		))
+		{
 
 			ImGui::Text(utils::string::va(VERSION " (%s)", iidx::game_version));
 			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id));
@@ -659,18 +680,19 @@ namespace iidx::overlay
 		ImGui::SetNextWindowPos(ImVec2(5, 5));
 
 		if (ImGui::Begin("INFORMATION", nullptr,
-			ImGuiWindowFlags_NoInputs |
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoBackground |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_AlwaysAutoResize
-		)) {
+						 ImGuiWindowFlags_NoInputs |
+						 ImGuiWindowFlags_NoDecoration |
+						 ImGuiWindowFlags_NoNav |
+						 ImGuiWindowFlags_NoBackground |
+						 ImGuiWindowFlags_NoSavedSettings |
+						 ImGuiWindowFlags_AlwaysAutoResize
+		))
+		{
 			ImGui::PlotLines("",
-				frametimes.data(),
-				static_cast<int>(frametimes.size()),
-				0, nullptr, 0.f, max + 10.f,
-				ImVec2(300, 75)
+							 frametimes.data(),
+							 static_cast<int>(frametimes.size()),
+							 0, nullptr, 0.f, max + 10.f,
+							 ImVec2(300, 75)
 			);
 
 			ImGui::SetCursorPosY(7);
@@ -694,22 +716,23 @@ namespace iidx::overlay
 
 		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 5, 5), 0, ImVec2(1, 0));
 		if (ImGui::Begin("CLOCK", nullptr,
-			ImGuiWindowFlags_NoInputs |
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoBackground |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_AlwaysAutoResize
-		)) {
+						 ImGuiWindowFlags_NoInputs |
+						 ImGuiWindowFlags_NoDecoration |
+						 ImGuiWindowFlags_NoNav |
+						 ImGuiWindowFlags_NoBackground |
+						 ImGuiWindowFlags_NoSavedSettings |
+						 ImGuiWindowFlags_AlwaysAutoResize
+		))
+		{
 
 			ImGui::PushFont(font_big);
 			ImGui::Text(
 				std::format("{:%T}",
-					std::chrono::current_zone()->to_local(
-						std::chrono::time_point_cast<std::chrono::seconds>(
-							std::chrono::system_clock::now()
-						)
-					)
+							std::chrono::current_zone()->to_local(
+								std::chrono::time_point_cast<std::chrono::seconds>(
+									std::chrono::system_clock::now()
+								)
+							)
 				).data()
 			);
 			ImGui::PopFont();

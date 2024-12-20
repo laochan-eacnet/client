@@ -370,5 +370,12 @@ namespace iidx
 	static_assert(offsetof(eacnet_request_post_s, data) == 120);
 	static_assert(offsetof(eacnet_request_post_s, psmap) == 128);
 
+	struct csd_t
+	{
+		uint64_t pad;
+		char path[256];
+		int32_t id;
+	};
+
 #pragma pack(pop)
 }
