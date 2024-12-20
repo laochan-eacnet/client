@@ -303,7 +303,6 @@ namespace iidx::analyze
 				}
 
 				results[i] = ((radar[i] - last_threshold) / (threshold - last_threshold)) * radar_thresholds[preset][j][6] + radar_thresholds[preset][j][7];
-				results[i] *= 2.f;
 				break;
 			}
 		}

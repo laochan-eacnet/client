@@ -130,16 +130,17 @@ namespace iidx::overlay
 			if (iter != analyze_datas.end())
 				return &iter->second[diff];
 
-			std::string target = utils::string::va("/data/sound/%d/%d.1", id, id);
+			csd_t csd;
+			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
 
 			// mount downloaded data before analyze
-			auto require_mount = id / 1000 == 80 && !filesystem::exists(target.data());
+			auto require_mount = !csd.id;
 			if (require_mount)
 			{
-				std::string ifs = utils::string::va("/data/sound/%d.ifs", id);
+				std::string ifs = utils::string::va("/ac_mount/sound/%d.ifs", id);
 
 				if (!filesystem::exists(ifs))
-					ifs = utils::string::va("/ac_mount/sound/%d.ifs", id);
+					ifs = utils::string::va("/data/sound/%d.ifs", id);
 
 				if (!filesystem::exists(ifs))
 					ifs = utils::string::va("/dl_fs3/sound/%d.ifs", id);
@@ -150,41 +151,43 @@ namespace iidx::overlay
 				avs2::fs_mount(utils::string::va("/data/sound/%d", id), ifs.data(), "imagefs", nullptr);
 			}
 
-			csd_t csd;
 			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
+			if (!csd.id)
+				return nullptr;
 
 			filesystem::file chart_file{ csd.path };
-
-			if (!chart_file.exists())
-				return nullptr;
 
 			auto& data = chart_file.get_buffer();
 			std::vector<analyze::chart_analyze_data_t> datas;
 
 			for (int i = 0; i < 10; i++)
-			{
-				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + i * 8);
-				auto size = *reinterpret_cast<const uint32_t*>(data.data() + i * 8 + 4);
+			{	
+				auto m = analyze::map_chart(i);
 
-				if (!offset || !size) continue;
-
-				std::vector<event_t> events;
-				events.resize(size / sizeof(event_t));
-				std::memcpy(events.data(), data.data() + offset, size);
+				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + m * 8);
+				auto size = *reinterpret_cast<const uint32_t*>(data.data() + m * 8 + 4);
 
 				analyze::chart_analyze_data_t analyze_data;
-				analyze::analyze_chart(events, analyze_data, true);
+				memset(&analyze_data, 0, sizeof(analyze::chart_analyze_data_t));
+
+				if (offset && size)
+				{
+					std::vector<event_t> events;
+					events.resize(size / sizeof(event_t));
+					std::memcpy(events.data(), data.data() + offset, size);
+
+					analyze::analyze_chart(events, analyze_data, true);
+				}
 
 				datas.push_back(analyze_data);
 			}
-
-			analyze_datas.emplace(id, datas);
 
 			if (require_mount)
 			{
 				avs2::fs_umount(utils::string::va("/data/sound/%d", id));
 			}
 
+			analyze_datas.emplace(id, datas);
 			return &analyze_datas[id][diff];
 		}
 

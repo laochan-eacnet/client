@@ -16,13 +16,21 @@ namespace filesystem
 	file::file(std::string name)
 		: name_(std::move(name))
 	{
-		auto file = avs2::fs_open(name_.data(), 1, 420);
-
 		avs2::stat stat = { 0 };
+		avs2::fs_lstat(name.data(), &stat);
+
+		if (stat.filesize <= 0)
+		{
+			this->valid_ = false;
+			return;
+		}
+
+		auto file = avs2::fs_open(name_.data(), 1, 420);
 		avs2::fs_fstat(file, &stat);
 
 		if (stat.filesize <= 0)
 		{
+			this->valid_ = false;
 			avs2::fs_close(file);
 			return;
 		}
@@ -33,7 +41,7 @@ namespace filesystem
 		auto _ = gsl::finally([=] {
 			utils::memory::free(buffer);
 			avs2::fs_close(file);
-			});
+		});
 
 		if (size >= 0)
 		{
@@ -82,7 +90,7 @@ namespace filesystem
 			if (g == launcher::game::iidx)
 				data_dir /= "iidx";
 			else if (g == launcher::game::sdvx)
-				data_dir /= "iidx";
+				data_dir /= "sdvx";
 			else if (g == launcher::game::gitadora)
 				data_dir /= "gitadora";
 
@@ -92,7 +100,7 @@ namespace filesystem
 				printf("warning: data dir %s not exists\n", abs_data_path.data());
 
 			if (!utils::flags::has_flag("disable_ifs_hook"))
-				init(std::filesystem::exists(data_dir) ? nullptr : abs_data_path.data());
+				init(std::filesystem::exists(data_dir) ? abs_data_path.data() : nullptr);
 
 			avs2::fs_mount("/laochan", abs_data_path.data(), "fs", const_cast<char*>("vf=1,posix=1"));
 		}

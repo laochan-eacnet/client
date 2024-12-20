@@ -98,22 +98,22 @@ namespace iidx::omnimix
 	csd_t* csd_load_hook(csd_t* result, const char* name)
 	{
 		result->pad = 0;
-		result->id = 0;
-		snprintf(result->path, 256, "/ac_mount/sound/%s", name);
-
-		if (!filesystem::exists(result->path))
-		{
-			snprintf(result->path, 256, "/data/sound/%s", name);
-		}
-
-		if (!filesystem::exists(result->path))
-		{
-			printf("libutil: CSDLoad::CSDLoad sound file not found: %s\n", name);
-		}
 
 		int folder;
 		sscanf_s(name, "%d/%d.%*s", &folder, &result->id);
+		snprintf(result->path, 256, "/ac_mount/sound/%s", name);
 
+		if (filesystem::exists(result->path))
+			return result;
+
+		snprintf(result->path, 256, "/data/sound/%s", name);
+
+		if (filesystem::exists(result->path))
+			return result;
+
+		result->id = 0;
+
+		printf("libutil: CSDLoad::CSDLoad sound file not found: %s\n", name);
 		return result;
 	}
 
@@ -170,17 +170,28 @@ namespace iidx::omnimix
 		{
 			auto& music = music_data->musics[i];
 
-			if (music.song_id / 1000 == 80)
+			bool had_data = false;
+			for (size_t j = 0; j < 10; j++)
+			{
+				if (music.note_count[j])
+				{
+					had_data = true;
+					break;
+				}
+			}
+
+			if (had_data)
 				continue;
+
+			auto id = music.song_id;
 
 			csd_t csd;
-			csd_load(&csd, utils::string::va("%d/%d.1", music.song_id, music.song_id));
+			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
 
-			filesystem::file chart_file{ csd.path };
-
-			if (!chart_file.exists())
+			if (!csd.id)
 				continue;
 
+			filesystem::file chart_file{ csd.path };
 			auto& data = chart_file.get_buffer();
 
 			for (int j = 0; j < 10; j++)
