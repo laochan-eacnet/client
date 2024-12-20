@@ -102,7 +102,7 @@ namespace filesystem
 			if (!utils::flags::has_flag("disable_ifs_hook"))
 				init(std::filesystem::exists(data_dir) ? abs_data_path.data() : nullptr);
 
-			avs2::fs_mount("/laochan", abs_data_path.data(), "fs", const_cast<char*>("vf=1,posix=1"));
+			avs2::fs_mount("/laochan", abs_data_path.data(), "fs", nullptr);
 		}
 	};
 }

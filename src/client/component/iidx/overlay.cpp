@@ -133,27 +133,10 @@ namespace iidx::overlay
 			csd_t csd;
 			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
 
-			// mount downloaded data before analyze
-			auto require_mount = !csd.id;
-			if (require_mount)
-			{
-				std::string ifs = utils::string::va("/ac_mount/sound/%d.ifs", id);
-
-				if (!filesystem::exists(ifs))
-					ifs = utils::string::va("/data/sound/%d.ifs", id);
-
-				if (!filesystem::exists(ifs))
-					ifs = utils::string::va("/dl_fs3/sound/%d.ifs", id);
-
-				if (!filesystem::exists(ifs.data()))
-					return nullptr;
-
-				avs2::fs_mount(utils::string::va("/data/sound/%d", id), ifs.data(), "imagefs", nullptr);
-			}
-
-			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
 			if (!csd.id)
+			{
 				return nullptr;
+			}
 
 			filesystem::file chart_file{ csd.path };
 
@@ -180,11 +163,6 @@ namespace iidx::overlay
 				}
 
 				datas.push_back(analyze_data);
-			}
-
-			if (require_mount)
-			{
-				avs2::fs_umount(utils::string::va("/data/sound/%d", id));
 			}
 
 			analyze_datas.emplace(id, datas);
@@ -237,6 +215,10 @@ namespace iidx::overlay
 				add_image_center(draw_list, textures::no_data, center, 116, 21);
 				return;
 			}
+
+			music_select_scene->current_music->bpm[chart].min = static_cast<uint32_t>(data->bpm.min);
+			music_select_scene->current_music->bpm[chart].max = static_cast<uint32_t>(data->bpm.max);
+			music_select_scene->current_music->note_count[chart] = static_cast<uint32_t>(data->note_count);
 
 			float size = 78.f;
 

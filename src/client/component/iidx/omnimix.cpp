@@ -97,22 +97,69 @@ namespace iidx::omnimix
 
 	csd_t* csd_load_hook(csd_t* result, const char* name)
 	{
+		int folder = 0;
 		result->pad = 0;
+		snprintf(result->path, 256, "/data/sound/%s", name);
 
-		int folder;
-		sscanf_s(name, "%d/%d.%*s", &folder, &result->id);
+		if (filesystem::exists(result->path))
+		{
+			sscanf_s(name, "preview/%d_pre.2dx", &result->id);
+			return result;
+		}
+
+		char suffix[5];
+		sscanf_s(name, "%d/%d.%4s", &folder, &result->id, suffix, _countof(suffix));
+		auto ifs = utils::string::va("/dl_fs3/sound/%05d.ifs", result->id);
+
+		if (filesystem::exists(ifs))
+		{
+			std::string mountpoint = utils::string::va("/data/sound/%d", result->id);
+			avs2::fs_mount(mountpoint.data(), ifs, "imagefs", nullptr);
+
+			snprintf(result->path, 256, "/data/sound/%s", name);
+
+			if (filesystem::exists(result->path))
+				return result;
+		}
+
+		// fix the god damn file name
+		if (strstr(name, "preview"))
+		{
+			sscanf_s(name, "preview/%d_pre.2dx", &result->id);
+			name = utils::string::va("%05d/%05d_pre.2dx", result->id, result->id);
+		}
+		else if (result->id < 10000)
+		{
+			name = utils::string::va("%05d/%05d.%s", result->id, result->id, suffix);
+		}
+
 		snprintf(result->path, 256, "/ac_mount/sound/%s", name);
 
 		if (filesystem::exists(result->path))
 			return result;
 
-		snprintf(result->path, 256, "/data/sound/%s", name);
+		snprintf(result->path, 256, "/sd%05d/%s", result->id, name);
 
 		if (filesystem::exists(result->path))
 			return result;
 
-		result->id = 0;
+		ifs = utils::string::va("/ac_mount/sound/%05d-p0.ifs", result->id);
 
+		if (!filesystem::exists(ifs))
+			ifs = utils::string::va("/ac_mount/sound/%05d.ifs", result->id);
+
+		if (filesystem::exists(ifs))
+		{
+			std::string mountpoint = utils::string::va("/sd%05d", result->id);
+			avs2::fs_mount(mountpoint.data(), ifs, "imagefs", nullptr);
+
+			snprintf(result->path, 256, "/sd%05d/%s", result->id, name);
+
+			if (filesystem::exists(result->path))
+				return result;
+		}
+
+		result->id = 0;
 		printf("libutil: CSDLoad::CSDLoad sound file not found: %s\n", name);
 		return result;
 	}
@@ -155,65 +202,6 @@ namespace iidx::omnimix
 				continue;
 
 			result.push_back(json::parse(mdata_file.get_buffer()));
-		}
-
-		return result;
-	}
-
-	utils::hook::detour load_music_info_hook;
-	uint64_t load_music_info()
-	{
-		auto result = load_music_info_hook.invoke<uint64_t>();
-		const auto music_data = iidx::get_music_data();
-
-		for (size_t i = 0; i < music_data->music_count; i++)
-		{
-			auto& music = music_data->musics[i];
-
-			bool had_data = false;
-			for (size_t j = 0; j < 10; j++)
-			{
-				if (music.note_count[j])
-				{
-					had_data = true;
-					break;
-				}
-			}
-
-			if (had_data)
-				continue;
-
-			auto id = music.song_id;
-
-			csd_t csd;
-			csd_load(&csd, utils::string::va("%d/%d.1", id, id));
-
-			if (!csd.id)
-				continue;
-
-			filesystem::file chart_file{ csd.path };
-			auto& data = chart_file.get_buffer();
-
-			for (int j = 0; j < 10; j++)
-			{
-				auto mapped = analyze::map_chart(j);
-
-				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + mapped * 8);
-				auto size = *reinterpret_cast<const uint32_t*>(data.data() + mapped * 8 + 4);
-
-				if (!offset || !size) continue;
-
-				std::vector<event_t> events;
-				events.resize(size / sizeof(event_t));
-				std::memcpy(events.data(), data.data() + offset, size);
-
-				analyze::chart_analyze_data_t analyze_data;
-				analyze::analyze_chart(events, analyze_data, false);
-
-				music.bpm[j].min = static_cast<uint32_t>(analyze_data.bpm.min);
-				music.bpm[j].max = static_cast<uint32_t>(analyze_data.bpm.max);
-				music.note_count[j] = static_cast<uint32_t>(analyze_data.note_count);
-			}
 		}
 
 		return result;
@@ -449,9 +437,6 @@ namespace iidx::omnimix
 
 			// add omni songs to music_data.bin
 			utils::hook::call(0x1401C337E, insert_music_datas);
-
-			// load omni song detail
-			load_music_info_hook.create(0x1401C33C0, load_music_info);
 
 			// load ac files if ac file exists
 			utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
