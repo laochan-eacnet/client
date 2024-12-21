@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faCompactDisc, faComputer, faDisplay, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
+import { faCompactDisc, faComputer, faDisplay, faHardDrive, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref } from 'vue';
 import { iidx, IIDXDisplayMode, IIDXSoundMode } from '@/modules/iidx';
@@ -151,6 +151,15 @@ function updateUseGsm(e: Event) {
     iidx.config.value.useGsm = (e.target as HTMLInputElement).checked;
 }
 
+function updateAcDataPath(e: Event) {
+    if (!iidx.config.value) {
+        return;
+    }
+
+    iidx.config.value.acDataPath = (e.target as HTMLInputElement).value
+        .replaceAll('\\', '/');;
+}
+
 async function save() {
     await iidx.saveConfig();
     window.laochan.alert.show('已保存 IIDX 设置', '#40B681', 2000);
@@ -240,6 +249,15 @@ async function save() {
                     <option value="1">English</option>
                     <option value="2">한국어</option>
                 </select>
+            </div>
+            <div class="item">
+                <h3>
+                    <FontAwesomeIcon :icon="faHardDrive"></FontAwesomeIcon>
+                    AC 数据挂载路径
+                </h3>
+                <input class="text-input" type="text" v-bind:value="iidx.config.value?.acDataPath"
+                    @input="updateAcDataPath">
+                <div>仅支持 PINKY CRUSH 数据, 请指向 data 目录</div>
             </div>
             <div class="item">
                 <h3>

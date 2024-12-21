@@ -49,10 +49,10 @@ namespace laochan::embedded
         rtn.emplace("", saucer::embedded_file{"text/html", root});
 
         rtn.emplace("assets/gitadora-cQ1BqJ9U.webm", saucer::embedded_file{"video/webm", read_resource_zstd(ID_ASSET_2)});
-        rtn.emplace("assets/howler-BCY0WR7Z.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_3)});
+        rtn.emplace("assets/howler-CoCzKzbX.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_3)});
         rtn.emplace("assets/iidx-DT5rYYhv.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_4)});
-        rtn.emplace("assets/index-Bxdf4pjc.css", saucer::embedded_file{"text/css", read_resource_zstd(ID_ASSET_5)});
-        rtn.emplace("assets/index-YFm_oXHH.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_6)});
+        rtn.emplace("assets/index-Dbshj7Ar.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_5)});
+        rtn.emplace("assets/index-DiEJSjyp.css", saucer::embedded_file{"text/css", read_resource_zstd(ID_ASSET_6)});
         rtn.emplace("assets/moai-bg-B0rTMPYn.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_7)});
         rtn.emplace("assets/msyhsb-teYSJU3-.woff2", saucer::embedded_file{"font/woff2", read_resource_zstd(ID_ASSET_8)});
         rtn.emplace("assets/num-DOiIrgmq.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_9)});

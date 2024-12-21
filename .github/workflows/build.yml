@@ -48,6 +48,10 @@ jobs:
           copy build\bin\x64\${{matrix.configuration}}\laochan_bootstrap64.exe data\laochan_bootstrap64.exe
           copy build\bin\x64\${{matrix.configuration}}\laochan_bootstrap64.pdb data\laochan_bootstrap64.pdb
 
+      - name: Download external libraries
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -Command "& '.\tools\download_2dxgsm.ps1'"
+
       - name: Upload ${{matrix.configuration}} binaries
         uses: actions/upload-artifact@v4
         with:

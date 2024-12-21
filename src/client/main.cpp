@@ -95,7 +95,7 @@ FARPROC load_binary(const launcher::game game)
 	std::wstring binary = game::environment::gamemeta::get_gamemeta(game)
 		.get_game_module_path();
 
-	auto mod = loader.load_library(binary);
+	auto mod = loader.load_library(L"bm2dx.exe");
 	game::environment::set_module(mod);
 
 	printf("version %s\n", mod.get_version().data());
@@ -113,7 +113,8 @@ bool try_set_game_environment(launcher::game game)
 		auto modules_path = game_path / (game == launcher::game::iidx ? "app" : "modules");
 
 		SetCurrentDirectoryW(game_path.wstring().data());
-		SetDllDirectoryW(modules_path.wstring().data());
+		AddDllDirectory(modules_path.wstring().data());
+		SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 
 		return true;
 	}

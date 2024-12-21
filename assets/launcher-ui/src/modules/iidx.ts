@@ -37,6 +37,7 @@ export interface IIDXConfig {
     useGsm: boolean;
     language: IIDXLanguage;
     graphicsAPI: GraphicsAPI;
+    acDataPath: string;
 }
 
 export class IIDX extends GameClass {
@@ -62,6 +63,7 @@ export class IIDX extends GameClass {
             useGsm: true,
             language: IIDXLanguage.English,
             graphicsAPI: GraphicsAPI.Native,
+            acDataPath: '',
         }
 
         this._dirty = true;
@@ -97,7 +99,8 @@ export class IIDX extends GameClass {
             this._config.value.soundMode === undefined ||
             this._config.value.useGsm === undefined ||
             this._config.value.language === undefined ||
-            this._config.value.graphicsAPI === undefined
+            this._config.value.graphicsAPI === undefined ||
+            this._config.value.acDataPath === undefined
         ) {
             window.laochan.alert.show('IIDX 设置已被重置, 请前往额外设置重新设置', '#B64040', 2000);
             await this.resetConfig();
@@ -120,6 +123,7 @@ export class IIDX extends GameClass {
             window.laochan.setParam('IIDX_SOUND_MODE', JSON.stringify(config.soundMode)),
             window.laochan.setParam('IIDX_USE_GSM', JSON.stringify(+config.useGsm)),
             window.laochan.setParam('IIDX_LANGUAGE', JSON.stringify(+config.language)),
+            window.laochan.setParam('IIDX_ACDATA_PATH', config.acDataPath),
 
             window.laochan.setParam('IIDX_RESOLTION_W', JSON.stringify(config.resolution.w)),
             window.laochan.setParam('IIDX_RESOLTION_H', JSON.stringify(config.resolution.h)),

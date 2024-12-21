@@ -50,7 +50,7 @@ namespace logger
 
 	void avs2_log(void* _this, int level, const char* mod, const char* format, va_list va)
 	{
-		if (mod == "thread"s || mod == "mutex"s) {
+		if (mod == "thread"s || mod == "mutex"s || mod == "imagefs"s) {
 			return;
 		}
 
@@ -91,7 +91,10 @@ namespace logger
 		void post_start() override
 		{
 			if (game::environment::get_param("LAOCHAN_ENABLE_CONSOLE") != "1")
+			{
+				utils::hook::set<uint8_t>(__stdio_common_vfprintf, 0xC3);
 				return;
+			}
 
 			SetConsoleCP(932);
 			create_console();
@@ -99,10 +102,14 @@ namespace logger
 
 		void post_load() override
 		{
-			if (game::environment::get_param("LAOCHAN_ENABLE_CONSOLE") != "1")
-				return;
-
 			utils::nt::library avs2core{ "avs2-core.dll" };
+
+			if (game::environment::get_param("LAOCHAN_ENABLE_CONSOLE") != "1")
+			{
+				utils::hook::set<uint8_t>(avs2core.get_proc<void*>("XCgsqzn0000176"), 0xC3);
+				return;
+			}
+			
 			utils::hook::jump(avs2core.get_proc<void*>("XCgsqzn0000176"), avs2_log, true);
 		}
 	};

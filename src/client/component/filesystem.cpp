@@ -17,9 +17,7 @@ namespace filesystem
 		: name_(std::move(name))
 	{
 		avs2::stat stat = { 0 };
-		avs2::fs_lstat(name.data(), &stat);
-
-		if (stat.filesize <= 0)
+		if (!avs2::fs_lstat(name.data(), &stat) || stat.filesize <= 0)
 		{
 			this->valid_ = false;
 			return;
@@ -68,12 +66,10 @@ namespace filesystem
 	bool exists(const std::string& path)
 	{
 		avs2::stat stat = { 0 };
-		avs2::fs_lstat(path.data(), &stat);
+		if (!avs2::fs_lstat(path.data(), &stat) || stat.filesize <= 0)
+			return false;
 
-		if (stat.filesize > 0)
-			return true;
-
-		return false;
+		return true;
 	}
 
 	class component final : public component_interface

@@ -108,7 +108,7 @@ namespace iidx::omnimix
 		}
 
 		char suffix[5];
-		sscanf_s(name, "%d/%d.%4s", &folder, &result->id, suffix, _countof(suffix));
+		sscanf_s(name, "%d/%d.%4s", &folder, &result->id, suffix, static_cast<int>(_countof(suffix)));
 		auto ifs = utils::string::va("/dl_fs3/sound/%05d.ifs", result->id);
 
 		if (filesystem::exists(ifs))
@@ -450,7 +450,11 @@ namespace iidx::omnimix
 
 		void post_avs_init() override
 		{
-			avs2::fs_mount("/ac_mount", "E:\\LDJ-012-2023101800\\contents\\data", "fs", const_cast<char*>("vf=1,posix=1"));
+			auto acdata_path = game::environment::get_param("IIDX_ACDATA_PATH");
+			if (!std::filesystem::exists(acdata_path))
+				return;
+
+			avs2::fs_mount("/ac_mount", acdata_path.data(), "fs", nullptr);
 		}
 	};
 }

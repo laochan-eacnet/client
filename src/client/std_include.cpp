@@ -30,3 +30,5 @@ extern "C"
 		return -1;
 	}
 }
+
+__declspec(thread) size_t __tls__;
