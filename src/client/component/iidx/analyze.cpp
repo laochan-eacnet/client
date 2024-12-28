@@ -113,6 +113,8 @@ namespace iidx::analyze
 			last_tick = ev.tick;
 		}
 
+		if (total_tick == 0) return 0;
+
 		return (result * 1000.f) / total_tick;
 	}
 
