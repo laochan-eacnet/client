@@ -6,7 +6,7 @@
 #include <utils/string.hpp>
 #include <utils/hook.hpp>
 
-utils::nt::library loader::load_library(const std::wstring& filename) const
+utils::nt::library loader::load_library(const std::string& filename) const
 {
 	const auto target = utils::nt::library::load(filename);
 	if (!target)

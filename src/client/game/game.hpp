@@ -48,6 +48,7 @@ namespace game
 			std::wstring get_settings_module_path();
 			std::wstring get_updater_module_path();
 
+			std::string get_game_module_name();
 			std::string get_game_module_version();
 			std::string get_game_module_target_version();
 
@@ -61,6 +62,7 @@ namespace game
 			std::filesystem::path game_module_path;
 			std::filesystem::path settings_module_path;
 			std::filesystem::path updater_module_path;
+			std::string game_module_name;
 			std::string game_module_version;
 			std::string game_module_target_version;
 			void ensure_created(launcher::game);

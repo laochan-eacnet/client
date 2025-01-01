@@ -24,6 +24,13 @@ namespace filesystem
 		}
 
 		auto file = avs2::fs_open(name_.data(), 1, 420);
+
+		if (file <= 0)
+		{
+			this->valid_ = false;
+			return;
+		}
+
 		avs2::fs_fstat(file, &stat);
 
 		if (stat.filesize <= 0)

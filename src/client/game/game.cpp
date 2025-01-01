@@ -193,6 +193,8 @@ namespace game
 				{
 					case launcher::game::iidx:
 					{
+                        game_module_name = "bm2dx.exe";
+
 						if (std::filesystem::exists("bm2dx.exe"))
 							game_module_path = std::filesystem::absolute("bm2dx.exe");
 						else
@@ -205,6 +207,8 @@ namespace game
 					}
 					case launcher::game::sdvx:
 					{
+                        game_module_name = "sv6c.exe";
+
 						if (std::filesystem::exists("sv6c.exe"))
 							game_module_path = std::filesystem::absolute("sv6c.exe");
 						else
@@ -217,6 +221,8 @@ namespace game
 					}
 					case launcher::game::gitadora:
 					{
+                        game_module_name = "gitadora.exe";
+
 						if (std::filesystem::exists("gitadora.exe"))
 							game_module_path = std::filesystem::absolute("gitadora.exe");
 						else
@@ -281,6 +287,11 @@ namespace game
 		std::wstring gamemeta::get_updater_module_path()
 		{
 			return updater_module_path.generic_wstring();
+		}
+
+		std::string gamemeta::get_game_module_name()
+		{
+			return game_module_name;
 		}
 
 		std::string gamemeta::get_game_module_version()

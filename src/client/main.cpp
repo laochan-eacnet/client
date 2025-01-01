@@ -92,10 +92,10 @@ FARPROC load_binary(const launcher::game game)
 		return component_loader::load_import(library, function);
 	});
 
-	std::wstring binary = game::environment::gamemeta::get_gamemeta(game)
-		.get_game_module_path();
+	auto binary = game::environment::gamemeta::get_gamemeta(game)
+		.get_game_module_name();
 
-	auto mod = loader.load_library(L"bm2dx.exe");
+	auto mod = loader.load_library(binary);
 	game::environment::set_module(mod);
 
 	printf("version %s\n", mod.get_version().data());
