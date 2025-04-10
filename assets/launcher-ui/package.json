@@ -20,7 +20,6 @@
     "@mongodb-js/zstd": "^2.0.0",
     "@vueuse/sound": "^2.0.1",
     "dedent": "^1.5.3",
-    "saucer-app": "^4.2.3",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"
   },

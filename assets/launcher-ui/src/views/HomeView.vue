@@ -2,13 +2,14 @@
 import { iidx } from '@/modules/iidx';
 import { sdvx } from '@/modules/sdvx';
 import { gitadora } from '@/modules/gitadora';
+import { ddr } from '@/modules/ddr';
 import { VersionState } from "@/modules/launcher";
 </script>
 
 <template>
   <main>
     <div></div>
-    <div class="game sdvx" :class="{'disable': sdvx.meta.value == undefined}">
+    <div class="game sdvx" :class="{ 'disable': sdvx.meta.value == undefined }">
       <div class="background"></div>
       <div class="text">
         SOUND VOLTEX<br>
@@ -31,7 +32,7 @@ import { VersionState } from "@/modules/launcher";
         <div v-else class="blink opt" @click="sdvx.updater">更新器</div>
       </div>
     </div>
-    <div class="game iidx" :class="{'disable': iidx.meta.value == undefined}">
+    <div class="game iidx" :class="{ 'disable': iidx.meta.value == undefined }">
       <div class="background"></div>
       <div class="text">
         beatmania IIDX<br>
@@ -58,7 +59,7 @@ import { VersionState } from "@/modules/launcher";
         <div class="opt small" @click="iidx.generateBat">生成快速启动 BAT</div>
       </div>
     </div>
-    <div class="game gitadora" :class="{'disable': gitadora.meta.value == undefined}">
+    <div class="game gitadora" :class="{ 'disable': gitadora.meta.value == undefined }">
       <div class="background">
         <video loop autoplay muted src="../assets/gitadora.webm"></video>
       </div>
@@ -66,9 +67,6 @@ import { VersionState } from "@/modules/launcher";
         GITADORA <br><br>
         <div v-if="gitadora.meta.value != undefined && !gitadora.installed" class="tip">
           未安装
-        </div>
-        <div v-if="gitadora.meta.value != undefined && gitadora.installed" class="tip">
-          <small>请注意: 服务器暂不支持</small>
         </div>
       </div>
       <div v-if="gitadora.meta.value != undefined && gitadora.installed" class="options">
@@ -80,9 +78,31 @@ import { VersionState } from "@/modules/launcher";
           请升级游戏
         </div>
         <div class="opt" @click="gitadora.settings">游戏设置</div>
-        <div v-if="gitadora.versionState.value != VersionState.Need2UpdateGame" class="opt"
-          @click="gitadora.updater">更新器</div>
+        <div v-if="gitadora.versionState.value != VersionState.Need2UpdateGame" class="opt" @click="gitadora.updater">
+          更新器</div>
         <div v-else class="blink opt" @click="gitadora.updater">更新器</div>
+      </div>
+    </div>
+    <div class="game ddr" :class="{ 'disable': ddr.meta.value == undefined }">
+      <div class="background"></div>
+      <div class="text">
+        DanceDanceRevolution <br>
+        GrandPrix<br>
+        <div v-if="ddr.meta.value != undefined && !ddr.installed" class="tip">
+          未安装
+        </div>
+      </div>
+      <div v-if="ddr.meta.value != undefined && ddr.installed" class="options">
+        <div v-if="ddr.versionState.value == VersionState.Normal" class="opt" @click="ddr.start">启动</div>
+        <div v-if="ddr.versionState.value == VersionState.Need2UpdateLauncher" class="tip opt">
+          启动器暂不支持此版本
+        </div>
+        <div v-if="ddr.versionState.value == VersionState.Need2UpdateGame" class="tip opt">
+          请升级游戏
+        </div>
+        <div class="opt" @click="ddr.settings">游戏设置</div>
+        <div v-if="ddr.versionState.value != VersionState.Need2UpdateGame" class="opt" @click="ddr.updater">更新器</div>
+        <div v-else class="blink opt" @click="ddr.updater">更新器</div>
       </div>
     </div>
     <div></div>
@@ -205,6 +225,16 @@ main>div {
 
 .sdvx>.background {
   background-image: url(@/assets/sdvx.jpg);
+}
+
+.ddr>.background {
+  background-image: url(@/assets/ddr_bg.jpg);
+  opacity: 0.8;
+  filter: blur(5px) brightness(0.65) !important;
+}
+
+.ddr:hover>.background {
+  opacity: 1.0;
 }
 
 .game:hover>.background {

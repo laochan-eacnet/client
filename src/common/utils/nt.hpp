@@ -114,6 +114,7 @@ namespace utils::nt
 		void** get_iat_entry(const std::string& module_name, const std::string& proc_name) const;
 		void** get_iat_entry(const std::string& module_name, const char* name) const;
 
+		uint8_t* match_sig(const std::string& pattern);
 	private:
 		HMODULE module_;
 	};

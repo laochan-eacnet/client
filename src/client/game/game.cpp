@@ -29,6 +29,11 @@ namespace game
 			return get_game() == launcher::game::gitadora;
 		}
 
+		bool is_ddr()
+		{
+			return get_game() == launcher::game::ddr;
+		}
+
 		void set_game(const launcher::game _game)
 		{
 			game = _game;
@@ -90,6 +95,9 @@ namespace game
 				case launcher::game::gitadora:
 					return "GITADORA";
 
+				case launcher::game::ddr:
+					return "DanceDanceRevolution";
+
 				default:
 					return "Unknown (" + std::to_string(static_cast<int>(game_type)) + ")";
 			}
@@ -107,6 +115,9 @@ namespace game
 
 				case launcher::game::gitadora:
 					return L"GITADORA";
+
+				case launcher::game::ddr:
+					return L"DanceDanceRevolution";
 
 				default:
 					return L"Unknown (" + std::to_wstring(static_cast<int>(game_type)) + L")";
@@ -231,6 +242,20 @@ namespace game
 						settings_module_path = install_path / L"launcher" / L"modules" / L"settings.exe";
 						updater_module_path = install_path / L"launcher" / L"modules" / L"updater.exe";
 						game_module_target_version = GITADORA_TARGET_VERSION;
+						break;
+					}
+					case launcher::game::ddr:
+					{
+						game_module_name = "ddr-konaste.exe";
+
+						if (std::filesystem::exists("ddr-konaste.exe"))
+							game_module_path = std::filesystem::absolute("ddr-konaste.exe");
+						else
+							game_module_path = install_path / L"game" / L"modules" / L"ddr-konaste.exe";
+
+						settings_module_path = install_path / L"launcher" / L"modules" / L"settings.exe";
+						updater_module_path = install_path / L"launcher" / L"modules" / L"updater.exe";
+						game_module_target_version = DDR_TARGET_VERSION;
 						break;
 					}
 					default:

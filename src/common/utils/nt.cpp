@@ -1,5 +1,6 @@
 #include "nt.hpp"
 #include "memory.hpp"
+#include "signature.hpp"
 
 #include <gsl/gsl>
 
@@ -255,6 +256,14 @@ namespace utils::nt
 		}
 
 		return nullptr;
+	}
+
+	uint8_t* library::match_sig(const std::string& pattern)
+	{
+		hook::signature sig{ pattern, *this };
+		auto result = sig.process(true);
+
+		return result.size() ? result[0] : nullptr;
 	}
 
 	void raise_hard_exception()

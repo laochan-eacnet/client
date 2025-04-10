@@ -8,6 +8,7 @@
 #define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
 #define SDVX_TARGET_VERSION "ANY"
 #define GITADORA_TARGET_VERSION "U32:J:A:A:2024021300"
+#define DDR_TARGET_VERSION "ANY"
 
 namespace game
 {
@@ -18,6 +19,7 @@ namespace game
 		bool is_iidx();
 		bool is_sdvx();
 		bool is_gitadora();
+		bool is_ddr();
 
 		void set_game(launcher::game mode);
 

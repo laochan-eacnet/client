@@ -6,8 +6,8 @@ import router from './router'
 import { launcher } from './modules/launcher';
 import { iidx } from './modules/iidx';
 import { sdvx } from './modules/sdvx';
-import { parseJsonText } from 'typescript';
 import { gitadora } from './modules/gitadora';
+import { ddr } from './modules/ddr';
 
 window.laochan = {
     close() {
@@ -93,6 +93,7 @@ window.laochan = {
     await iidx.updateMeta();
     await sdvx.updateMeta();
     await gitadora.updateMeta();
+    await ddr.updateMeta();
 })();
 
 const app = createApp(App)

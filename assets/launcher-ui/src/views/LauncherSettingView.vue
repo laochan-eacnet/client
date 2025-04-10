@@ -7,11 +7,13 @@ import { faSteam } from '@fortawesome/free-brands-svg-icons';
 import { iidx } from '@/modules/iidx';
 import { sdvx } from '@/modules/sdvx';
 import { gitadora } from '@/modules/gitadora';
+import { ddr } from '@/modules/ddr';
 
 const gameNames = [
     'beatmania IIDX INFINITAS',
     'SOUND VOLTEX EXCEED GEAR',
     'GITADORA',
+    'DanceDanceRevolution GrandPrix'
 ]
 
 function openPath(path: string) {
@@ -26,8 +28,10 @@ function pathes(index: number) {
             return sdvx.meta.value!;
         case 2:
             return gitadora.meta.value!;
+        case 3:
+            return ddr.meta.value!;
         default:
-            return sdvx.meta.value!;
+            throw new Error('unknown game');
     }
 }
 

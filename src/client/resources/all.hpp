@@ -48,17 +48,18 @@ namespace laochan::embedded
         rtn.emplace("index.html", saucer::embedded_file{"text/html", root});
         rtn.emplace("", saucer::embedded_file{"text/html", root});
 
-        rtn.emplace("assets/gitadora-cQ1BqJ9U.webm", saucer::embedded_file{"video/webm", read_resource_zstd(ID_ASSET_2)});
-        rtn.emplace("assets/howler-CoCzKzbX.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_3)});
-        rtn.emplace("assets/iidx-DT5rYYhv.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_4)});
-        rtn.emplace("assets/index-Dbshj7Ar.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_5)});
-        rtn.emplace("assets/index-DiEJSjyp.css", saucer::embedded_file{"text/css", read_resource_zstd(ID_ASSET_6)});
-        rtn.emplace("assets/moai-bg-B0rTMPYn.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_7)});
-        rtn.emplace("assets/msyhsb-teYSJU3-.woff2", saucer::embedded_file{"font/woff2", read_resource_zstd(ID_ASSET_8)});
-        rtn.emplace("assets/num-DOiIrgmq.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_9)});
-        rtn.emplace("assets/num-z0VsZKpR.mp3", saucer::embedded_file{"audio/mpeg", read_resource_zstd(ID_ASSET_10)});
-        rtn.emplace("assets/sdvx-Dhf-gkrM.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_11)});
-        rtn.emplace("assets/sgm-BpMyBNft.woff2", saucer::embedded_file{"font/woff2", read_resource(ID_ASSET_12)});
+        rtn.emplace("assets/ddr_bg-fLY37mO8.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_2)});
+        rtn.emplace("assets/gitadora-cQ1BqJ9U.webm", saucer::embedded_file{"video/webm", read_resource_zstd(ID_ASSET_3)});
+        rtn.emplace("assets/howler-CCqh-U3u.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_4)});
+        rtn.emplace("assets/iidx-DT5rYYhv.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_5)});
+        rtn.emplace("assets/index-CLRZxi0Y.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_6)});
+        rtn.emplace("assets/index-DHmZ8ZM7.css", saucer::embedded_file{"text/css", read_resource_zstd(ID_ASSET_7)});
+        rtn.emplace("assets/moai-bg-B0rTMPYn.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_8)});
+        rtn.emplace("assets/msyhsb-teYSJU3-.woff2", saucer::embedded_file{"font/woff2", read_resource_zstd(ID_ASSET_9)});
+        rtn.emplace("assets/num-DOiIrgmq.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_10)});
+        rtn.emplace("assets/num-z0VsZKpR.mp3", saucer::embedded_file{"audio/mpeg", read_resource_zstd(ID_ASSET_11)});
+        rtn.emplace("assets/sdvx-Dhf-gkrM.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_12)});
+        rtn.emplace("assets/sgm-BpMyBNft.woff2", saucer::embedded_file{"font/woff2", read_resource(ID_ASSET_13)});
 
         return rtn;
     }

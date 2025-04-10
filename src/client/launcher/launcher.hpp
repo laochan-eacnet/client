@@ -14,6 +14,7 @@ public:
 		iidx,
 		sdvx,
 		gitadora,
+		ddr,
 		
 		count,
 		all = count,

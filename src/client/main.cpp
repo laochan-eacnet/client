@@ -143,6 +143,11 @@ launcher::game detect_game_from_arguments()
 		return launcher::game::gitadora;
 	}
 
+	if (utils::flags::has_flag("ddr"))
+	{
+		return launcher::game::ddr;
+	}
+
 	return launcher::game::invalid;
 }
 
@@ -235,7 +240,15 @@ int main()
 		}
 	}
 
-	return static_cast<int>(entry_point());
+	try
+	{
+		return static_cast<int>(entry_point());
+	}
+	catch (std::exception& e)
+	{
+		MessageBoxA(nullptr, e.what(), "Game Error", MB_ICONERROR);
+		return 1;
+	}
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, PSTR, int)
