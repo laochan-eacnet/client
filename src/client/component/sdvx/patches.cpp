@@ -14,7 +14,7 @@ namespace sdvx::patches
 		return true;
 	}
 
-	bool is_debugger_present()
+	BOOL is_debugger_present()
 	{
 		return false;
 	}

@@ -14,7 +14,7 @@ namespace ddr::patches
 		return true;
 	}
 
-	bool is_debugger_present()
+	BOOL is_debugger_present()
 	{
 		return false;
 	}
@@ -32,9 +32,6 @@ namespace ddr::patches
 
 		if (name == "CheckRemoteDebuggerPresent"s)
 			return check_remote_debugger_preset;
-
-		if (name == "ExitProcess"s)
-			return exit;
 
 		return GetProcAddress(module, name);
 	}

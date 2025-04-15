@@ -52,7 +52,7 @@ namespace laochan::embedded
         rtn.emplace("assets/gitadora-cQ1BqJ9U.webm", saucer::embedded_file{"video/webm", read_resource_zstd(ID_ASSET_3)});
         rtn.emplace("assets/howler-CCqh-U3u.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_4)});
         rtn.emplace("assets/iidx-DT5rYYhv.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_5)});
-        rtn.emplace("assets/index-CLRZxi0Y.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_6)});
+        rtn.emplace("assets/index-D-GtMHcf.js", saucer::embedded_file{"text/javascript", read_resource_zstd(ID_ASSET_6)});
         rtn.emplace("assets/index-DHmZ8ZM7.css", saucer::embedded_file{"text/css", read_resource_zstd(ID_ASSET_7)});
         rtn.emplace("assets/moai-bg-B0rTMPYn.jpg", saucer::embedded_file{"image/jpeg", read_resource_zstd(ID_ASSET_8)});
         rtn.emplace("assets/msyhsb-teYSJU3-.woff2", saucer::embedded_file{"font/woff2", read_resource_zstd(ID_ASSET_9)});

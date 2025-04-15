@@ -70,7 +70,7 @@ export abstract class GameClass {
             return;
         }
 
-        window.laochan.shellExecute(this.meta.value!.updater_module_path);
+        window.laochan.shellExecute(this.meta.value!.updater_module_path, '-t dummy');
     }
 
     abstract loadConfig(): Promise<void>;
