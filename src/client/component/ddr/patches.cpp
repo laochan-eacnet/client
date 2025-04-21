@@ -46,6 +46,12 @@ namespace ddr::patches
 		return service_url.data();
 	}
 
+	int __cdecl wcsicmp_hook(const wchar_t* String1, const wchar_t* String2)
+	{
+		wprintf(L"cmp %s %s", String1, String2);
+		return wcsicmp(String1, String2);
+	}
+
 	class component final : public component_interface
 	{
 	public:
@@ -69,6 +75,8 @@ namespace ddr::patches
 			// mov al, 1
 			utils::hook::set<uint16_t>(verify_signature_loc, 0x01B0);
 			utils::hook::nop(verify_signature_loc + 2, 4);
+
+			utils::hook::jump(0x14027C904, wcsicmp_hook);
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override

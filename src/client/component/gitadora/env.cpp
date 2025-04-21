@@ -34,11 +34,6 @@ namespace gitadora::env
 
 		void post_load() override
 		{
-			auto version = game::environment::get_version();
-			if (version != GITADORA_TARGET_VERSION)
-			{
-				throw std::runtime_error(utils::string::va("Unsupported version %s\nSupported version is " GITADORA_TARGET_VERSION ".", version.data()));
-			}
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override

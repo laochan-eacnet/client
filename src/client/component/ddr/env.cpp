@@ -24,12 +24,15 @@ namespace ddr::env
 		return cmdline.data();
 	}
 
-	int WINAPI message_box_a(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+	const wchar_t* get_cmdline_w()
 	{
-		auto text = utils::string::shiftjis_to_wide(lpText);
-		auto caption = utils::string::shiftjis_to_wide(lpCaption);
+		static auto cmdline = ([]
+		{
+			auto args = game::environment::get_param("DDR_LAUNCH_ARGS");
+			return utils::string::utf8_to_wide(args);
+		})();
 
-		return MessageBoxW(hWnd, text.data(), caption.data(), uType);
+		return cmdline.data();
 	}
 
 	class component final : public component_interface
@@ -50,9 +53,9 @@ namespace ddr::env
 			{
 				return get_cmdline;
 			}
-			else if (function == "MessageBoxA")
+			else if (function == "GetCommandLineW")
 			{
-				return message_box_a;
+				return get_cmdline_w;
 			}
 
 			return nullptr;

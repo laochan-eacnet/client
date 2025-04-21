@@ -58,6 +58,49 @@ export class DDR extends GameClass {
         if (!config) {
             return;
         }
+
+        const meta = await window.laochan.detectGameInstall(this.gameIndex);
+        const settingsPath = meta.resource_path + '/config/settings_cf.xml';
+
+        const settings = await window.laochan.readFile(settingsPath);
+        if (!settings) {
+            return;
+        }
+
+        const parser = new DOMParser();
+        const settingDoc = parser.parseFromString(settings, "application/xml");
+        
+        const args: string[] = ['ddr-konaste.exe'];
+
+        settingDoc.querySelectorAll('KeyValuePair').forEach(kvp => {
+            const ke = kvp.querySelector('Key');
+            const ve = kvp.querySelector('Value');
+
+            if (!ke || !ve) {
+                return;
+            }
+
+            const key = ke.querySelector('string')?.innerHTML;
+            const value = ve.querySelector('string')?.innerHTML;
+
+            if (!key || !value) {
+                return;
+            }
+            
+            if (key === 'DisplaySettings') {
+                args.push('--display' + value);
+            } else if (key === "WindowSettings") {
+                if (value == '2') {
+                    args.push('--borderless');
+                } else if (value == '1') {
+                    args.push('--fullscreen');
+                }
+            } else if (key === 'FPSSettings') {
+                args.push(value === '1' ? '--fps120' : '--fps60');
+            }
+        });
+
+        window.laochan.setParam('DDR_LAUNCH_ARGS', args.join(' '));
     }
 };
 

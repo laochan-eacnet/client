@@ -27,14 +27,6 @@ namespace iidx::env
 		return cmdline.data();
 	}
 
-	int WINAPI message_box_a(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
-	{
-		auto text = utils::string::shiftjis_to_wide(lpText);
-		auto caption = utils::string::shiftjis_to_wide(lpCaption);
-
-		return MessageBoxW(hWnd, text.data(), caption.data(), uType);
-	}
-
 	utils::hook::detour load_ifs;
 	char __fastcall load_ifs_hook(char* a1, __int64 a2, int a3, const char* a4, unsigned int a5, char a6)
 	{
@@ -96,10 +88,6 @@ namespace iidx::env
 			if (function == "GetCommandLineA")
 			{
 				return get_cmdline;
-			}
-			else if (function == "MessageBoxA")
-			{
-				return message_box_a;
 			}
 
 			return nullptr;
