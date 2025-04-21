@@ -8,8 +8,6 @@
 #include <utils/hook.hpp>
 #include <utils/string.hpp>
 
-#include <ntstatus.h>
-
 namespace shiftjis
 {
 	NTSTATUS mb_to_unicode_n(PWCH out_wstr, ULONG out_size, PULONG result_size, const CHAR* in_str, ULONG in_size)
@@ -18,13 +16,13 @@ namespace shiftjis
 
 		if (result_size) *result_size = size;
 
-		return STATUS_SUCCESS;
+		return 0;
 	}
 
 	NTSTATUS mb_to_unicode_size(PULONG result_size, const CHAR* in_str, ULONG in_size)
 	{
 		*result_size = MultiByteToWideChar(932, 0, in_str, in_size, nullptr, 0);
-		return STATUS_SUCCESS;
+		return 0;
 	}
 
 	class component final : public component_interface
