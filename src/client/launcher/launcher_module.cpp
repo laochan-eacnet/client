@@ -104,6 +104,13 @@ void launcher_module::init(saucer::native::window* window, saucer::native::webvi
 		settings->put_AreDefaultContextMenusEnabled(false);
 		settings->put_IsStatusBarEnabled(false);
 	}
+
+	auto wv2c = webview->controller.Get();
+	ICoreWebView2Controller2* controller2 = nullptr;
+	if (wv2c->QueryInterface(__uuidof(ICoreWebView2Controller2), reinterpret_cast<void**>(&controller2)) == S_OK)
+	{
+		controller2->put_DefaultBackgroundColor({ 0,0,0,0 });
+	}
 }
 
 void launcher_module::set_dpi_aware_size(int width, int height)
