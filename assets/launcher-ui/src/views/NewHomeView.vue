@@ -74,7 +74,7 @@ onMounted(() => {
                                         </div>-
                                     </button>
                                 </RouterLink>
-                                <button class="crystal" title="打开自定义" :onclick="iidx.openCustomize">
+                                <button class="crystal" title="打开自定义" :onclick="() => iidx.openCustomize()">
                                     <div class="gloss"></div>
                                     <div class="shadow"></div>
                                     <div class="content">
@@ -82,14 +82,14 @@ onMounted(() => {
                                     </div>-
                                 </button>
                             </template>
-                            <button class="crystal" title="打开游戏设置" :onclick="game.settings">
+                            <button class="crystal" title="打开游戏设置" :onclick="() => game.settings()">
                                 <div class="gloss"></div>
                                 <div class="shadow"></div>
                                 <div class="content">
                                     <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
                                 </div>-
                             </button>
-                            <button class="crystal" title="打开更新器" :onclick="game.updater">
+                            <button class="crystal" title="打开更新器" :onclick="() => game.updater()">
                                 <div class="gloss"></div>
                                 <div class="shadow"></div>
                                 <div class="content">

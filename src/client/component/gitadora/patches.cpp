@@ -70,6 +70,44 @@ namespace gitadora::patches
 	}
 #endif
 
+	enum LANGUAGE : uint32_t
+	{
+		JAPANESE = 0,
+		ENGLISH = 1,
+		KOREAN = 2,
+		TRADITIONAL_CHINESE = 3,
+		SIMPLIFIED_CHINESE = 4,
+	};
+
+	LANGUAGE get_language()
+	{
+		static auto language = ([]
+		{
+			auto language = game::environment::get_param("GITADORA_LANGUAGE");
+
+			if (language.size())
+			{
+				return std::stoi(language);
+			}
+
+			return 1;
+		})();
+
+		return static_cast<LANGUAGE>(language);
+	}
+
+	uint8_t* get_language_return_pos = nullptr;
+	auto* const get_language_stub()
+	{
+		return utils::hook::assemble([](utils::hook::assembler& a)
+		{
+			a.sub(rsp, 0x20);
+			a.mov(edx, get_language());
+			a.mov(rsi, rcx);
+			a.jmp(get_language_return_pos);
+		});
+	}
+
 	class component final : public component_interface
 	{
 	public:
@@ -88,6 +126,13 @@ namespace gitadora::patches
 				throw std::runtime_error{ "fps limit pattern not found" };
 
 			utils::hook::set<uint8_t>(sig_fps_limit + 4, 0xEB);
+
+			auto sig_language = game::environment::get_module().match_sig("83 EA 01 74 38");
+			if (!sig_language)
+				throw std::runtime_error{ "language pattern not found" };
+
+			get_language_return_pos = sig_language;
+			utils::hook::jump(sig_language - 13, get_language_stub(), true);
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override
