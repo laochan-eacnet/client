@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faArrowRight, faArrowUpFromBracket, faBan, faDownload, faGear, faGears, faPalette, faPlay } from '@fortawesome/free-solid-svg-icons';
-import { computed, nextTick, onMounted, ref, useTemplateRef, type VNodeRef } from 'vue';
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch, type VNodeRef } from 'vue';
 import { iidx } from '@/modules/iidx';
 import { sdvx } from '@/modules/sdvx';
 import { gitadora } from '@/modules/gitadora';
@@ -9,43 +9,23 @@ import { ddr } from '@/modules/ddr';
 import { launcher, VersionState } from "@/modules/launcher";
 import type { GameClass } from '@/modules/gameClass';
 
-const selectedGame = ref(-1);
 const transMode = ref('down');
 const games: GameClass[] = [ddr, gitadora, sdvx, iidx];
-const gameElements: HTMLDivElement[] = [];
-const expanderIndex = ref(-1);
+const selectedGame = ref((() => {
+    const lastGame = localStorage.getItem('last-game');
+    return lastGame ? parseInt(lastGame) : 0;
+})());
 
-function switchGame(index: number) {
-    const dist = (document.body.clientHeight / 2 - 64 + 150) - ((games.length - index - 1) * 80);
-
-    gameElements.forEach(element => {
-        element.classList.remove('selected');
-    });
-
-    gameElements[games.length - index - 1].classList.add('selected');
-
-    setTimeout(() => {
-        expanderIndex.value = games.length - index - 1;
-    }, 50);
-
-    if (index > selectedGame.value) {
-        transMode.value = 'up'
-    } else if (index < selectedGame.value) {
-        transMode.value = 'down'
-    }
-
+watch(selectedGame, (index, oldIndex) => {
     localStorage.setItem('last-game', index.toString());
-    selectedGame.value = index;
-}
+    transMode.value = index > oldIndex ? 'up' : 'down';
+});
+
+const selectedGameIndex = computed(() => {
+    return games.length - selectedGame.value - 1;
+});
 
 onMounted(() => {
-    nextTick(() => {
-        const lastGame = localStorage.getItem('last-game');
-        const lastIndex = lastGame ? parseInt(lastGame) : 0;
-        switchGame(lastIndex);
-    });
-
-
     (async () => {
         await launcher.loadConfig();
         await iidx.loadConfig();
@@ -62,7 +42,8 @@ onMounted(() => {
     <main>
         <Transition :name="transMode" v-for="game in games">
             <div v-if="selectedGame == game.gameIndex" :class="['game-page', game.className]">
-                <div class="gtdr-game-select" v-if="game.className == 'gitadora'">
+                <div class="gtdr-game-select"
+                    v-if="game.className == 'gitadora' && game.installed && game.versionState.value == VersionState.Normal">
                     <div class="gf" @click="gitadora.startGf">
                         <div>GUITARFREAKS</div>
                     </div>
@@ -76,57 +57,54 @@ onMounted(() => {
 
         </Transition>
         <div class="game-select">
-            <div id="text">
-                <Transition :name="transMode" v-for="game in games">
-                    <div v-if="selectedGame == game.gameIndex">
-                        {{ game.name }}
+            <Transition :name="transMode" v-for="game in games">
+                <div v-if="selectedGame == game.gameIndex">
+                    <div class="flex">
+                        <div id="text">
+                            {{ game.name }}
+                        </div>
+                        <div class="miscs" v-if="game.installed && game.versionState.value == VersionState.Normal">
+                            <template v-if="game.className == 'iidx'">
+                                <RouterLink to="/iidx/settings">
+                                    <button class="crystal" title="打开更多设置">
+                                        <div class="gloss"></div>
+                                        <div class="shadow"></div>
+                                        <div class="content">
+                                            <FontAwesomeIcon :icon="faGears"></FontAwesomeIcon>
+                                        </div>-
+                                    </button>
+                                </RouterLink>
+                                <button class="crystal" title="打开自定义" :onclick="iidx.openCustomize">
+                                    <div class="gloss"></div>
+                                    <div class="shadow"></div>
+                                    <div class="content">
+                                        <FontAwesomeIcon :icon="faPalette"></FontAwesomeIcon>
+                                    </div>-
+                                </button>
+                            </template>
+                            <button class="crystal" title="打开游戏设置" :onclick="game.settings">
+                                <div class="gloss"></div>
+                                <div class="shadow"></div>
+                                <div class="content">
+                                    <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
+                                </div>-
+                            </button>
+                            <button class="crystal" title="打开更新器" :onclick="game.updater">
+                                <div class="gloss"></div>
+                                <div class="shadow"></div>
+                                <div class="content">
+                                    <FontAwesomeIcon :icon="faDownload"></FontAwesomeIcon>
+                                </div>-
+                            </button>
+                        </div>
                     </div>
-                </Transition>
-            </div>
-            <div class="miscs">
-                <div v-if="selectedGame == 0">
-                    <RouterLink to="/iidx/settings">
-                        <button class="crystal" title="打开更多设置">
-                            <div class="gloss"></div>
-                            <div class="shadow"></div>
-                            <div class="content">
-                                <FontAwesomeIcon :icon="faGears"></FontAwesomeIcon>
-                            </div>-
-                        </button>
-                    </RouterLink>
                 </div>
-                <div v-if="selectedGame == 0">
-                    <button class="crystal" title="打开自定义" :onclick="iidx.openCustomize">
-                        <div class="gloss"></div>
-                        <div class="shadow"></div>
-                        <div class="content">
-                            <FontAwesomeIcon :icon="faPalette"></FontAwesomeIcon>
-                        </div>-
-                    </button>
-                </div>
-                <button class="crystal" title="打开游戏设置"
-                    :onclick="() => games.find(g => g.gameIndex == selectedGame)?.settings()">
-                    <div class="gloss"></div>
-                    <div class="shadow"></div>
-                    <div class="content">
-                        <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
-                    </div>-
-                </button>
-                <button class="crystal" title="打开更新器"
-                    :onclick="() => games.find(g => g.gameIndex == selectedGame)?.updater()">
-                    <div class="gloss"></div>
-                    <div class="shadow"></div>
-                    <div class="content">
-                        <FontAwesomeIcon :icon="faDownload"></FontAwesomeIcon>
-                    </div>-
-                </button>
-            </div>
+            </Transition>
         </div>
-        <div class="game-icons">
-            <div ref="expander" id="expander" :data-index="expanderIndex"></div>
-            <div v-for="game in games" :class="['game', game.className]"
-                :ref="(el) => el ? gameElements.push(el as HTMLDivElement) : undefined"
-                @click="switchGame(game.gameIndex)">
+        <div :data-index="selectedGameIndex" class="game-icons">
+            <div v-for="game in games"
+                :class="['game', game.className, selectedGame == game.gameIndex ? 'selected' : '']"
+                @click="() => selectedGame = game.gameIndex">
                 <button disabled title="该游戏未安装" v-if="!game.installed">
                     <FontAwesomeIcon :icon="faDownload" size="2x" />
                 </button>
@@ -285,8 +263,7 @@ main {
     width: 100vw;
     box-shadow: 0px 5px 16px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: space-between;
+
 }
 
 .game-select::after {
@@ -301,7 +278,17 @@ main {
     background-size: cover;
 }
 
-.game-select>#text {
+.game-select>div {
+    width: 100%;
+}
+
+.game-select .flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.game-select #text {
     line-height: 72px;
     font-size: 24px;
     margin-left: 240px;
@@ -311,15 +298,14 @@ main {
         0px 0px 20px rgba(255, 255, 255, 0.6);
 }
 
-.game-select>.miscs {
+.game-select .miscs {
     margin-right: 120px;
     text-align: right;
-    line-height: 72px;
     display: flex;
     align-items: center;
 }
 
-.game-select>.miscs>* {
+.game-select .miscs>* {
     margin-left: 1em;
 }
 
@@ -335,6 +321,7 @@ main {
     overflow: hidden;
     filter: grayscale(0.9);
     display: block;
+    cursor: pointer;
 }
 
 .crystal::after {
@@ -427,6 +414,10 @@ main {
     height: 200vh;
     position: absolute;
     left: 72px;
+
+    transition: transform 0.2s ease;
+    --index: attr(data-index type(<number>));
+    transform: translateY(calc((50vh - 64px + 150px) - (var(--index) * 80px)));
 }
 
 .game.ddr {
@@ -517,11 +508,5 @@ svg.svg-inline--fa {
 
 .game-icons>.game.selected:hover>button {
     opacity: 1;
-}
-
-#expander {
-    transition: height 0.2s ease;
-    --index: attr(data-index type(<number>));
-    height: calc((50vh - 64px + 150px) - (var(--index) * 80px));
 }
 </style>
