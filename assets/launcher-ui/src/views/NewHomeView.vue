@@ -1,92 +1,205 @@
+<script setup lang="ts">
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faArrowRight, faArrowUpFromBracket, faBan, faDownload, faGear, faGears, faPalette, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { computed, nextTick, onMounted, ref, useTemplateRef, type VNodeRef } from 'vue';
+import { iidx } from '@/modules/iidx';
+import { sdvx } from '@/modules/sdvx';
+import { gitadora } from '@/modules/gitadora';
+import { ddr } from '@/modules/ddr';
+import { launcher, VersionState } from "@/modules/launcher";
+import type { GameClass } from '@/modules/gameClass';
+
+const selectedGame = ref(-1);
+const transMode = ref('down');
+const games: GameClass[] = [ddr, gitadora, sdvx, iidx];
+const gameElements: HTMLDivElement[] = [];
+const expanderIndex = ref(-1);
+
+function switchGame(index: number) {
+    const dist = (document.body.clientHeight / 2 - 64 + 150) - ((games.length - index - 1) * 80);
+
+    gameElements.forEach(element => {
+        element.classList.remove('selected');
+    });
+
+    gameElements[games.length - index - 1].classList.add('selected');
+
+    setTimeout(() => {
+        expanderIndex.value = games.length - index - 1;
+    }, 50);
+
+    if (index > selectedGame.value) {
+        transMode.value = 'up'
+    } else if (index < selectedGame.value) {
+        transMode.value = 'down'
+    }
+
+    localStorage.setItem('last-game', index.toString());
+    selectedGame.value = index;
+}
+
+onMounted(() => {
+    nextTick(() => {
+        const lastGame = localStorage.getItem('last-game');
+        const lastIndex = lastGame ? parseInt(lastGame) : 0;
+        switchGame(lastIndex);
+    });
+
+
+    (async () => {
+        await launcher.loadConfig();
+        await iidx.loadConfig();
+        await sdvx.loadConfig();
+        await iidx.updateMeta();
+        await sdvx.updateMeta();
+        await gitadora.updateMeta();
+        await ddr.updateMeta();
+    })();
+});
+</script>
+
 <template>
     <main>
-        <Transition :name="transMode">
-            <div class="game-page ddr" v-if="game == 0">
-
+        <Transition :name="transMode" v-for="game in games">
+            <div v-if="selectedGame == game.gameIndex" :class="['game-page', game.className]">
+                <div class="gtdr-game-select" v-if="game.className == 'gitadora'">
+                    <div class="gf" @click="gitadora.startGf">
+                        <div>GUITARFREAKS</div>
+                    </div>
+                    <div class="dm" @click="gitadora.startDm">
+                        <div>DRUMMANIA</div>
+                    </div>
+                </div>
+                <div class="iidx-chara" v-if="game.className == 'iidx'">
+                </div>
             </div>
-            <div class="game-page sdvx" v-else-if="game == 1">
 
-            </div>
-            <div class="game-page gitadora" v-else-if="game == 2">
-
-            </div>
-            <div class="game-page iidx" v-else-if="game == 3">
-
-            </div>
         </Transition>
         <div class="game-select">
             <div id="text">
-                <Transition :name="transMode">
-                    <div v-if="game == 0">
-                        DanceDanceRevolution GrandPrix
-                    </div>
-                    <div v-else-if="game == 1">
-                        SOUND VOLTEX EXCEED GEAR
-                    </div>
-                    <div v-else-if="game == 2">
-                        GITADORA
-                    </div>
-                    <div v-else-if="game == 3">
-                        beatmania IIDX INFINITAS
+                <Transition :name="transMode" v-for="game in games">
+                    <div v-if="selectedGame == game.gameIndex">
+                        {{ game.name }}
                     </div>
                 </Transition>
             </div>
+            <div class="miscs">
+                <div v-if="selectedGame == 0">
+                    <RouterLink to="/iidx/settings">
+                        <button class="crystal" title="打开更多设置">
+                            <div class="gloss"></div>
+                            <div class="shadow"></div>
+                            <div class="content">
+                                <FontAwesomeIcon :icon="faGears"></FontAwesomeIcon>
+                            </div>-
+                        </button>
+                    </RouterLink>
+                </div>
+                <div v-if="selectedGame == 0">
+                    <button class="crystal" title="打开自定义" :onclick="iidx.openCustomize">
+                        <div class="gloss"></div>
+                        <div class="shadow"></div>
+                        <div class="content">
+                            <FontAwesomeIcon :icon="faPalette"></FontAwesomeIcon>
+                        </div>-
+                    </button>
+                </div>
+                <button class="crystal" title="打开游戏设置"
+                    :onclick="() => games.find(g => g.gameIndex == selectedGame)?.settings()">
+                    <div class="gloss"></div>
+                    <div class="shadow"></div>
+                    <div class="content">
+                        <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
+                    </div>-
+                </button>
+                <button class="crystal" title="打开更新器"
+                    :onclick="() => games.find(g => g.gameIndex == selectedGame)?.updater()">
+                    <div class="gloss"></div>
+                    <div class="shadow"></div>
+                    <div class="content">
+                        <FontAwesomeIcon :icon="faDownload"></FontAwesomeIcon>
+                    </div>-
+                </button>
+            </div>
         </div>
         <div class="game-icons">
-            <div id="expander"></div>
-            <div class="game ddr">
-            </div>
-            <div class="game sdvx">
-            </div>
-            <div class="game gitadora selected">
-            </div>
-            <div class="game iidx">
+            <div ref="expander" id="expander" :data-index="expanderIndex"></div>
+            <div v-for="game in games" :class="['game', game.className]"
+                :ref="(el) => el ? gameElements.push(el as HTMLDivElement) : undefined"
+                @click="switchGame(game.gameIndex)">
+                <button disabled title="该游戏未安装" v-if="!game.installed">
+                    <FontAwesomeIcon :icon="faDownload" size="2x" />
+                </button>
+                <button disabled title="请更新游戏" v-else-if="game.versionState.value == VersionState.Need2UpdateGame">
+                    <FontAwesomeIcon :icon="faArrowUpFromBracket" size="2x" />
+                </button>
+                <button disabled title="启动器不支持该版本"
+                    v-else-if="game.versionState.value == VersionState.Need2UpdateLauncher">
+                    <FontAwesomeIcon :icon="faBan" size="2x" />
+                </button>
+                <button disabled v-else-if="game.className == 'gitadora'" title="请选择启动模式">
+                    <FontAwesomeIcon :icon="faArrowRight" size="2x" />
+                </button>
+                <button v-else title="启动游戏" :onclick="() => games.find(g => g.gameIndex == selectedGame)?.start()">
+                    <FontAwesomeIcon :icon="faPlay" size="2x" />
+                </button>
             </div>
         </div>
     </main>
 </template>
+<style scoped lang="scss">
+.iidx-chara {
+    width: 100vw;
+    height: 100vh;
+    background-size: 85vw;
+    background-position: bottom right;
+    background-image: url(../assets/iidx_chara.png);
+    background-repeat: no-repeat;
+}
 
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
+.gtdr-game-select {
+    display: flex;
+    height: 100%;
+    width: calc(100vw - 200px);
+    margin: auto;
+    margin-left: 200px;
+    justify-content: space-around;
+    align-items: end;
+}
 
-const game = ref(2);
-const transMode = ref('down');
+.gtdr-game-select div {
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
+    width: 50%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    filter: grayscale(1);
+    cursor: pointer;
+}
 
-onMounted(() => {
-    const expander = document.querySelector<HTMLDivElement>('#expander');
-    const imgs = document.querySelectorAll<HTMLDivElement>('.game-icons>.game');
-    console.log(imgs);
+.gtdr-game-select div:hover {
+    filter: grayscale(0);
+}
 
-    imgs.forEach((img, index) => {
-        console.log(index)
-        img.addEventListener('click', function () {
-            if (game.value == index) {
-                return;
-            }
+.gtdr-game-select div div {
+    margin-bottom: 2em;
+    font-size: 38px;
+    text-shadow: 0px 3px 0px black,
+        0px 2px 5px black,
+        0px 5px 10px black;
+}
 
-            const dist = (document.body.clientHeight / 2 - 64 + 150) - (index * 80);
+.gtdr-game-select>.dm {
+    background-image: url(../assets/dm_chara.png);
+}
 
-            imgs.forEach(img => {
-                img.classList.remove('selected');
-            });
+.gtdr-game-select>.gf {
+    background-image: url(../assets/gf_chara.png);
+}
 
-            this.classList.add('selected');
-
-            expander!.style.height = dist + "px";
-
-            if (index < game.value) {
-                transMode.value = 'up'
-            } else if (index > game.value) {
-                transMode.value = 'down'
-            }
-
-            game.value = index;
-        });
-    });
-});
-</script>
-
-<style lang="scss">
 .up-enter-active,
 .up-leave-active,
 .up-enter-from,
@@ -108,29 +221,28 @@ onMounted(() => {
 
 .up-enter-from {
     opacity: 0;
-    top: -32px;
+    top: -64px;
 }
 
 .up-leave-to {
     opacity: 0;
-    top: 32px;
+    top: 64px;
 }
 
 .down-enter-from {
     opacity: 0;
-    top: 32px;
+    top: 64px;
 }
 
 .down-leave-to {
     opacity: 0;
-    top: -32px;
+    top: -64px;
 }
 
 main {
     height: 100vh;
     display: flex;
     align-items: stretch;
-    background-color: #000;
 }
 
 .game-page {
@@ -142,21 +254,28 @@ main {
 
 .game-page.sdvx {
     background-image: url(@/assets/sdvx.jpg);
+    background-position: center 38px;
+    background-repeat: no-repeat;
 }
+
 
 .game-page.gitadora {
     background-image: url(@/assets/gitadora.jpg);
 }
 
 .game-page.ddr {
-    background-image: url(@/assets/ddr_bg.jpg);
-    opacity: 0.8;
-    filter: blur(5px) brightness(0.65) !important;
+    background-image: url(@/assets/ddr.webp);
+    background-position: bottom;
+}
+
+.game-page.iidx {
+    background-image: url(@/assets/iidx.jpg);
 }
 
 .game-select {
     z-index: 1;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.5) 70%, rgba(20, 20, 20, 0.5) 71%, rgba(80, 80, 80, 0.5) 100%);
+    background-color: rgba(0, 0, 0, 0.15);
     border-top: 1px solid rgba(255, 255, 255, 0.6);
     border-bottom: 1px solid rgba(127, 127, 127, 0.1);
     position: absolute;
@@ -166,16 +285,137 @@ main {
     width: 100vw;
     box-shadow: 0px 5px 16px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: space-between;
+}
+
+.game-select::after {
+    content: ' ';
+    z-index: -1;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    background: url(../assets/aero.png);
+    background-size: cover;
 }
 
 .game-select>#text {
     line-height: 72px;
-    font-size: 32px;
-    margin-left: 256px;
+    font-size: 24px;
+    margin-left: 240px;
     text-shadow: 0px 2px 0px rgba(0, 0, 0, 0.1),
         0px 0px 5px rgba(255, 255, 255, 0.4),
         0px 0px 10px rgba(255, 255, 255, 0.5),
         0px 0px 20px rgba(255, 255, 255, 0.6);
+}
+
+.game-select>.miscs {
+    margin-right: 120px;
+    text-align: right;
+    line-height: 72px;
+    display: flex;
+    align-items: center;
+}
+
+.game-select>.miscs>* {
+    margin-left: 1em;
+}
+
+.crystal {
+    content: ' ';
+    outline: none;
+    appearance: none;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 48px;
+    position: relative;
+    overflow: hidden;
+    filter: grayscale(0.9);
+    display: block;
+}
+
+.crystal::after {
+    content: ' ';
+    z-index: 0;
+    position: absolute;
+    top: -2.5%;
+    left: -2.5%;
+    width: 105%;
+    height: 105%;
+    border-radius: 48px;
+    background-color: rgb(25, 220, 253);
+    border-bottom: 5px solid rgba(255, 255, 255, 0.8);
+    box-shadow:
+        inset 0px 0px 12px rgba(0, 0, 0, 0.5),
+        inset 0 32px 16px rgb(2, 35, 56);
+    filter: blur(1.8px);
+    transition: all 0.1s ease;
+}
+
+.crystal:hover::after {
+    background-color: rgb(81, 229, 255);
+    border-bottom: 5px solid rgba(255, 255, 255, 1);
+    filter: blur(3px);
+    box-shadow:
+        inset 0px 0px 12px rgba(0, 0, 0, 0.5),
+        inset 0 32px 16px rgb(0, 56, 91);
+}
+
+.crystal:active::after {
+    background-color: rgb(25, 220, 253);
+    border-bottom: 0px solid rgba(255, 255, 255, 0.8);
+    box-shadow:
+        inset 0px 0px 12px rgba(0, 0, 0, 10),
+        inset 0 32px 16px rgb(2, 35, 56);
+}
+
+.crystal>.content {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    line-height: 48px;
+    font-size: 18px;
+    text-shadow: 0 0 5px black, 0 0 5px black, 0 0 5px black;
+}
+
+.crystal>.gloss {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: screen;
+    background: linear-gradient(to top, #212121 0%, #000 50%, #333333 52%, #c6c6c6 100%);
+    border-radius: 48px;
+    opacity: 1;
+}
+
+.crystal>.shadow {
+    position: absolute;
+    z-index: 3;
+    top: -0.5%;
+    left: -0.5%;
+    width: 101%;
+    height: 101%;
+    border-radius: 48px;
+    box-shadow:
+        inset 0px 0px 3px rgba(0, 0, 0, 0.75),
+        inset 0px 0px 3px rgba(0, 0, 0, 0.75),
+        inset 0px 0px 3px rgba(0, 0, 0, 0.75);
+}
+
+.crystal:active>.shadow {
+    box-shadow:
+        inset 0px 0px 5px rgba(0, 0, 0, 0.75),
+        inset 0px 0px 5px rgba(0, 0, 0, 0.75),
+        inset 0px 0px 5px rgba(0, 0, 0, 0.75);
 }
 
 .game-icons {
@@ -201,6 +441,9 @@ main {
     background-image: url(@/assets/icons/gtdr.ico);
 }
 
+.game.iidx {
+    background-image: url(@/assets/icons/iidx.ico);
+}
 
 .game-icons>.game {
     cursor: pointer;
@@ -223,6 +466,8 @@ main {
 .game-icons>.game::after {
     content: ' ';
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.2) 70%, rgba(20, 20, 20, 0.1) 71%, rgba(80, 80, 80, 0) 100%);
@@ -233,9 +478,50 @@ main {
     height: 96px;
 }
 
+.game-icons>.game.selected:hover {
+    transform-origin: center;
+    transform: translateY(-2px);
+}
+
+
+.game-icons>.game:not(.selected)>* {
+    display: none;
+}
+
+svg.svg-inline--fa {
+    margin-right: 0 !important;
+}
+
+.game-icons>.game>button:disabled {
+    cursor: not-allowed;
+}
+
+.game-icons>.game>button {
+    z-index: 1;
+    appearance: none;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    font-size: 32px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.game-icons>.game.selected:hover>button {
+    opacity: 1;
+}
 
 #expander {
     transition: height 0.2s ease;
-    height: 226px;
+    --index: attr(data-index type(<number>));
+    height: calc((50vh - 64px + 150px) - (var(--index) * 80px));
 }
 </style>

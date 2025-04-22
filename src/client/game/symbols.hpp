@@ -67,10 +67,12 @@ namespace avs2
 	WEAK function<int()> fs_dump_mountpoint{ "XCgsqzn0000068" };
 
 	WEAK function<node_ptr(property_ptr prop, node_ptr node, node_type type, const char* path, ...)> property_node_create{ "XCgsqzn00000a2" };
-	WEAK function<node_ptr(property_ptr prop, node_ptr node, const char* path)> property_search{ "XCgsqzn00000a2" };
+	WEAK function<node_ptr(property_ptr prop, node_ptr node, const char* path)> property_search{ "XCgsqzn00000a1" };
 	WEAK function<property_ptr(node_ptr node)> property_node_get_desc{ "XCgsqzn00000ae" };
 	WEAK function<void(node_ptr node)> property_remove{ "XCgsqzn00000a3" };
 	WEAK function<int(property_ptr prop, uint8_t* data, uint32_t data_size)> property_mem_write{ "XCgsqzn00000b8" };
 	WEAK function<int(property_ptr prop, node_ptr node, node_stat_ptr stat)> property_node_query_stat{ "XCgsqzn00000c5" };
 	WEAK function<int(property_ptr prop, uint32_t set_flags, uint32_t clear_flags)> property_set_flag{ "XCgsqzn000009a" };
+	WEAK function<int(node_ptr node, node_type type, void* data, uint32_t data_size)> property_node_read{ "XCgsqzn00000ab" };
+	WEAK function<int(node_ptr node, char* buffer, uint32_t buffer_size)> property_node_name{ "XCgsqzn00000a7" };
 }

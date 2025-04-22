@@ -4,6 +4,42 @@
 #include <gdiplus.h>
 #include <winuser.h>
 
+#include "utils/nt.hpp"
+
+extern "C"
+{
+	typedef enum
+	{
+		WCA_ACCENT_POLICY = 19,
+	} WINDOWCOMPOSITIONATTRIB;
+
+	typedef struct tagWINDOWCOMPOSITIONATTRIBDATA
+	{
+		WINDOWCOMPOSITIONATTRIB Attrib;
+		void* pvData;
+		UINT cbData;
+	} WINDOWCOMPOSITIONATTRIBDATA;
+
+	typedef enum _ACCENT_STATE
+	{
+		ACCENT_DISABLED,
+		ACCENT_ENABLE_GRADIENT,
+		ACCENT_ENABLE_TRANSPARENTGRADIENT,
+		ACCENT_ENABLE_BLURBEHIND,
+		ACCENT_ENABLE_ACRYLICBLURBEHIND,
+		ACCENT_ENABLE_HOSTBACKDROP,
+		ACCENT_INVALID_STATE,
+	} ACCENT_STATE;
+
+	typedef struct _ACCENT_POLICY
+	{
+		ACCENT_STATE AccentState;
+		DWORD AccentFlags;
+		DWORD GradientColor;
+		DWORD AnimationId;
+	} ACCENT_POLICY;
+}
+
 namespace
 {
 	LONG_PTR wnd_proc_old = NULL;
@@ -38,12 +74,30 @@ void launcher_module::init(saucer::native::window* window, saucer::native::webvi
 	MARGINS m{ 0, 0, 0, 1 };
 	DwmExtendFrameIntoClientArea(hwnd, &m);
 
+	ACCENT_POLICY ap
+	{
+		ACCENT_ENABLE_BLURBEHIND,
+		0,
+		0,
+		0
+	};
+
+	WINDOWCOMPOSITIONATTRIBDATA ca
+	{
+		WCA_ACCENT_POLICY,
+		&ap,
+		sizeof(ap),
+	};
+
+	utils::nt::library user32{ "user32.dll" };
+	user32.invoke_pascal<BOOL>("SetWindowCompositionAttribute", hwnd, &ca);
+
 	SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 
 	scale_ = GetDpiForWindow(hwnd) * 1.0f / USER_DEFAULT_SCREEN_DPI;
 
 	auto wv2 = webview->web_view.Get();
-	ICoreWebView2Settings *settings;
+	ICoreWebView2Settings* settings;
 
 	if (wv2->get_Settings(&settings) == S_OK)
 	{

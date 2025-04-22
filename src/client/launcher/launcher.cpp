@@ -19,7 +19,7 @@
 
 #include "component/steam_proxy.hpp"
 
-#define USE_EMBEDDED 1
+#define USE_EMBEDDED 0
 
 #if !_DEBUG || USE_EMBEDDED
 #include "resources/all.hpp"
@@ -51,7 +51,7 @@ launcher::launcher()
 void launcher::create_main_menu()
 {
 	smartview_->set_title("Laochan-Eacnet Launcher");
-	smartview_->set_dpi_aware_size(1280, 720);
+	smartview_->set_dpi_aware_size(1024, 600);
 
 	smartview_->expose("version", []() -> std::string {
 		return VERSION;

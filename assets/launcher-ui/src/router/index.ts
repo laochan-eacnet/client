@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import LauncherSettingView from '../views/LauncherSettingView.vue'
 import IIDXSettingView from '../views/IIDXSettingView.vue'
 import NewHomeView from '@/views/NewHomeView.vue'

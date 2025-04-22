@@ -15,6 +15,14 @@ export class GITADORA extends GameClass {
         return 2;
     }
 
+    get name(): string {
+        return 'GITADORA';
+    }
+
+    get className(): string {
+        return 'gitadora';
+    }
+
     get config() {
         return this._config;
     }

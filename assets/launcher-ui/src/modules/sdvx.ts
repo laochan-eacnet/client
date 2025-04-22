@@ -13,6 +13,14 @@ export class SDVX extends GameClass {
         return 1;
     }
 
+    get name(): string {
+        return 'SDVX Exceed Gear';
+    }
+
+    get className(): string {
+        return 'sdvx';
+    }
+
     get config() {
         return this._config;
     }

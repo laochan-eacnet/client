@@ -38,6 +38,7 @@ export interface IIDXConfig {
     language: IIDXLanguage;
     graphicsAPI: GraphicsAPI;
     acDataPath: string;
+    enableExperimentalFeature: boolean;
 }
 
 export class IIDX extends GameClass {
@@ -46,6 +47,14 @@ export class IIDX extends GameClass {
 
     get gameIndex(): number {
         return 0;
+    }
+
+    get name(): string {
+        return 'IIDX INFINITAS';
+    }
+
+    get className(): string {
+        return 'iidx';
     }
 
     get config() {
@@ -64,6 +73,7 @@ export class IIDX extends GameClass {
             language: IIDXLanguage.English,
             graphicsAPI: GraphicsAPI.Native,
             acDataPath: '',
+            enableExperimentalFeature: false,
         }
 
         this._dirty = true;
@@ -100,7 +110,8 @@ export class IIDX extends GameClass {
             this._config.value.useGsm === undefined ||
             this._config.value.language === undefined ||
             this._config.value.graphicsAPI === undefined ||
-            this._config.value.acDataPath === undefined
+            this._config.value.acDataPath === undefined || 
+            this._config.value.enableExperimentalFeature === undefined
         ) {
             window.laochan.alert.show('IIDX 设置已被重置, 请前往额外设置重新设置', '#B64040', 2000);
             await this.resetConfig();
@@ -128,6 +139,8 @@ export class IIDX extends GameClass {
             window.laochan.setParam('IIDX_RESOLTION_W', JSON.stringify(config.resolution.w)),
             window.laochan.setParam('IIDX_RESOLTION_H', JSON.stringify(config.resolution.h)),
             window.laochan.setParam('IIDX_GRAPHICS_API', JSON.stringify(config.graphicsAPI)),
+
+            window.laochan.setParam('IIDX_EXP_FEATURE', JSON.stringify(+config.enableExperimentalFeature)),
         ]);
     }
 

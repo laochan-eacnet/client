@@ -10,18 +10,16 @@
 
 namespace shiftjis
 {
-	NTSTATUS mb_to_unicode_n(PWCH out_wstr, ULONG out_size, PULONG result_size, const CHAR* in_str, ULONG in_size)
+	NTSTATUS WINAPI mb_to_unicode_n(PWCH out_wstr, ULONG out_size, PULONG result_size, const CHAR* in_str, ULONG in_size)
 	{
 		const auto size = MultiByteToWideChar(932, 0, in_str, in_size, out_wstr, out_size);
-
-		if (result_size) *result_size = size;
-
+		if (result_size) *result_size = (size + 1) * sizeof(wchar_t);
 		return 0;
 	}
 
-	NTSTATUS mb_to_unicode_size(PULONG result_size, const CHAR* in_str, ULONG in_size)
+	NTSTATUS WINAPI mb_to_unicode_size(PULONG result_size, const CHAR* in_str, ULONG in_size)
 	{
-		*result_size = MultiByteToWideChar(932, 0, in_str, in_size, nullptr, 0);
+		*result_size = (MultiByteToWideChar(932, 0, in_str, in_size, nullptr, 0) + 1) * sizeof(wchar_t);
 		return 0;
 	}
 

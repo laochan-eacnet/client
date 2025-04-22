@@ -15,6 +15,7 @@ namespace gitadora::env
 			{
 				auto args = "gitadora.exe -t "s;
 				args += game::environment::get_param("LAOCHAN_TOKEN");
+				args += game::environment::get_param("GITADORA_LAUNCH_ARGS");
 
 				printf("Starting game with cmdline: %s\n", args.data());
 				return args;

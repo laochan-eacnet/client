@@ -9,6 +9,15 @@
 
 namespace iidx::env
 {
+	bool use_exp()
+	{
+		const static bool result = ([]() {
+			return game::environment::get_param("IIDX_EXP_FEATURE") == "1";
+		})();
+
+		return result;
+	}
+
 	const char* get_cmdline()
 	{
 		static auto cmdline = ([]

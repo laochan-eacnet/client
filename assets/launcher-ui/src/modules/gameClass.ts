@@ -9,6 +9,9 @@ export abstract class GameClass {
         return this.meta.value?.installed ?? false;
     }
 
+    abstract get name(): string;
+    abstract get className(): string;
+
     abstract get gameIndex(): number;
 
     async updateMeta() {
@@ -43,6 +46,11 @@ export abstract class GameClass {
             return VersionState.Normal;
 
         const installVersion = this.meta.value!.game_module_version;
+
+        if (!installVersion.length) {
+            return VersionState.Need2UpdateGame;
+        }
+
         const installVersionNum = Number.parseInt(installVersion.split(":")[4]);
         const targetVersionNum = Number.parseInt(targetVersion.split(":")[4]);
 

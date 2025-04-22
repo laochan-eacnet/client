@@ -73,19 +73,31 @@ nav {
 }
 
 .title-bar {
-    background-color: rgba(0, 0, 0, 0.5);
+    position: relative;
     backdrop-filter: blur(5px);
     text-align: center;
     line-height: 38px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(20, 20, 20, 0.5) 55%, rgba(80, 80, 80, 0.5) 100%);
-    border: 1px solid rgba(127, 127, 127, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.6);
-    
+    background-color: rgba(0, 0, 0, 0.5);
     box-shadow: 0px 5px 16px rgba(0, 0, 0, 0.5);
 }
 
+.title-bar::after {
+    content: ' ';
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.2) 100%);
+    border: 1px solid rgba(127, 127, 127, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+}
+
 .title {
-    width: 100vw;
+    margin-left: 88px;
+    text-align: left;
+    width: calc(100vw - 88px);
     z-index: 9;
     text-shadow: 0px 2px 5px rgba(255, 255, 255, 0.5), 
         0px 2px 10px rgba(255, 255, 255, 0.5),
@@ -111,7 +123,7 @@ nav {
 .nav-controls>* {
     margin: 0;
     display: block;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.3);
     border: none;
     padding: 0;
     color: #fff;
@@ -119,6 +131,13 @@ nav {
     line-height: 38px;
     transition: 0.1s ease;
     font-size: 24px;
+}
+
+.controls>*:hover,
+.nav-controls>*:hover {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8),
+        inset 0 4px 8px rgba(0, 0, 0, 0.6),
+        inset 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 #close:hover {

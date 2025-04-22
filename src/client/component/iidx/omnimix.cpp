@@ -8,6 +8,7 @@
 
 #include "component/filesystem.hpp"
 #include "analyze.hpp"
+#include "env.hpp"
 
 using json = nlohmann::json;
 
@@ -77,19 +78,39 @@ namespace iidx::omnimix
 	utils::hook::detour get_name_hook;
 	const char* get_bga_name(iidx::music_t* music, int note_id)
 	{
-		const auto music_bga = music->bga_filename;
-		auto path = utils::string::va("/ac_mount/movie/%s.mp4", music_bga);
-
-		if (filesystem::exists(path))
+		if (env::use_exp())
 		{
-			return utils::string::va("%s.mp4", music_bga);
+			const auto music_bga = music->bga_filename;
+			auto path = utils::string::va("/ac_mount/movie/%s.mp4", music_bga);
+
+			if (filesystem::exists(path))
+			{
+				return utils::string::va("%s.mp4", music_bga);
+			}
+
+			path = utils::string::va("/ac_mount/movie/%s.wmv", music_bga);
+
+			if (filesystem::exists(path))
+			{
+				return utils::string::va("%s.wmv", music_bga);
+			}
 		}
-
-		path = utils::string::va("/ac_mount/movie/%s.wmv", music_bga);
-
-		if (filesystem::exists(path))
+		else
 		{
-			return utils::string::va("%s.wmv", music_bga);
+			const auto music_bga = music->bga_filename;
+			auto path = utils::string::va("/data/movie/%s.mp4", music_bga);
+
+			if (filesystem::exists(path))
+			{
+				return utils::string::va("%s.mp4", music_bga);
+			}
+
+			path = utils::string::va("/data/movie/%s.wmv", music_bga);
+
+			if (filesystem::exists(path))
+			{
+				return utils::string::va("%s.wmv", music_bga);
+			}
 		}
 
 		return get_name_hook.invoke<const char*, iidx::music_t*, int>(music, note_id);
@@ -209,7 +230,7 @@ namespace iidx::omnimix
 
 	void insert_music_datas()
 	{
-		filesystem::file ac_music_data{ "/ac_mount/info/0/music_data.bin" };
+		filesystem::file ac_music_data{ env::use_exp() ? "/ac_mount/info/0/music_data.bin" : "/data/omni_musics.bin" };
 
 		const music_data_32_t* ac_data = nullptr;
 
@@ -388,7 +409,25 @@ namespace iidx::omnimix
 			});
 
 			if (find_result == musics.end())
+			{
 				musics.push_back(backup->musics[i]);
+				continue;
+			}
+
+			int chart_count_inf = 0;
+			int chart_count_ac = 0;
+
+			for (size_t j = 0; j < 10; j++)
+			{
+				if (find_result->level[i]) chart_count_ac++;
+				if (backup->musics[i].level[i]) chart_count_inf++;
+			}
+
+			if (chart_count_inf >= chart_count_ac)
+			{
+				musics.erase(find_result);
+				musics.push_back(backup->musics[i]);
+			}
 		}
 
 		printf("I:omnimix: total music count: %llu\n", musics.size());
@@ -438,23 +477,29 @@ namespace iidx::omnimix
 			// add omni songs to music_data.bin
 			utils::hook::call(0x1401C337E, insert_music_datas);
 
-			// load ac files if ac file exists
-			utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
-			utils::hook::call(0x14020C870, get_movie_path);
-			utils::hook::call(0x14020CE7D, get_movie_path);
-			utils::hook::call(0x140105A9D, get_layer_path);
-			utils::hook::call(0x140174610, get_layer_path);
-			utils::hook::call(0x140224386, get_layer_path);
-			utils::hook::call(0x140224636, get_layer_path);
+			if (env::use_exp())
+			{
+				// load ac files if ac file exists
+				utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
+				utils::hook::call(0x14020C870, get_movie_path);
+				utils::hook::call(0x14020CE7D, get_movie_path);
+				utils::hook::call(0x140105A9D, get_layer_path);
+				utils::hook::call(0x140174610, get_layer_path);
+				utils::hook::call(0x140224386, get_layer_path);
+				utils::hook::call(0x140224636, get_layer_path);
+			}
 		}
 
 		void post_avs_init() override
 		{
-			auto acdata_path = game::environment::get_param("IIDX_ACDATA_PATH");
-			if (!std::filesystem::exists(acdata_path))
-				return;
+			if (env::use_exp())
+			{
+				auto acdata_path = game::environment::get_param("IIDX_ACDATA_PATH");
+				if (!std::filesystem::exists(acdata_path))
+					return;
 
-			avs2::fs_mount("/ac_mount", acdata_path.data(), "fs", nullptr);
+				avs2::fs_mount("/ac_mount", acdata_path.data(), "fs", nullptr);
+			}
 		}
 	};
 }

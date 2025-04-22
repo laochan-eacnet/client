@@ -61,7 +61,7 @@ import { VersionState } from "@/modules/launcher";
     </div>
     <div class="game gitadora" :class="{ 'disable': gitadora.meta.value == undefined }">
       <div class="background">
-        <video loop autoplay muted src="../assets/gitadora.webm"></video>
+        <!-- <video loop autoplay muted src="../assets/gitadora.webm"></video> -->
       </div>
       <div class="text">
         GITADORA <br><br>

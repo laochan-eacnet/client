@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faCompactDisc, faComputer, faDisplay, faHardDrive, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
+import { faCompactDisc, faComputer, faDisplay, faFlask, faHardDrive, faLanguage, faLightbulb, faMicrochip, faTelevision, faUpRightAndDownLeftFromCenter, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, ref, type Ref } from 'vue';
 import { iidx, IIDXDisplayMode, IIDXSoundMode } from '@/modules/iidx';
@@ -151,6 +151,14 @@ function updateUseGsm(e: Event) {
     iidx.config.value.useGsm = (e.target as HTMLInputElement).checked;
 }
 
+function updateEnableExperimentalFeature(e: Event) {
+    if (!iidx.config.value) {
+        return;
+    }
+
+    iidx.config.value.enableExperimentalFeature = (e.target as HTMLInputElement).checked;
+}
+
 function updateAcDataPath(e: Event) {
     if (!iidx.config.value) {
         return;
@@ -219,7 +227,8 @@ async function save() {
                     <option value="2">DXVK</option>
                 </select>
             </div>
-            <div class="item optional" :class="{ show: iidx.config.value?.displayMode != IIDXDisplayMode.BorderlessWindowed }">
+            <div class="item optional"
+                :class="{ show: iidx.config.value?.displayMode != IIDXDisplayMode.BorderlessWindowed }">
                 <h3>
                     <FontAwesomeIcon :icon="faUpRightAndDownLeftFromCenter"></FontAwesomeIcon>
                     显示分辨率
@@ -228,9 +237,9 @@ async function save() {
                     <option v-for="mode, i in displayModes" :value="i">
                         <template v-if="!mode.good">(不推荐)</template>
                         {{ mode.width }}x{{ mode.height }} (
-                            <template v-for="rate, j in mode.rates">{{ rate }}
-                                hz<template v-if="j !== mode.rates.length - 1">, </template>
-                            </template>
+                        <template v-for="rate, j in mode.rates">{{ rate }}
+                            hz<template v-if="j !== mode.rates.length - 1">, </template>
+                        </template>
                         )
                     </option>
                 </select>
@@ -251,6 +260,18 @@ async function save() {
                 </select>
             </div>
             <div class="item">
+                <h3>
+                    <FontAwesomeIcon :icon="faFlask"></FontAwesomeIcon>
+                    实验性功能
+                </h3>
+                <div class="flex justify-start align-center lh-100 py-1">
+                    <input id="use-exp-feature" type="checkbox" v-bind:checked="iidx.config.value?.enableExperimentalFeature"
+                        @input="updateEnableExperimentalFeature">
+                    <label for="use-exp-feature">启用实验性功能</label>
+                </div>
+                <div>启用后会导致游戏不稳定</div>
+            </div>
+            <div class="item optional"  :class="{ show: iidx.config.value?.enableExperimentalFeature }">
                 <h3>
                     <FontAwesomeIcon :icon="faHardDrive"></FontAwesomeIcon>
                     AC 数据挂载路径

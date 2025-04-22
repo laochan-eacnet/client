@@ -17,7 +17,7 @@
   color: #fff;
   user-select: none;
   -webkit-user-drag: none;
-  color-scheme: dark;
+  color-scheme: dark !important;
   font-family:
     SGM,
     'Noble Scarlet',
@@ -30,10 +30,19 @@ option {
     'Noble Scarlet',
     'Segoe UI',
     sans-serif;
+  background-color: #212121;
+  color: #fff;
+}
+
+option:hover,
+option:focus {
+  background-color: #000 !important;
+  color: #fff !important;
 }
 
 body {
-  background: #212121;
+  background: url(./aero.png);
+  background-size: cover;
   line-height: 150%;
   font-size: 12px;
   text-rendering: optimizeSpeed;

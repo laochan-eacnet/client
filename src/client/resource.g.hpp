@@ -15,3 +15,10 @@
 #define ID_ASSET_11 361
 #define ID_ASSET_12 362
 #define ID_ASSET_13 363
+#define ID_ASSET_14 364
+#define ID_ASSET_15 365
+#define ID_ASSET_16 366
+#define ID_ASSET_17 367
+#define ID_ASSET_18 368
+#define ID_ASSET_19 369
+#define ID_ASSET_20 370

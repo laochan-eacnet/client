@@ -1,8 +1,9 @@
 @import './base.css';
 
-a, .link {
+a,
+.link {
   text-decoration: none;
-  color: rgb(0, 127, 189);
+  color: rgb(64, 218, 252);
   transition: 0.4s;
   padding: 3px;
   cursor: pointer;
@@ -10,11 +11,12 @@ a, .link {
 
 .page {
   width: 100vw;
-  margin-top: 12px;
-  height: calc(100vh - 12px);
+  margin-top: 38px;
+  height: calc(100vh - 38px);
   overflow-y: scroll;
   line-height: 250%;
   font-size: 90%;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 .gray {
@@ -33,9 +35,8 @@ svg.svg-inline--fa {
 
 .container {
   margin: auto;
-  margin-top: 64px;
-
-  width: 800px;
+  margin-top: 32px;
+  width: 831px;
 }
 
 hr {
@@ -49,8 +50,13 @@ hr {
 }
 
 .container>.item {
-  background-color: rgba(18, 18, 18, .7);
-  padding: 1em 2em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 16px,
+      rgba(255, 255, 255, 0.1) 48px,
+      rgba(50, 50, 50, 0.5) 50px,
+      rgba(70, 70, 70, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 0.8em 2em;
   border-radius: 5px;
 }
 
@@ -64,8 +70,15 @@ footer {
 .text-input {
   display: block;
   border: none;
-  border-bottom: 1px solid gray;
-  background-color: #0C0C0C;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(20, 20, 20, 0.3) 75%,
+      rgba(51, 51, 51, 0.3) 100%);
+
   padding: 0.5em;
   width: 100%;
   margin-top: 0.5em;
@@ -87,23 +100,41 @@ footer {
   background-color: transparent;
   padding: 0.5em 1em;
   position: relative;
-  overflow: hidden;
   transition: 0.2s ease;
   cursor: pointer;
 }
 
 .btn.primary {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(20, 20, 20, 0.5) 55%, rgba(80, 80, 80, 0.5) 100%);
   background-color: #40B681;
   padding: 1em 2em;
 }
 
 .btn:hover {
-  filter: brightness(1.05);
-  transform: scale(1.05) translateY(-2px);
+  filter: brightness(1.5);
+  text-shadow:
+    0px 0px 2px white,
+    0px 0px 5px white,
+    0px 0px 10px white,
+    0px 0px 20px white;
+}
+
+.btn.link:hover {
+  color: white;
+  text-shadow:
+    0px 0px 2px rgb(209, 246, 255),
+    0px 0px 5px rgb(165, 239, 255),
+    0px 0px 10px rgb(94, 222, 250),
+    0px 0px 20px rgb(57, 215, 251),
+    0px 0px 40px rgb(24, 213, 255);
 }
 
 .btn.primary:hover {
-  box-shadow: 0 2px 2px black;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2),
+    0 4px 4px rgba(0, 0, 0, 0.2),
+    0 8px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn:active {
@@ -140,4 +171,13 @@ input[type="checkbox"] {
 .py-1 {
   padding-top: 1em;
   padding-bottom: 1em;
+}
+
+::-webkit-scrollbar {
+  background-color: transparent;
+  width: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.5);
 }

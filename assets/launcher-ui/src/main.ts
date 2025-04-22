@@ -86,16 +86,6 @@ window.laochan = {
     },
 };
 
-(async () => {
-    await launcher.loadConfig();
-    await iidx.loadConfig();
-    await sdvx.loadConfig();
-    await iidx.updateMeta();
-    await sdvx.updateMeta();
-    await gitadora.updateMeta();
-    await ddr.updateMeta();
-})();
-
 const app = createApp(App)
 app.use(router)
 app.mount('#app')

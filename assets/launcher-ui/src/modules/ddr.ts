@@ -12,6 +12,14 @@ export class DDR extends GameClass {
         return 3;
     }
 
+    get name(): string {
+        return 'DDR GrandPrix';
+    }
+
+    get className(): string {
+        return 'ddr';
+    }
+
     get config() {
         return this._config;
     }
