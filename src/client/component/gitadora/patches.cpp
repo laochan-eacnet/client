@@ -83,11 +83,11 @@ namespace gitadora::patches
 	{
 		static auto language = ([]
 		{
-			auto language = game::environment::get_param("GITADORA_LANGUAGE");
+			auto param = game::environment::get_param("GITADORA_LANGUAGE");
 
-			if (language.size())
+			if (param.size())
 			{
-				return std::stoi(language);
+				return std::stoi(param);
 			}
 
 			return 1;
