@@ -62,6 +62,15 @@ export class GITADORA extends GameClass {
             return;
         }
     }
+
+    async startGf() {
+        await window.laochan.setParam('GITADORA_LAUNCH_ARGS', ' -gf');
+        return this.start();
+    }
+
+    startDm() {
+        return this.start();
+    }
 };
 
 export const gitadora = new GITADORA();

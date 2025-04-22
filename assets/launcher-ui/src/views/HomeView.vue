@@ -70,7 +70,8 @@ import { VersionState } from "@/modules/launcher";
         </div>
       </div>
       <div v-if="gitadora.meta.value != undefined && gitadora.installed" class="options">
-        <div v-if="gitadora.versionState.value == VersionState.Normal" class="opt" @click="gitadora.start">启动</div>
+        <div v-if="gitadora.versionState.value == VersionState.Normal" class="opt" @click="gitadora.startGf">启动 GUITARFREAKS</div>
+        <div v-if="gitadora.versionState.value == VersionState.Normal" class="opt" @click="gitadora.startDm">启动 DRUMMANIA</div>
         <div v-if="gitadora.versionState.value == VersionState.Need2UpdateLauncher" class="tip opt">
           启动器暂不支持此版本
         </div>

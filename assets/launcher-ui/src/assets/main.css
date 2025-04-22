@@ -10,8 +10,8 @@ a, .link {
 
 .page {
   width: 100vw;
-  margin-top: 48px;
-  height: calc(100vh - 48px);
+  margin-top: 12px;
+  height: calc(100vh - 12px);
   overflow-y: scroll;
   line-height: 250%;
   font-size: 90%;
@@ -35,7 +35,7 @@ svg.svg-inline--fa {
   margin: auto;
   margin-top: 64px;
 
-  width: 960px;
+  width: 800px;
 }
 
 hr {

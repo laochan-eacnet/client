@@ -34,8 +34,8 @@ option {
 
 body {
   background: #212121;
-  line-height: 1.6;
-  font-size: 15px;
+  line-height: 150%;
+  font-size: 12px;
   text-rendering: optimizeSpeed;
   overflow: hidden;
 }
