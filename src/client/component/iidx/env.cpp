@@ -36,13 +36,6 @@ namespace iidx::env
 		return cmdline.data();
 	}
 
-	utils::hook::detour load_ifs;
-	char __fastcall load_ifs_hook(char* a1, __int64 a2, int a3, const char* a4, unsigned int a5, char a6)
-	{
-		printf("load ifs %s\n", a4);
-		return load_ifs.invoke<char>(a1, a2, a3, a4, a5, a6);
-	}
-
 	LONG WINAPI set_language_hook(struct _EXCEPTION_POINTERS* ExceptionInfo)
 	{
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP)
@@ -55,7 +48,7 @@ namespace iidx::env
 			}
 		)();
 
-		utils::hook::set<uint32_t>(0x1405F0D24, language);
+		utils::hook::set<uint32_t>(iidx::language.get() + 4, language);
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
@@ -74,16 +67,13 @@ namespace iidx::env
 			{
 				throw std::runtime_error(utils::string::va("Unsupported version %s\nSupported version is " IIDX_TARGET_VERSION ".", version.data()));
 			}
-
-			load_ifs.create(0x140224290, load_ifs_hook);
-			// init_thread_footer.create(0x14035EFA4, init_thread_footer_hook);
 			
 			CONTEXT ctx{ 0 };
 			ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
 			auto thread = GetCurrentThread();
 			if (GetThreadContext(thread, &ctx))
 			{
-				ctx.Dr0 = 0x1405F0D20;
+				ctx.Dr0 = reinterpret_cast<DWORD64>(iidx::language.get());
 				ctx.Dr7 = 1 | 1 << 16;
 
 				SetThreadContext(thread, &ctx);

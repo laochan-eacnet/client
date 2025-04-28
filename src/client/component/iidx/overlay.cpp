@@ -46,7 +46,7 @@ namespace iidx::overlay
 	bool in_game = false;
 
 	iidx::CMusicSelectScene_s* music_select_scene;
-	void* dan_select_flow;
+	void* dan_stage_flow;
 
 	ImVec2 scale(ImVec2 input)
 	{
@@ -393,7 +393,7 @@ namespace iidx::overlay
 			}
 			else
 			{
-				auto iter = gauge_difficulty_tables.find(*iidx::selected_gauge_type);
+				auto iter = gauge_difficulty_tables.find(iidx::option->selected_gauge_type);
 				if (iter == gauge_difficulty_tables.end())
 					return;
 
@@ -449,7 +449,7 @@ namespace iidx::overlay
 
 		void draw()
 		{
-			if (!music_select_scene && !dan_select_flow)
+			if (!music_select_scene && !dan_stage_flow)
 				return;
 
 			if (!*iidx::show_options)
@@ -613,12 +613,21 @@ namespace iidx::overlay
 		style.ScaleAllSizes(scale_factor);
 
 		ImGui_ImplWin32_Init(*iidx::main_hwnd);
-		ImGui_ImplDX9_Init(*iidx::d3d9_device);
+		ImGui_ImplDX9_Init(*iidx::d3d9ex_device);
 
 		notes_radar::init();
 		notes_difficulty::init();
 
 		is_imgui_inited = true;
+	}
+
+	static const char* game_version()
+	{
+		const static auto ver = ([] {
+			return game::environment::get_version();
+		})();
+
+		return ver.data();
 	}
 
 	static void draw_watermark()
@@ -636,8 +645,8 @@ namespace iidx::overlay
 		))
 		{
 
-			ImGui::Text(utils::string::va(VERSION " (%s)", iidx::game_version));
-			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id));
+			ImGui::Text(utils::string::va(VERSION " (%s)", game_version()));
+			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id.get()));
 			ImGui::End();
 		}
 
@@ -682,8 +691,8 @@ namespace iidx::overlay
 
 			ImGui::SetCursorPosY(7);
 
-			ImGui::Text(utils::string::va(VERSION " (%s)", iidx::game_version));
-			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id));
+			ImGui::Text(utils::string::va(VERSION " (%s)", game_version()));
+			ImGui::Text(utils::string::va("ID: %s", iidx::infinitas_id.get()));
 			ImGui::Text(utils::string::va("FPS: %.1f (%.2fms)", 1000 / (frametime_sum / frametimes.size()), last_frametime));
 			ImGui::End();
 		}
@@ -775,6 +784,7 @@ namespace iidx::overlay
 		return iidx::main_wndproc(hwnd, msg, w_param, l_param);
 	}
 
+	void* music_select_scene_attach_orig = nullptr;
 	bool music_select_scene_attach(iidx::CMusicSelectScene_s* scene)
 	{
 		printf("D:overlay: CMusicSelectScene::OnAttach\n");
@@ -782,7 +792,7 @@ namespace iidx::overlay
 		steam_proxy::set_status("\xF0\x9F\x97\xBF IIDX - SELECT MUSIC");
 
 		music_select_scene = scene;
-		return iidx::music_select_scene_attach(scene);
+		return utils::hook::invoke<bool>(music_select_scene_attach_orig, scene);
 	}
 
 	const char* chart_names[] = {
@@ -790,12 +800,13 @@ namespace iidx::overlay
 		"DPB", "DPN", "DPH", "DPA", "DPL",
 	};
 
+	void* music_select_scene_detach_orig = nullptr;
 	void music_select_scene_detach(iidx::CMusicSelectScene_s* scene)
 	{
 		printf("D:overlay: CMusicSelectScene::OnDetach\n");
 
 		music_select_scene = nullptr;
-		return iidx::music_select_scene_detach(scene);
+		return utils::hook::invoke<void>(music_select_scene_detach_orig, scene);
 	}
 
 	utils::hook::detour base_stage_attach;
@@ -831,11 +842,12 @@ namespace iidx::overlay
 		"NO PLAY.", "FAILED.", "A-CLEAR.", "E-CLEAR.", "CLEAR.", "H-CLEAR!", "EXH-CLEAR!!", "FULL-COMBO!!!"
 	};
 
+	void* stage_result_draw_frame_init_orig = nullptr;
 	void stage_result_draw_frame_init(iidx::StageResultDrawFrame_s* _this, int* unk1)
 	{
 		in_game = false;
 
-		iidx::stage_result_draw_frame_init(_this, unk1);
+		utils::hook::invoke<void>(stage_result_draw_frame_init_orig, _this, unk1);
 
 		if (!iidx::state->music)
 			return;
@@ -849,21 +861,22 @@ namespace iidx::overlay
 		steam_proxy::set_status(status);
 	}
 
-	bool dan_select_scene_attach(void* scene)
+	void* dan_stage_scene_attach_orig = nullptr;
+	bool dan_stage_scene_attach(void* scene)
 	{
 		printf("D:overlay: CDanSelectFlow::OnAttach\n");
 
-		dan_select_flow = scene;
-		return iidx::dan_select_scene_attach(scene);
+		dan_stage_flow = scene;
+		return utils::hook::invoke<bool>(dan_stage_scene_attach_orig, scene);
 	}
 
-
-	void dan_select_scene_detach(void* scene)
+	void* dan_stage_scene_detach_orig = nullptr;
+	void dan_stage_scene_detach(void* scene)
 	{
 		printf("D:overlay: CDanSelectFlow::OnDetach\n");
 
-		dan_select_flow = nullptr;
-		return iidx::dan_select_scene_detach(scene);
+		dan_stage_flow = nullptr;
+		return utils::hook::invoke<void>(dan_stage_scene_detach_orig, scene);
 	}
 
 	void draw()
@@ -934,15 +947,22 @@ namespace iidx::overlay
 			present.create(0x1401F78C0, present_stub);
 
 			// hook wndproc
-			utils::hook::inject(0x140202582, wndproc);
+			utils::hook::inject(iidx::main_wndproc.get_rva_pos(), wndproc);
 
-			utils::hook::set(iidx::music_select_scene_attach.get_entry_ptr(), music_select_scene_attach);
-			utils::hook::set(iidx::music_select_scene_detach.get_entry_ptr(), music_select_scene_detach);
+			music_select_scene_attach_orig = iidx::music_select_scene.get<void*>(13);
+			music_select_scene_detach_orig = iidx::music_select_scene.get<void*>(14);
 
-			utils::hook::set(iidx::dan_select_scene_attach.get_entry_ptr(), dan_select_scene_attach);
-			utils::hook::set(iidx::dan_select_scene_detach.get_entry_ptr(), dan_select_scene_detach);
+			utils::hook::set(iidx::music_select_scene.get_ptr(13), music_select_scene_attach);
+			utils::hook::set(iidx::music_select_scene.get_ptr(14), music_select_scene_detach);
 
-			utils::hook::set(iidx::stage_result_draw_frame_init.get_entry_ptr(), stage_result_draw_frame_init);
+			dan_stage_scene_attach_orig = iidx::dan_stage_scene.get<void*>(13);
+			dan_stage_scene_detach_orig = iidx::dan_stage_scene.get<void*>(14);
+
+			utils::hook::set(iidx::dan_stage_scene.get_ptr(13), dan_stage_scene_attach);
+			utils::hook::set(iidx::dan_stage_scene.get_ptr(14), dan_stage_scene_detach);
+
+			stage_result_draw_frame_init_orig = iidx::stage_result_draw_frame.get<void*>(0);
+			utils::hook::set(iidx::stage_result_draw_frame.get_ptr(0), stage_result_draw_frame_init);
 			base_stage_attach.create(0x140184FD0, base_stage_attach_hook);
 		}
 

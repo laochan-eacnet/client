@@ -368,10 +368,11 @@ namespace iidx::chart_modifier
 	}
 #endif
 
+	utils::hook::detour report_result_export_request_property_hook;
 	bool report_result_export_request_property(iidx::eacnet_request_post_s* _this, void* a1, void* a2)
 	{
 		avs2::property_node_create(_this->eacnet_property.property, nullptr, avs2::NODE_TYPE_u32, "/p2d/params/modifier", static_cast<uint32_t>(modifier_flag & ~modifier_t::fixed_random));
-		return iidx::EacnetRequestPost::OnRequestPropertyExported(_this, a1, a2);
+		return report_result_export_request_property_hook.invoke<bool>(_this, a1, a2);
 	}
 
 	class component final : public component_interface
@@ -379,17 +380,23 @@ namespace iidx::chart_modifier
 	public:
 		void post_load() override
 		{
+			const auto& game_module = game::environment::get_module();
 #ifdef DEBUG
-			utils::hook::jump(0x14016DED0, test_fps);
+			utils::hook::jump(iidx::test_fps, test_fps);
 #endif
 
-			post_load_chart_hook.create(0x14011B9E0, post_load_chart);
-			get_option_str_hook.create(0x140131980, get_option_str);
+			post_load_chart_hook.create(iidx::post_load_chart, post_load_chart);
+			get_option_str_hook.create(iidx::get_option_str, get_option_str);
 
-			utils::hook::set(0x140423778, report_result_export_request_property);
+			report_result_export_request_property_hook.create(
+				iidx::EacnetRequestPost::OnRequestPropertyExported, 
+				report_result_export_request_property
+			);
 
 			// allow negtive bpm (movzx -> movsx)
-			utils::hook::set<uint8_t>(0x14011C567, 0xBF);
+			auto* negtive_bpm_loc = game_module.match_sig("0F B6 43 05 0F B7 7B 06");
+			assert(negtive_bpm_loc);
+			utils::hook::set<uint8_t>(negtive_bpm_loc + 5, 0xBF);
 	}
 };
 }

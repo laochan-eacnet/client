@@ -327,6 +327,12 @@ namespace iidx
 		music_t* music;
 	};
 
+	struct option_t
+	{
+		int __unk[2];
+		int selected_gauge_type;
+	};
+
 	enum event_type_t : int8_t
 	{
 		note_p1 = 0x0,

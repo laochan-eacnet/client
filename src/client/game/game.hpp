@@ -3,6 +3,7 @@
 #include "launcher/launcher.hpp"
 #include "loader/component_loader.hpp"
 #include <utils/nt.hpp>
+#include <utils/signature.hpp>
 #include <utils/string.hpp>
 
 #define IIDX_TARGET_VERSION "P2D:J:B:A:2024080500"
@@ -31,8 +32,8 @@ namespace game
 		utils::nt::library& get_module();
 		void set_module(utils::nt::library&);
 
-		std::string get_param(std::string const &key);
-		void set_param(std::string const &key, std::string const &value);
+		std::string get_param(std::string const& key);
+		void set_param(std::string const& key, std::string const& value);
 
 		std::filesystem::path get_install_path();
 		std::filesystem::path get_resource_path();
@@ -72,10 +73,10 @@ namespace game
 	}
 
 	template <typename T>
-	class vftable_entry: resolve_after_load_symbol_interface
+	class vftable_entry : resolve_after_load_symbol_interface
 	{
 	public:
-		vftable_entry(const size_t vftable, size_t n, launcher::game game): vftable_(vftable), n_(n), object_(nullptr)
+		vftable_entry(const size_t vftable, size_t n, launcher::game game) : vftable_(vftable), n_(n), object_(nullptr)
 		{
 			::component_loader::register_symbol(this, game);
 		}
@@ -116,16 +117,20 @@ namespace game
 	class symbol
 	{
 	public:
-		symbol(const size_t address): object_(reinterpret_cast<T*>(address))
+		symbol(const size_t address) : object_(reinterpret_cast<T*>(address))
 		{
 		}
 
 		T* get() const
 		{
+			[[unlikely]]
+			if (!object_)
+				throw std::runtime_error{ __FUNCSIG__ ": unresolved" };
+
 			return object_;
 		}
 
-		operator T*() const
+		operator T* () const
 		{
 			return this->get();
 		}
@@ -135,8 +140,116 @@ namespace game
 			return this->get();
 		}
 
-	private:
+	protected:
 		T* object_;
+	};
+
+	template <typename T>
+	class pattern : public symbol<T>, resolve_after_load_symbol_interface
+	{
+	public:
+		pattern(const std::string pattern, 
+				int32_t offset, 
+				launcher::game game, 
+				size_t n = 0) : symbol<T>(0)
+		{
+			pattern_ = pattern;
+			offset_ = offset;
+			n_ = n;
+			::component_loader::register_symbol(this, game);
+		}
+
+		void resolve()
+		{
+			const auto& game_module = environment::get_module();
+
+			if (!n_)
+			{
+				auto result = game_module.match_sig(this->pattern_);
+
+				[[unlikely]]
+				if (!result)
+					throw std::runtime_error{ __FUNCSIG__ ": failed to resolve symbol." };
+
+				this->object_ = reinterpret_cast<T*>(result + this->offset_);
+			}
+			else
+			{
+				auto results = game_module.match_sigs(this->pattern_);
+
+				[[unlikely]]
+				if (results.size() < n_)
+					throw std::runtime_error{ __FUNCSIG__ ": failed to resolve symbol." };
+
+				this->object_ = reinterpret_cast<T*>(results[n_] + this->offset_);
+			}
+
+			printf("%s: %p\n", __FUNCSIG__, this->object_);
+		}
+
+	protected:
+		std::string pattern_;
+		size_t offset_;
+		size_t n_;
+	};
+
+	template <typename T>
+	class pattern_extract : public pattern<T>
+	{
+	public:
+		pattern_extract(const std::string pattern, 
+						int32_t offset, 
+						launcher::game game, 
+						size_t n = 0) : pattern<T>(pattern, offset, game, n) {
+			rva_pos_ = nullptr;
+		}
+
+		void resolve()
+		{
+			pattern<T>::resolve();
+	
+			this->rva_pos_ = reinterpret_cast<uint8_t*>(this->object_);
+			const auto offset = *reinterpret_cast<int32_t*>(this->rva_pos_);
+			this->object_ = reinterpret_cast<T*>(this->rva_pos_ + offset + 4);
+
+			printf("%s: %p\n", __FUNCSIG__, this->object_);
+		}
+
+		uint8_t* get_rva_pos()
+		{
+			return rva_pos_;
+		}
+
+	public:
+		uint8_t *rva_pos_;
+	};
+
+	class pattern_extract_vftable : public pattern_extract<size_t>
+	{
+	public:
+		pattern_extract_vftable(const std::string pattern,
+						int32_t offset,
+						launcher::game game,
+						size_t n = 0) : pattern_extract<size_t>(pattern, offset, game, n) {}
+
+		void* get_ptr(size_t index) const
+		{
+			return reinterpret_cast<void*>(this->object_ + index);
+		}
+
+		template <typename T>
+		T* get(size_t index) const
+		{
+			return *reinterpret_cast<T**>(this->get_ptr(index));
+		}
+
+		template <typename T, typename... Args>
+		static T invoke(size_t index, Args ... args)
+		{
+			return this->get<T(*)(Args ...)>(index)(args...);
+		}
+
+		size_t* operator->() const = delete;
 	};
 }
 
@@ -146,7 +259,7 @@ namespace avs2
 	class function : resolve_after_load_symbol_interface
 	{
 	public:
-		function(const char* name): name_(name), object_(nullptr)
+		function(const char* name) : name_(name), object_(nullptr)
 		{
 			::component_loader::register_symbol(this, launcher::game::all);
 		}

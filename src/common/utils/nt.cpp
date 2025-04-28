@@ -258,7 +258,15 @@ namespace utils::nt
 		return nullptr;
 	}
 
-	uint8_t* library::match_sig(const std::string& pattern)
+	std::vector<uint8_t*> library::match_sigs(const std::string& pattern) const
+	{
+		hook::signature sig{ pattern, *this };
+		auto result = sig.process(false);
+
+		return result;
+	}
+
+	uint8_t* library::match_sig(const std::string& pattern) const
 	{
 		hook::signature sig{ pattern, *this };
 		auto result = sig.process(true);

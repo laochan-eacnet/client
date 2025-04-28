@@ -57,7 +57,7 @@ namespace ddr::patches
 			auto get_service_url_loc = libeacnet.match_sig("0F B6 93 9B 00 00 00");
 			if (!get_service_url_loc)
 				throw std::runtime_error{ "Failed to hook service url." };
-			
+
 			auto get_servicel_url_func = utils::hook::extract<uint8_t*>(get_service_url_loc + 8);
 			utils::hook::jump(get_servicel_url_func, get_service_url, true);
 
