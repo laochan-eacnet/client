@@ -222,8 +222,11 @@ namespace utils::hook
 			throw std::runtime_error("Too far away to create 32bit relative branch");
 		}
 
-		// call cs:
-		bool append_nop = *reinterpret_cast<uint16_t*>(pointer) == 0x15FF;
+		bool append_nop = 
+			// call cs:
+			*reinterpret_cast<uint16_t*>(pointer) == 0x15FF || 
+			// call qword ptr
+			*reinterpret_cast<uint16_t*>(pointer) == 0x90FF;
 
 		auto* patch_pointer = PBYTE(pointer);
 		set<uint8_t>(patch_pointer, 0xE8);
@@ -309,14 +312,24 @@ namespace utils::hook
 		return inject(reinterpret_cast<void*>(pointer), data);
 	}
 
-	void* follow_branch(void* address)
+	uint8_t* follow_branch(void* address)
 	{
 		auto* const data = static_cast<uint8_t*>(address);
-		if (*data != 0xE8 && *data != 0xE9)
+
+		// 8bit rel
+		if (*data == 0xEB ||
+			*data == 0x7E)
 		{
-			throw std::runtime_error("No branch instruction found");
+			return extract<uint8_t*, int8_t>(data + 1);
 		}
 
-		return extract<void*>(data + 1);
+		// 32bit rel
+		if (*data == 0xE8 ||
+			*data == 0xE9)
+		{
+			return extract<uint8_t*, int32_t>(data + 1);
+		}
+
+		throw std::runtime_error("No branch instruction found");
 	}
 }

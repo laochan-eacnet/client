@@ -19,48 +19,6 @@ namespace sdvx::patches
 		return false;
 	}
 
-
-	struct extdrmfs_data
-	{
-		char type[8];
-		void* a;
-		void* b;
-		void* c;
-		void* d;
-	};
-
-	int on_mount(const char* mountpoint, const char* fsroot, const char* fstype, void* data)
-	{
-		if (mountpoint)
-		{
-			printf("mount %s to %s with type %s\n", fsroot, mountpoint, fstype);
-
-			if (false && fstype == "extdrmfs"s)
-			{
-				auto* d = reinterpret_cast<extdrmfs_data*>(data);
-				printf("mounting extdrmfs %s\n", d->type);
-
-				char buffer1[256];
-				char buffer2[256];
-				RtlZeroMemory(buffer1, 256);
-				RtlZeroMemory(buffer2, 256);
-
-				char buffer3[256];
-				char buffer4[256];
-
-				auto size_1 = utils::hook::invoke<size_t>(d->b, buffer3, buffer1);
-				auto size_2 = utils::hook::invoke<size_t>(d->c, buffer4, buffer2);
-
-				std::string str1{ buffer1, buffer1 + size_1 };
-				std::string str2{ buffer2, buffer2 + size_2 };
-
-				printf("buffer1: %s\nbuffer2: %s\n", str1.data(), str2.data());
-			}
-		}
-
-		return avs2::fs_mount(mountpoint, fsroot, fstype, data);
-	}
-
 	utils::hook::detour hash_update_d;
 	utils::hook::detour hash_finish_d;
 
@@ -155,10 +113,6 @@ namespace sdvx::patches
 			if (function == "IsDebuggerPresent")
 			{
 				return is_debugger_present;
-			}
-			else if (function == "#76")
-			{
-				return on_mount;
 			}
 
 			return nullptr;

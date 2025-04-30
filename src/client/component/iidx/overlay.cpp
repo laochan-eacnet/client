@@ -140,11 +140,16 @@ namespace iidx::overlay
 
 			filesystem::file chart_file{ csd.path };
 
+			if (!chart_file.exists())
+			{
+				return nullptr;
+			}
+
 			auto& data = chart_file.get_buffer();
 			std::vector<analyze::chart_analyze_data_t> datas;
 
 			for (int i = 0; i < 10; i++)
-			{	
+			{
 				auto m = analyze::map_chart(i);
 
 				auto offset = *reinterpret_cast<const uint32_t*>(data.data() + m * 8);
@@ -944,7 +949,7 @@ namespace iidx::overlay
 	public:
 		void post_load() override
 		{
-			present.create(0x1401F78C0, present_stub);
+			present.create(iidx::present, present_stub);
 
 			// hook wndproc
 			utils::hook::inject(iidx::main_wndproc.get_rva_pos(), wndproc);
@@ -963,7 +968,8 @@ namespace iidx::overlay
 
 			stage_result_draw_frame_init_orig = iidx::stage_result_draw_frame.get<void*>(0);
 			utils::hook::set(iidx::stage_result_draw_frame.get_ptr(0), stage_result_draw_frame_init);
-			base_stage_attach.create(0x140184FD0, base_stage_attach_hook);
+
+			base_stage_attach.create(base_stage_scene.get<void*>(13), base_stage_attach_hook);
 		}
 
 		void pre_destroy() override

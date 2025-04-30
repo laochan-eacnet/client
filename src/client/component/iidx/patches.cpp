@@ -5,8 +5,6 @@
 #include <game/game.hpp>
 #include <launcher/launcher.hpp>
 
-#include <winhttp.h>
-
 namespace iidx::patches
 {
 	char asio_name[0x2048];
@@ -14,10 +12,10 @@ namespace iidx::patches
 	const char* __fastcall get_service_url(void* _this, bool is_dev, bool is_kr)
 	{
 		static auto service_url = ([]
-			{
-				return game::environment::get_param("LAOCHAN_SERVER_URL");
-			}
-		)();
+		{
+			return game::environment::get_param("LAOCHAN_SERVER_URL");
+		}
+								   )();
 
 		return service_url.data();
 	}
@@ -31,53 +29,6 @@ namespace iidx::patches
 		);
 	}
 
-	bool is_signature_valid()
-	{
-		return true;
-	}
-
-	// bypass ICP registration
-	utils::hook::detour on_http_connect_hook;
-	HINTERNET WINAPI on_http_connect(HINTERNET hSession, LPCWSTR pswzServerName, INTERNET_PORT nServerPort, DWORD dwReserved)
-	{
-		auto connect = on_http_connect_hook.invoke_pascal<HINTERNET>(hSession, pswzServerName, nServerPort, dwReserved);
-
-		if (!StrStrW(pswzServerName, L"cloudfront.net"))
-		{
-			*(reinterpret_cast<uint32_t*>(connect) + 2) = 0x12345678;
-		}
-
-		return connect;
-	}
-
-	utils::hook::detour on_http_open_request_hook;
-	HINTERNET WINAPI on_http_open_request(HINTERNET hConnect, LPCWSTR pwszVerb, LPCWSTR pwszObjectName, LPCWSTR pwszVersion, LPCWSTR pwszReferrer, LPCWSTR* ppwszAcceptTypes, DWORD dwFlags)
-	{
-		auto request = on_http_open_request_hook.invoke<HINTERNET>(hConnect, pwszVerb, pwszObjectName, pwszVersion, pwszReferrer, ppwszAcceptTypes, dwFlags);
-
-		if (*(reinterpret_cast<uint32_t*>(hConnect) + 2) == 0x12345678)
-		{
-			*(reinterpret_cast<uint32_t*>(hConnect) + 2) = 0xDDDDDDDD;
-
-			// ignore cert error
-			DWORD flags =
-				SECURITY_FLAG_IGNORE_UNKNOWN_CA |
-				SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE |
-				SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
-				SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
-
-			WinHttpSetOption(request, WINHTTP_OPTION_SECURITY_FLAGS, &flags, sizeof(flags));
-
-			// overwrite host
-			WinHttpAddRequestHeaders(request,
-				L"Host: tgk-wcaime.wahlap.com",
-				static_cast<DWORD>(-1),
-				WINHTTP_ADDREQ_FLAG_REPLACE | WINHTTP_ADDREQ_FLAG_ADD
-			);
-		}
-
-		return request;
-	}
 
 	bool generate_music_list(avs2::property_ptr dst_prop, avs2::node_ptr /* dst_node */, avs2::node_ptr /*src_node*/, bool /*deep*/)
 	{
@@ -107,7 +58,62 @@ namespace iidx::patches
 			avs2::property_node_create(dst_prop, node, avs2::NODE_TYPE_str, "music_pack_item_id", "");
 		}
 
+		auto snd_mgr = iidx::get_snd_mgr();
+		snd_mgr->mount_sound(80064, 0);
 		return true;
+	}
+
+	struct extdrmfs_data
+	{
+		char type[8];
+		void* a;
+		void* b;
+		void* c;
+		void* d;
+	};
+
+	int on_mount(const char* mountpoint, const char* fsroot, const char* fstype, void* data)
+	{
+		if (mountpoint)
+		{
+			printf("mount %s to %s with type %s\n", fsroot, mountpoint, fstype);
+
+			assert(!strstr(fsroot, "/dl_fs3"));
+
+			if (fstype == "extdrmfs"s)
+			{
+				auto* d = reinterpret_cast<extdrmfs_data*>(data);
+				printf("mounting extdrmfs %s\n", d->type);
+
+				char buffer1[256];
+				char buffer2[256];
+				RtlZeroMemory(buffer1, 256);
+				RtlZeroMemory(buffer2, 256);
+
+				char buffer3[256];
+				char buffer4[256];
+
+				auto size_1 = utils::hook::invoke<size_t>(d->b, buffer3, buffer1);
+				auto size_2 = utils::hook::invoke<size_t>(d->c, buffer4, buffer2);
+
+				std::string str1{ buffer1, buffer1 + size_1 };
+				std::string str2{ buffer2, buffer2 + size_2 };
+
+				printf("buffer1: %s\nbuffer2: %s\n", str1.data(), str2.data());
+			}
+		}
+
+		return avs2::fs_mount(mountpoint, fsroot, fstype, data);
+	}
+
+	int on_umount(const char* mountpoint)
+	{
+		if (mountpoint)
+		{
+			printf("umount %s\n", mountpoint);
+		}
+
+		return avs2::fs_umount(mountpoint);
 	}
 
 	class component final : public component_interface
@@ -115,19 +121,28 @@ namespace iidx::patches
 	public:
 		void post_load() override
 		{
+			const auto& game_module = game::environment::get_module();
+
 			// disable signature check
-			utils::hook::jump(0x140312D10, is_signature_valid);
+			auto* signature_check_loc = game_module.match_sig("48 8B D6 48 8B CB FF 90 80");
+			assert(signature_check_loc);
+			utils::hook::nop(signature_check_loc + 6, 8);
+			utils::hook::set<uint8_t>(signature_check_loc + 14, 0xEB);
 
 			// disable music list checksum check
-			utils::hook::nop(0x140301992, 2);
-			utils::hook::nop(0x14030199E, 2);
+			auto music_list_checksum_loc = game_module.match_sig("75 5E 48 8B D6 E8");
+			assert(music_list_checksum_loc);
+			utils::hook::nop(music_list_checksum_loc, 14);
 
 			// generate music list from client
-			utils::hook::nop(0x14030189F, 6);
-			utils::hook::call(0x14030189F, generate_music_list);
+			auto music_list_import_loc = game_module.match_sig("FF 15 ? ? ? ? 48 85 C0 75 34");
+			assert(music_list_import_loc);
+			utils::hook::call(music_list_import_loc, generate_music_list);
 
 			// change server url
-			utils::hook::jump(0x1402F8A60, get_service_url);
+			auto get_service_url_loc = game_module.match_sig("84 D2 74 16 45");
+			assert(get_service_url_loc);
+			utils::hook::jump(get_service_url_loc, get_service_url);
 			printf("Using bootstrap url: %s\n", get_service_url(nullptr, false, false));
 
 			// override asio device name
@@ -139,17 +154,41 @@ namespace iidx::patches
 
 				std::memcpy(asio_name, device_name.data(), device_name.size());
 
-				utils::hook::inject(0x140253CD4, asio_name);
+				auto asio_device_loc = game_module.match_sig("44 0F B7 8D ? ? ? ? 44");
+				assert(asio_device_loc);
+				utils::hook::inject(asio_device_loc + 18, asio_name);
 				printf("I:launcher: using asio device: %s\n", asio_name);
 
 				// enable retry logic for asio
-				utils::hook::nop(0x1401DCA47, 6);
-				init_superstep_sound_hook.create(0x1402539F0, init_superstep_sound_stub);
+				auto retry_logic_jnz_loc = game_module.match_sig("45 85 FF 0F 85 93 00 00 00");
+				assert(retry_logic_jnz_loc);
+				utils::hook::nop(retry_logic_jnz_loc + 3, 6);
+
+				auto retry_logic_sstep_init_call_loc = game_module.match_sig("44 AC 00 00 48 8B CD E8");
+				assert(retry_logic_sstep_init_call_loc);
+				auto init_superstep_sound_addr = utils::hook::extract<size_t>(retry_logic_sstep_init_call_loc + 8);
+				init_superstep_sound_hook.create(init_superstep_sound_addr, init_superstep_sound_stub);
+			}
+		}
+
+		void* load_import(const std::string& library, const std::string& function) override
+		{
+			if (library == "avs2-core.dll")
+			{
+				if (function == "#76")
+				{
+					return on_mount;
+				}
+				
+				if (function == "#77")
+				{
+					return on_umount;
+				}
+				
 			}
 
-			utils::nt::library winhttp{ "winhttp.dll" };
-			on_http_connect_hook.create(winhttp.get_proc<void*>("WinHttpConnect"), on_http_connect);
-			on_http_open_request_hook.create(winhttp.get_proc<void*>("WinHttpOpenRequest"), on_http_open_request);
+
+			return nullptr;
 		}
 	};
 }

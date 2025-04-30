@@ -42,13 +42,13 @@ namespace iidx::env
 			return EXCEPTION_CONTINUE_SEARCH;
 
 		// set language
-		static auto language = ([]
+		static auto language_ = ([]
 			{
 				return std::stoi(game::environment::get_param("IIDX_LANGUAGE"));
 			}
 		)();
 
-		utils::hook::set<uint32_t>(iidx::language.get() + 4, language);
+		utils::hook::set<uint32_t>(iidx::language.get() + 4, language_);
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
@@ -62,12 +62,6 @@ namespace iidx::env
 
 		void post_load() override
 		{
-			auto version = game::environment::get_version();
-			if (version != IIDX_TARGET_VERSION)
-			{
-				throw std::runtime_error(utils::string::va("Unsupported version %s\nSupported version is " IIDX_TARGET_VERSION ".", version.data()));
-			}
-			
 			CONTEXT ctx{ 0 };
 			ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
 			auto thread = GetCurrentThread();

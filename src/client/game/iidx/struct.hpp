@@ -383,5 +383,27 @@ namespace iidx
 		int32_t id;
 	};
 
+	template <typename T>
+	struct shared_ptr
+	{
+		uint64_t gap[2];
+		T* obj;
+	};
+
+	class MusicSoundResourceManager
+	{
+	public:
+		virtual ~MusicSoundResourceManager() = 0;
+		virtual void sub_1401AF7D0() = 0;
+		virtual void sub_1401AF7E0() = 0;
+		virtual DWORD mount_sound(int32_t id, int unk) = 0;
+		virtual void sub_1401B08B0() = 0;
+		virtual void sub_1401AFDF0() = 0;
+		virtual void sub_1401B0A30() = 0;
+		virtual void sub_1401AFEE0() = 0;
+		virtual void sub_1401AFEF0() = 0;
+		virtual void sub_1401B0C10() = 0;
+		virtual void sub_1401B0AF0() = 0;
+	};
 #pragma pack(pop)
 }

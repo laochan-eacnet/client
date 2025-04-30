@@ -169,15 +169,15 @@ namespace utils::hook
 	void inject(void* pointer, const void* data);
 	void inject(size_t pointer, const void* data);
 
-	template <typename T>
+	template <typename T, typename RT = int32_t>
 	T extract(void* address)
 	{
 		auto* const data = static_cast<uint8_t*>(address);
-		const auto offset = *reinterpret_cast<int32_t*>(data);
-		return reinterpret_cast<T>(data + offset + 4);
+		const auto offset = *reinterpret_cast<RT*>(data);
+		return reinterpret_cast<T>(data + offset + sizeof(RT));
 	}
 
-	void* follow_branch(void* address);
+	uint8_t* follow_branch(void* address);
 
 	template <typename T>
 	static void set(void* place, T value)

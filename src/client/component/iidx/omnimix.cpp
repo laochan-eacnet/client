@@ -1,4 +1,5 @@
 #include <std_include.hpp>
+#include <cstdarg>
 #include "loader/component_loader.hpp"
 
 #include <utils/hook.hpp>
@@ -116,6 +117,15 @@ namespace iidx::omnimix
 		return get_name_hook.invoke<const char*, iidx::music_t*, int>(music, note_id);
 	}
 
+	void mount_sound_ifs(const char* src, int32_t id)
+	{
+		std::string mountpoint_lnk = utils::string::va("/dl_sound_lnk/sound/%d.ifs", id);
+		avs2::fs_mount(mountpoint_lnk.data(), src, "link", nullptr);
+
+		std::string mountpoint = utils::string::va("/data/sound/%d", id);
+		avs2::fs_mount(mountpoint.data(), mountpoint_lnk.data(), "imagefs", nullptr);
+	}
+
 	csd_t* csd_load_hook(csd_t* result, const char* name)
 	{
 		int folder = 0;
@@ -124,7 +134,6 @@ namespace iidx::omnimix
 
 		if (filesystem::exists(result->path))
 		{
-			sscanf_s(name, "preview/%d_pre.2dx", &result->id);
 			return result;
 		}
 
@@ -134,8 +143,7 @@ namespace iidx::omnimix
 
 		if (filesystem::exists(ifs))
 		{
-			std::string mountpoint = utils::string::va("/data/sound/%d", result->id);
-			avs2::fs_mount(mountpoint.data(), ifs, "imagefs", nullptr);
+			mount_sound_ifs(ifs, result->id);
 
 			snprintf(result->path, 256, "/data/sound/%s", name);
 
@@ -171,9 +179,7 @@ namespace iidx::omnimix
 
 		if (filesystem::exists(ifs))
 		{
-			std::string mountpoint = utils::string::va("/sd%05d", result->id);
-			avs2::fs_mount(mountpoint.data(), ifs, "imagefs", nullptr);
-
+			mount_sound_ifs(ifs, result->id);
 			snprintf(result->path, 256, "/sd%05d/%s", result->id, name);
 
 			if (filesystem::exists(result->path))
@@ -207,6 +213,31 @@ namespace iidx::omnimix
 		return snprintf(buffer, buffer_size, "/data/graphic/%s", layer_name);
 	}
 
+	int avs2_snprintf_hook(char* buffer, size_t buffer_size, const char* fmt, ...)
+	{
+		std::va_list va;
+		va_start(va, fmt);
+
+		int result = 0;
+
+		if (fmt == "/data/movie/%s"s)
+		{
+			result = get_movie_path(buffer, buffer_size, nullptr, va_arg(va, const char*));
+		}
+		else if (fmt == "/data/graphic/%s"s)
+		{
+			result = get_layer_path(buffer, buffer_size, nullptr, va_arg(va, const char*));
+		}
+		else
+		{
+			result = vsnprintf(buffer, buffer_size, fmt, va);
+		}
+
+		va_end(va);
+
+		return result;
+	}
+
 	std::vector<json> get_additional_mdatas()
 	{
 		auto dir = avs2::fs_opendir("/laochan/music_datas");
@@ -228,6 +259,7 @@ namespace iidx::omnimix
 		return result;
 	}
 
+	utils::hook::detour insert_music_datas_hook;
 	void insert_music_datas()
 	{
 		filesystem::file ac_music_data{ env::use_exp() ? "/ac_mount/info/0/music_data.bin" : "/data/omni_musics.bin" };
@@ -249,7 +281,6 @@ namespace iidx::omnimix
 		std::memcpy(backup, music_data, 0x400000);
 
 		auto _ = gsl::finally([=] {
-			iidx::finalize_music_data();
 			utils::memory::free(backup);
 		});
 
@@ -458,6 +489,8 @@ namespace iidx::omnimix
 
 		for (size_t i = 0; i < music_data->music_count; i++)
 			std::memcpy(music_data->musics + i, &musics[i], sizeof(iidx::music_t));
+
+		return insert_music_datas_hook.invoke<void>();
 	}
 
 	class component final : public component_interface
@@ -465,41 +498,54 @@ namespace iidx::omnimix
 	public:
 		void post_load() override
 		{
+			const auto& game_module = game::environment::get_module();
+
 			// return success if file not exists
-			utils::hook::set<uint16_t>(0x1401F16B8, 0x01B0);
+			auto file_exists_patch_loc = game_module.match_sig("32 C0 E9 2B 03 00 00");
+			assert(file_exists_patch_loc);
+			utils::hook::set<uint16_t>(file_exists_patch_loc, 0x01B0);
 
 			// allow mp4 and wmv bga
-			get_name_hook.create(0x1401C4530, get_bga_name);
+			auto get_bga_name_loc = game_module.match_sig("3D A3 42 00 00 75 12");
+			assert(get_bga_name_loc);
+			get_name_hook.create(get_bga_name_loc - 24, get_bga_name);
 
 			// remove music count limit
-			utils::hook::set<uint8_t>(0x1401C336E, 0xEB);
+			// NOTE: actually not required...but we use this as signature for next patch
+			auto music_count_limit_loc = game_module.match_sig("41 81 F9 D0 07");
+			assert(music_count_limit_loc);
+			utils::hook::set<uint8_t>(music_count_limit_loc + 7, 0xEB);
 
 			// add omni songs to music_data.bin
-			utils::hook::call(0x1401C337E, insert_music_datas);
+			auto insert_music_data_call_loc = utils::hook::follow_branch(music_count_limit_loc + 7);
+			auto insert_music_data_loc = utils::hook::extract<void*>(insert_music_data_call_loc + 1);
+			insert_music_datas_hook.create(insert_music_data_loc, insert_music_datas);
 
-			if (env::use_exp())
-			{
-				// load ac files if ac file exists
-				utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
-				utils::hook::call(0x14020C870, get_movie_path);
-				utils::hook::call(0x14020CE7D, get_movie_path);
-				utils::hook::call(0x140105A9D, get_layer_path);
-				utils::hook::call(0x140174610, get_layer_path);
-				utils::hook::call(0x140224386, get_layer_path);
-				utils::hook::call(0x140224636, get_layer_path);
-			}
+			// load ac files if ac file exists
+			utils::hook::jump(iidx::csd_load.get(), csd_load_hook);
 		}
 
 		void post_avs_init() override
 		{
-			if (env::use_exp())
-			{
-				auto acdata_path = game::environment::get_param("IIDX_ACDATA_PATH");
-				if (!std::filesystem::exists(acdata_path))
-					return;
+			if (!env::use_exp())
+				return;
 
-				avs2::fs_mount("/ac_mount", acdata_path.data(), "fs", nullptr);
+			auto acdata_path = game::environment::get_param("IIDX_ACDATA_PATH");
+			if (!std::filesystem::exists(acdata_path))
+				return;
+
+			avs2::fs_mount("/ac_mount", acdata_path.data(), "fs", nullptr);
+		}
+
+		void* load_import(const std::string& library, const std::string& function) override
+		{
+			// load ac files if ac file exists
+			if (env::use_exp() && library == "avs2-core.dll" && function == "#258")
+			{
+				return avs2_snprintf_hook;
 			}
+
+			return nullptr;
 		}
 	};
 }

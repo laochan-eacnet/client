@@ -14,7 +14,7 @@ extern "C" int init(const char* data_dir);
 namespace filesystem
 {
 	file::file(std::string name)
-		: name_(std::move(name))
+		: name_(name)
 	{
 		avs2::stat stat = { 0 };
 		if (!avs2::fs_lstat(name.data(), &stat) || stat.filesize <= 0)

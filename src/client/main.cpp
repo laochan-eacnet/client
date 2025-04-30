@@ -200,8 +200,10 @@ int main()
 			component_loader::pre_destroy();
 		});
 
+#ifndef _DEBUG
 		try
 		{
+#endif
 			auto game = detect_game_from_arguments();
 
 			if (game == launcher::game::invalid)
@@ -232,12 +234,15 @@ int main()
 				return 0;
 
 			steam_proxy::set_status(game::environment::get_string());
+
+#ifndef _DEBUG
 		}
 		catch (std::exception& e)
 		{
 			MessageBoxA(nullptr, e.what(), "Laochan Bootstrap ERROR", MB_ICONERROR);
 			return 1;
 		}
+#endif
 	}
 
 	try
