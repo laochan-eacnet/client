@@ -753,9 +753,11 @@ namespace iidx::overlay
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F11), false))
 			show_clock = !show_clock;
 
+#ifndef STABLE
 		// F10 - toggle notes radar, etc
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F10), false))
 			show_extra_music_info = !show_extra_music_info;
+#endif
 
 		// F9 - toggle diff table type
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F9), false))
@@ -769,11 +771,13 @@ namespace iidx::overlay
 		if (show_clock)
 			draw_clock();
 
+#ifndef STABLE
 		if (show_extra_music_info)
 		{
 			notes_radar::draw();
 			notes_difficulty::draw();
 		}
+#endif
 
 		modifier_selector::draw();
 	}
@@ -982,4 +986,6 @@ namespace iidx::overlay
 	};
 }
 
+#ifndef STABLE
 REGISTER_COMPONENT(iidx::overlay::component, launcher::game::iidx)
+#endif

@@ -550,4 +550,6 @@ namespace iidx::omnimix
 	};
 }
 
+#ifndef STABLE
 REGISTER_COMPONENT(iidx::omnimix::component, launcher::game::iidx)
+#endif

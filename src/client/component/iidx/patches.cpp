@@ -63,6 +63,7 @@ namespace iidx::patches
 		return true;
 	}
 
+#ifndef STABLE
 	struct extdrmfs_data
 	{
 		char type[8];
@@ -115,6 +116,7 @@ namespace iidx::patches
 
 		return avs2::fs_umount(mountpoint);
 	}
+#endif
 
 	class component final : public component_interface
 	{
@@ -173,6 +175,7 @@ namespace iidx::patches
 
 		void* load_import(const std::string& library, const std::string& function) override
 		{
+#ifndef STABLE
 			if (library == "avs2-core.dll")
 			{
 				if (function == "#76")
@@ -186,6 +189,7 @@ namespace iidx::patches
 				}
 				
 			}
+#endif
 
 
 			return nullptr;

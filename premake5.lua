@@ -106,14 +106,15 @@ newaction {
 		local proc = assert(io.popen(gitVersioningCommand, "r"))
 		local gitDescribeOutput = assert(proc:read('*a')):gsub("%s+", "")
 		proc:close()
-		local version = 'r' .. gitDescribeOutput
+		local revision = 'r' .. gitDescribeOutput
+		local version = revision
 
 		proc = assert(io.popen(gitCurrentBranchCommand, "r"))
 		local gitCurrentBranchOutput = assert(proc:read('*a')):gsub("%s+", "")
 		local gitCurrentBranchSuccess = proc:close()
 		if gitCurrentBranchSuccess then
 			-- We got a branch name, check if it is a feature branch
-			if gitCurrentBranchOutput ~= "master" then
+			if gitCurrentBranchOutput ~= "stable" then
 				version = version .. " - " .. gitCurrentBranchOutput
 			end
 		end
@@ -129,7 +130,12 @@ newaction {
 		versionHeader:write(" * Do not touch!\n")
 		versionHeader:write(" */\n")
 		versionHeader:write("\n")
+		versionHeader:write("#define REVISION_NUMBER " .. cstrquote(revision) .. "\n")
+		versionHeader:write("#define BRANCH " .. cstrquote(gitCurrentBranchOutput) .. "\n")
 		versionHeader:write("#define VERSION " .. cstrquote(version) .. "\n")
+		if gitCurrentBranchOutput == "stable" then
+			versionHeader:write("#define STABLE")
+		end
 		versionHeader:write("\n")
 		versionHeader:close()
 
