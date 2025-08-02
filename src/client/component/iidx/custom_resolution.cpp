@@ -150,6 +150,18 @@ namespace iidx::custom_resolution
 
 			return SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 		}
+
+		HRESULT WINAPI co_create_instance(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID* ppv) 
+		{
+			if (IsEqualCLSID(rclsid, __uuidof(MMDeviceEnumerator)) && IsEqualIID(riid, __uuidof(IMMDeviceEnumerator)))
+			{
+				IMMDeviceEnumerator* enumerator = nullptr;
+			}
+			else
+			{
+				return CoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
+			}
+		}
 	}
 
 	class component final : public component_interface
@@ -173,6 +185,10 @@ namespace iidx::custom_resolution
 			else if (function == "SetWindowPos")
 			{
 				return set_window_pos;
+			}
+			else if(function == "CoCreateInstance")
+			{
+				return co_create_instance;
 			}
 
 			return nullptr;

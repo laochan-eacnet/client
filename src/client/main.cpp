@@ -180,7 +180,7 @@ static void set_qos_mode(bool high)
 
 	SetProcessInformation(self, ProcessPowerThrottling, &priority_info, sizeof(PROCESS_POWER_THROTTLING_STATE));
 	SetProcessInformation(self, ProcessMemoryPriority, &power_state, sizeof(MEMORY_PRIORITY_INFORMATION));
-	SetPriorityClass(self, IDLE_PRIORITY_CLASS);
+	SetPriorityClass(self, high ? HIGH_PRIORITY_CLASS : IDLE_PRIORITY_CLASS);
 }
 
 int main()
