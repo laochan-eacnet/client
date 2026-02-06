@@ -20,6 +20,8 @@
 
 #include <windowsx.h>
 
+#ifndef STABLE
+
 using json = nlohmann::json;
 
 #define RAD(n) (n * static_cast<float>(std::numbers::pi) / 180.f)
@@ -986,6 +988,5 @@ namespace iidx::overlay
 	};
 }
 
-#ifndef STABLE
 REGISTER_COMPONENT(iidx::overlay::component, launcher::game::iidx)
 #endif

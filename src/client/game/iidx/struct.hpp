@@ -203,61 +203,25 @@ namespace iidx
 	};
 
 	struct music_t {
-		char title[0x40];
+		char title[0x80];
 		char title_ascii[0x40];
-		char genre[0x40];
-		char artist[0x40];
+		char genre[0x80];
+		char artist[0x80];
 
-		uint32_t texture_title;
-		uint32_t texture_artist;
-		uint32_t texture_genre;
-		uint32_t texture_load;
-		uint32_t texture_list;
+		char __gap1[0x20];
 
-		uint32_t font_idx;
-		uint16_t game_version;
+		char level[10];
 
-		uint16_t other_folder;
-		uint16_t bemani_folder;
-		uint16_t splittable_diff;
-
-		uint8_t level[10];
-
-		uint8_t __gap1[2];
-
-		bpm_t bpm[10];
-
-		uint8_t __gap2[52];
-
-		uint32_t note_count[10];
-
-		uint8_t __gap3[88];
-		uint32_t chart_type[10];
-		uint8_t __gap4[24];
+		char __gap2[0x146];
 
 		uint32_t song_id;
-		uint32_t volume;
-
-		uint8_t ident_sp[5];
-		uint8_t ident_dp[5];
-
-		uint16_t bga_delay;
-
-		uint16_t __gap5;
-
-		char bga_filename[0x20];
-
-		uint16_t __gap6;
-
-		uint32_t afp_flag;
-
-		uint8_t afp_data[0x20 * 10];
-		uint32_t __gap7;
+		
+		char __gap3[0x17C];
 	};
 
-	static_assert(offsetof(music_t, song_id) == 624);
-	static_assert(offsetof(music_t, bga_filename) == 646);
-	static_assert(sizeof(music_t) == 0x3F0);
+	static_assert(offsetof(music_t, level) == 0x1E0);
+	static_assert(offsetof(music_t, song_id) == 0x330);
+	static_assert(sizeof(music_t) == 0x4B0);
 
 	struct music_data_t {
 		uint32_t header;

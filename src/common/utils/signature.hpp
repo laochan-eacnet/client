@@ -46,5 +46,5 @@ namespace utils::hook
 	};
 }
 
-utils::hook::signature::signature_result operator"" _sigs(const char* str, size_t len);
-uint8_t* operator"" _sig(const char* str, size_t len);
+utils::hook::signature::signature_result operator""_sigs(const char* str, size_t len);
+uint8_t* operator""_sig(const char* str, size_t len);

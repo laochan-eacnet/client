@@ -11,6 +11,8 @@
 #include "analyze.hpp"
 #include "env.hpp"
 
+#ifndef STABLE
+
 using json = nlohmann::json;
 
 namespace iidx::omnimix
@@ -550,6 +552,5 @@ namespace iidx::omnimix
 	};
 }
 
-#ifndef STABLE
 REGISTER_COMPONENT(iidx::omnimix::component, launcher::game::iidx)
 #endif

@@ -216,12 +216,12 @@ namespace utils::hook
 	}
 }
 
-utils::hook::signature::signature_result operator"" _sigs(const char* str, const size_t len)
+utils::hook::signature::signature_result operator""_sigs(const char* str, const size_t len)
 {
 	return utils::hook::signature(std::string(str, len)).process(false);
 }
 
-uint8_t* operator"" _sig(const char* str, const size_t len)
+uint8_t* operator""_sig(const char* str, const size_t len)
 {
 	auto result = utils::hook::signature(std::string(str, len)).process(true);
 	return result.size() ? result[0] : nullptr;
