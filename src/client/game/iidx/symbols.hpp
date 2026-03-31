@@ -30,9 +30,9 @@ namespace iidx
 	WEAK pattern_extract<HWND> main_hwnd{ "48 89 45 F0 4C 8B 05", 7, launcher::game::iidx };
 	WEAK pattern_extract<char> infinitas_id{ "BA 0E 00 00 00 48 8D 0D", 8, launcher::game::iidx, 3 };
 
-	WEAK pattern_extract<bool> show_options{ "41 0F B6 CC 88 0D", 6, launcher::game::iidx };
-	WEAK pattern_extract<bool> show_consume_window{ "48 89 1D ? ? ? ? 89 1D ? ? ? ? C7 05", 3, launcher::game::iidx };
-	WEAK pattern_extract<option_t> option{ "78 08 89 2D", 4, launcher::game::iidx };
+	// WEAK pattern_extract<bool> show_options{ "41 0F B6 CC 88 0D", 6, launcher::game::iidx };
+	// WEAK pattern_extract<bool> show_consume_window{ "48 89 1D ? ? ? ? 89 1D ? ? ? ? C7 05", 3, launcher::game::iidx };
+	// WEAK pattern_extract<option_t> option{ "78 08 89 2D", 4, launcher::game::iidx };
 
 	WEAK pattern_extract<state_t> state{ "75 EE 8B 15 ? ? ? ? 45 33 C0", 4, launcher::game::iidx };
 

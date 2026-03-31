@@ -231,7 +231,7 @@ targetname "laochan_bootstrap64"
 pchheader "std_include.hpp"
 pchsource "src/client/std_include.cpp"
 
-linkoptions {"/IGNORE:4254", "/DYNAMICBASE:NO", "/SAFESEH:NO", "/LARGEADDRESSAWARE", "/LAST:.main", "/PDBCompress"}
+linkoptions {"/IGNORE:4254", "/DYNAMICBASE:NO", "/SAFESEH:NO", "/LARGEADDRESSAWARE", "/LAST:.main", "/PDBCompress", "/STACK:4194304"}
 
 files {"./src/client/**.rc", "./src/client/**.hpp", "./src/client/**.cpp", "./src/client/resources/**.*"}
 

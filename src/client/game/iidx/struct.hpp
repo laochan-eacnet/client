@@ -212,7 +212,7 @@ namespace iidx
 
 		char level[10];
 
-		char __gap2[0x146];
+		char __gap2[0x2C6];
 
 		uint32_t song_id;
 		
@@ -220,8 +220,8 @@ namespace iidx
 	};
 
 	static_assert(offsetof(music_t, level) == 0x1E0);
-	static_assert(offsetof(music_t, song_id) == 0x330);
-	static_assert(sizeof(music_t) == 0x4B0);
+	static_assert(offsetof(music_t, song_id) == 0x4B0);
+	static_assert(sizeof(music_t) == 0x630);
 
 	struct music_data_t {
 		uint32_t header;
