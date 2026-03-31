@@ -63,6 +63,19 @@ namespace iidx::patches
 		return true;
 	}
 
+	utils::hook::detour property_node_refer;
+	int property_node_refer_hook(avs2::property_ptr prop, avs2::node_ptr node, const char* path, avs2::node_type type, void* data, uint32_t data_size)
+	{
+		// force enable premium pass
+		if (type == avs2::node_type::NODE_TYPE_bool && path == "/pdata/premium_pass"s)
+		{
+			*reinterpret_cast<char*>(data) = 1;
+			return 0;
+		}
+
+		return property_node_refer.invoke<int>(prop, node, path, type, data, data_size);
+	}
+
 #ifndef STABLE
 	struct extdrmfs_data
 	{
@@ -171,6 +184,8 @@ namespace iidx::patches
 				auto init_superstep_sound_addr = utils::hook::extract<size_t>(retry_logic_sstep_init_call_loc + 8);
 				init_superstep_sound_hook.create(init_superstep_sound_addr, init_superstep_sound_stub);
 			}
+
+			property_node_refer.create(avs2::property_node_refer.get(), property_node_refer_hook);
 		}
 
 		void* load_import(const std::string& library, const std::string& function) override

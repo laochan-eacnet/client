@@ -75,4 +75,5 @@ namespace avs2
 	WEAK function<int(property_ptr prop, uint32_t set_flags, uint32_t clear_flags)> property_set_flag{ "XCgsqzn000009a" };
 	WEAK function<int(node_ptr node, node_type type, void* data, uint32_t data_size)> property_node_read{ "XCgsqzn00000ab" };
 	WEAK function<int(node_ptr node, char* buffer, uint32_t buffer_size)> property_node_name{ "XCgsqzn00000a7" };
+	WEAK function<int(property_ptr prop, node_ptr node, const char* path, node_type type, void* data, uint32_t data_size)> property_node_refer{ "XCgsqzn00000af" };
 }
