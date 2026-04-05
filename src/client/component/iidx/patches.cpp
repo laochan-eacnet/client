@@ -20,9 +20,23 @@ namespace iidx::patches
 		return service_url.data();
 	}
 
+    // todo: configurable
+    int get_asio_channel_count()
+    {
+		return 8;
+    }
+
 	utils::hook::detour init_superstep_sound_hook;
 	uint64_t __fastcall init_superstep_sound_stub(void* _this, int /* use_asio */, int sample_rate, int16_t bitrate_device, uint32_t bitrate, int channels, int exclusive)
 	{
+		// use 7.1ch output, for cabient
+		if (init_superstep_sound_hook.invoke<uint64_t>(
+			_this, true,
+			sample_rate, bitrate_device, bitrate, get_asio_channel_count(), exclusive
+		)) {
+			return 1;
+		}
+		
 		return init_superstep_sound_hook.invoke<uint64_t>(
 			_this, true,
 			sample_rate, bitrate_device, bitrate, channels, exclusive
