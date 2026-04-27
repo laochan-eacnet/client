@@ -199,7 +199,7 @@ filter "configurations:Release"
 	buildoptions {"/GL", "/arch:AVX2"}
 	linkoptions {"/IGNORE:4702", "/IGNORE:4099", "/LTCG", "/NODEFAULTLIB:saucer.lib"}
 	defines {"NDEBUG"}
-	flags {"FatalCompileWarnings"}
+	fatalwarnings { "All" }
 filter {}
 
 filter "configurations:Debug"

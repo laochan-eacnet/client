@@ -145,6 +145,43 @@ namespace iidx::patches
 	}
 #endif
 
+	void unlock_item(uint8_t* target, const size_t index, const char* item_id, const int free_count, const int non_free_count)
+	{
+		std::memcpy(target + 28 * index, item_id, 9);
+		utils::hook::set<int>(target + 28 * index + 0x14, free_count);
+		utils::hook::set<int>(target + 28 * index + 0x18, non_free_count);
+
+		printf("unlocked %s\n", item_id);
+	}
+
+	int item_list_export_struct(uint8_t* target)
+	{
+		const auto& game_module = game::environment::get_module();
+		
+		static auto items_pattern = game_module.match_sig("89 44 24 58 48 8D 3D ? ? ? ?");
+		static auto items = reinterpret_cast<char**>(items_pattern + 11 + *reinterpret_cast<uint32_t*>(items_pattern + 7));
+
+		int count = 0;
+		for (int i = 0; ; i++)
+		{
+			auto item = items[i];
+
+			// ticket & ldisc
+			if (item[2] == '0')
+				unlock_item(target, count++, item, 9999, 9999);
+			else
+				unlock_item(target, count++, item, 0, 1);
+
+			if (item == "I2199999"s)
+				break;
+		}
+
+		utils::hook::set(target + 28 * count, count);
+		printf("unlocked %d items\n", count);
+
+		return 0;
+	}
+
 	class component final : public component_interface
 	{
 	public:
@@ -173,6 +210,11 @@ namespace iidx::patches
 			assert(get_service_url_loc);
 			utils::hook::jump(get_service_url_loc, get_service_url);
 			printf("Using bootstrap url: %s\n", get_service_url(nullptr, false, false));
+
+			// unlock all items
+			auto item_list_export_struct_loc = game_module.match_sig("75 1C 48 8D 0D ? ? ? ? E8");
+			assert(item_list_import_struct_loc);
+			utils::hook::call(item_list_export_struct_loc + 9, item_list_export_struct);
 
 			// override asio device name
 			if (game::environment::get_param("IIDX_SOUND_MODE") == "1")
