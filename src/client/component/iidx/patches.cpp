@@ -213,7 +213,7 @@ namespace iidx::patches
 
 			// unlock all items
 			auto item_list_export_struct_loc = game_module.match_sig("75 1C 48 8D 0D ? ? ? ? E8");
-			assert(item_list_import_struct_loc);
+			assert(item_list_export_struct_loc);
 			utils::hook::call(item_list_export_struct_loc + 9, item_list_export_struct);
 
 			// override asio device name
